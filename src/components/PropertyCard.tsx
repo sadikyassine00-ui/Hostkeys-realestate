@@ -2,43 +2,39 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
 import { Bed, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles } from 'lucide-react';
-import { formatCurrency } from '../utils';
+import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
 
 interface PropertyCardProps {
   key?: string;
   listing: Listing;
-  adminUser?: User; // The admin who approved or managed this listing
-  currentUser: User;
+  adminUser?: User;
+  currentUser?: User | null;
   onSelect?: (listing: Listing) => void;
-  currency: 'USD' | 'EUR';
+  currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, onSelect, currency, eurRate, lang }: PropertyCardProps) {
-  const [showContact, setShowContact] = useState(false);
-
-  // Determine who to show as contact based on approval state
-  // "when his listing is approved its not shown with his personal info but with the info of the admin that approved it, and of course the admin can also list a listing"
   const isDirectAdminListing = listing.ownerId.startsWith('admin');
   const finalContactName = isDirectAdminListing
-    ? (listing.personalOwnerInfo.name || "Marcus Sterling")
-    : (adminUser?.name || "Marcus Sterling (Lead Broker)");
+    ? (listing.personalOwnerInfo.name || "Hostkeys Admin")
+    : (adminUser?.name || "Hostkeys Support");
   
   const finalContactEmail = isDirectAdminListing
-    ? (listing.personalOwnerInfo.email || "marcus.sterling@primeestates.com")
-    : (adminUser?.email || "marcus.sterling@primeestates.com");
+    ? (listing.personalOwnerInfo.email || "support@hostkeys.ma")
+    : (adminUser?.email || "support@hostkeys.ma");
 
   const finalContactPhone = isDirectAdminListing
-    ? (listing.personalOwnerInfo.phone || "+1 (555) 900-2026")
-    : (adminUser?.phone || "+1 (555) 900-2026");
+    ? (listing.personalOwnerInfo.phone || "+212 522 000000")
+    : (adminUser?.phone || "+212 522 000000");
 
   const finalContactAvatar = isDirectAdminListing
     ? "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
     : (adminUser?.avatar || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80");
 
-  const isMyListing = listing.ownerId === currentUser.id;
+  const isMyListing = currentUser && listing.ownerId === currentUser.id;
 
   return (
     <motion.div 
@@ -53,7 +49,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
       {/* Property Image & Badges */}
       <div className="relative aspect-[1.6] w-full overflow-hidden bg-[#030303]">
         <img 
-          src={listing.image} 
+          src={listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&h=500&q=80'} 
           referrerPolicy="no-referrer"
           alt={listing.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -71,9 +67,9 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
           )}
         </div>
 
-        {/* Protection / Masked Badge - Dynamic indicator of our core feature */}
+        {/* Protection / Masked Badge */}
         <div className="absolute top-4 right-4 z-10">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-brand border border-brand/30 backdrop-blur-md cursor-pointer hover:bg-brand hover:text-[#030303] transition-colors" title="Admin Representative Broker Model Active">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-brand border border-brand/30 backdrop-blur-md cursor-pointer hover:bg-brand hover:text-[#030303] transition-colors" title="Hostkeys Verified & Protected">
             <ShieldCheck className="h-4.5 w-4.5" />
           </div>
         </div>
@@ -81,7 +77,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
         {/* Price Tag Overlay */}
         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
           <div className="rounded-xl bg-[#030303]/90 px-3.5 py-1.5 border border-brand/20 backdrop-blur-md">
-            <span className="text-xl font-bold font-mono text-brand">
+            <span className="text-lg font-bold font-mono text-brand">
               {formatCurrency(listing.price, currency, eurRate, true, listing.type)}
             </span>
           </div>
@@ -120,7 +116,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
           </div>
         </div>
 
-        {/* Amenities Pill Box - up to 4 */}
+        {/* Amenities */}
         <div className="mt-3.5 flex flex-wrap gap-1">
           {listing.amenities.slice(0, 3).map((amenity, idx) => (
             <span key={idx} className="rounded bg-neutral-900 px-2 py-0.5 text-[10px] font-mono text-slate-400 border border-neutral-850">
@@ -135,7 +131,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
         </div>
       </div>
 
-      {/* Broker Profile Mask (Admin Represents Owner) */}
+      {/* Hostkeys Representative Footer */}
       <div className="mx-5 mb-5 border-t border-neutral-900 pt-4 flex flex-col">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -148,57 +144,25 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
             <div>
               <div className="flex items-center gap-1 leading-none">
                 <span className="text-xs font-semibold text-slate-200 line-clamp-1">{finalContactName}</span>
-                <span className="text-brand flex-shrink-0" title="Broker Representative Verified">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </span>
+                <span className="flex h-1.5 w-1.5 rounded-full bg-brand" />
               </div>
-              <p className="text-[10px] font-mono text-[#a6fe00] mt-0.5">{t('cardAdvisoryPartner', lang)}</p>
+              <span className="text-[10px] font-mono text-slate-450">{t('cardAdvisoryPartner', lang)}</span>
             </div>
           </div>
-          <div className="flex gap-2 shrink-0">
+
+          <div className="flex items-center gap-1">
             <button 
-              id={`btn-expand-${listing.id}`}
               onClick={(e) => {
                 e.stopPropagation();
                 onSelect?.(listing);
               }}
-              className="rounded-lg bg-brand/10 px-3 py-1.5 text-xs font-mono text-brand border border-brand/20 hover:bg-brand hover:text-[#030303] transition-all"
+              className="px-3 py-1.5 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-xs font-semibold font-mono transition-all border border-brand/20 flex items-center gap-1"
             >
-              {t('cardExpand', lang)}
-            </button>
-            <button 
-              id={`btn-contact-${listing.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowContact(!showContact);
-              }}
-              className="rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-mono text-slate-300 border border-neutral-800 hover:bg-brand hover:text-[#030303] transition-all"
-            >
-              {showContact ? t('cardClose', lang) : t('cardBroker', lang)}
+              <span>{t('cardDetailsBtn', lang)}</span>
             </button>
           </div>
         </div>
-
-        {/* Contact Details Expand (Smooth transitions) */}
-        {showContact && (
-          <div className="mt-3.5 overflow-hidden rounded-xl bg-[#030303]/90 p-3 border border-brand/15 text-xs font-mono text-slate-300">
-            <div className="flex items-center gap-2 mb-1.5">
-              <Mail className="h-3.5 w-3.5 text-brand shrink-0" />
-              <span className="truncate">{finalContactEmail}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-3.5 w-3.5 text-brand shrink-0" />
-              <span>{finalContactPhone}</span>
-            </div>
-            <div className="mt-2 border-t border-neutral-850 pt-2 text-[10px] text-slate-400 leading-tight">
-              {t('cardVettedAdvisoryNotice', lang)}
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Optional action triggers (e.g. For admin or details popup) */}
-      <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-brand/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
     </motion.div>
   );
 }

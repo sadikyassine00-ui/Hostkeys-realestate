@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Listing } from './types';
-import { DEMO_OWNER, DEMO_ADMIN, INITIAL_LISTINGS, ALL_AMENITIES, ALL_LOCATIONS } from './mockData';
+import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS } from './mockData';
 import PropertyCard from './components/PropertyCard';
 import PropertyForm from './components/PropertyForm';
 import PropertyDetailDrawer from './components/PropertyDetailDrawer';
 import DashboardView from './components/DashboardView';
-import { formatCurrency, convertValue } from './utils';
+import { formatCurrency, convertValue, Currency } from './utils';
 import { t, translateListing, translateLocation, translateAmenity } from './translations';
 import { 
   fetchProperties, 
@@ -54,17 +54,21 @@ const HERO_CAROUSEL_IMAGES = [
 ];
 
 export default function App() {
-  // --- Persistent & DB State hooks ---
-  const [users, setUsers] = useState<User[]>(() => {
-    const cached = localStorage.getItem('prime_users');
-    return cached ? JSON.parse(cached) : [DEMO_OWNER, DEMO_ADMIN];
+  // --- Auth & Persistent State hooks ---
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return localStorage.getItem('hostkeys_logged_in') === 'true';
   });
 
-  const [listings, setListings] = useState<Listing[]>(INITIAL_LISTINGS);
-  const [currentUser, setCurrentUser] = useState<User>(() => {
-    const cached = localStorage.getItem('prime_current_user');
-    return cached ? JSON.parse(cached) : DEMO_OWNER;
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const cached = localStorage.getItem('hostkeys_current_user');
+    if (cached) {
+      try { return JSON.parse(cached); } catch (e) {}
+    }
+    return localStorage.getItem('hostkeys_logged_in') === 'true' ? DEMO_ADMIN : null;
   });
+
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   // Database & Firebase connection status flags
   const [isLiveDb, setIsLiveDb] = useState<boolean>(false);
@@ -76,15 +80,12 @@ export default function App() {
     setIsLoading(true);
     try {
       const data = await fetchProperties();
-      if (data.listings && data.listings.length > 0) {
+      if (data.listings) {
         setListings(data.listings);
-      } else {
-        setListings(INITIAL_LISTINGS);
       }
       setIsLiveDb(data.isLiveDb);
     } catch (err) {
       console.warn('Falling back to local listings:', err);
-      setListings(INITIAL_LISTINGS);
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +94,6 @@ export default function App() {
   useEffect(() => {
     loadPropertiesFromApi();
 
-    // Check backend DB status
     checkApiHealth().then(health => {
       setIsLiveDb(health.dbConnected);
     });
@@ -113,6 +113,10 @@ export default function App() {
         };
 
         setCurrentUser(syncedUser);
+        setIsLoggedIn(true);
+        localStorage.setItem('hostkeys_logged_in', 'true');
+        localStorage.setItem('hostkeys_current_user', JSON.stringify(syncedUser));
+
         try {
           await syncUserApi(syncedUser);
         } catch (e) {
@@ -124,26 +128,40 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('prime_users', JSON.stringify(users));
-  }, [users]);
+  // Auto-redirect if already logged in when visiting auth modal
+  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('prime_current_user', JSON.stringify(currentUser));
-  }, [currentUser]);
+    if (isLoggedIn && showRegisterDialog) {
+      setShowRegisterDialog(false);
+      setActiveTab('dashboard');
+    }
+  }, [isLoggedIn, showRegisterDialog]);
+
+  // Handle Logout
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch (e) {}
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    localStorage.removeItem('hostkeys_logged_in');
+    localStorage.removeItem('hostkeys_current_user');
+    setActiveTab('catalog');
+  };
 
   // --- Translation State ---
   const [lang, setLang] = useState<'en' | 'fr'>(() => {
-    const cached = localStorage.getItem('prime_lang');
+    const cached = localStorage.getItem('hostkeys_lang');
     return (cached === 'en' || cached === 'fr') ? cached : 'en';
   });
 
   useEffect(() => {
-    localStorage.setItem('prime_lang', lang);
+    localStorage.setItem('hostkeys_lang', lang);
   }, [lang]);
 
   // --- Currency States ---
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD');
+  const [currency, setCurrency] = useState<Currency>('MAD');
   const [eurRate, setEurRate] = useState<number>(0.895);
 
   useEffect(() => {
@@ -156,9 +174,7 @@ export default function App() {
             setEurRate(data.EUR);
           }
         }
-      } catch (err) {
-        console.warn("Failed fetching live market exchange rates, caching presets:", err);
-      }
+      } catch (err) {}
     };
     fetchRates();
   }, []);
@@ -170,7 +186,7 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState('All');
   const [bedroomsFilter, setBedroomsFilter] = useState<number | 'All'>('All');
   const [maxPrice, setMaxPrice] = useState<number>(() => {
-    return activeSegment === 'buy' ? 2000000 : 8000;
+    return activeSegment === 'buy' ? 20000000 : 80000;
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
@@ -180,9 +196,8 @@ export default function App() {
   const [showNewListingForm, setShowNewListingForm] = useState(false);
   const [expandedListing, setExpandedListing] = useState<Listing | null>(null);
 
-  // Auth / Registration Dialog State
-  const [showRegisterDialog, setShowRegisterDialog] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
+  // Auth Dialog Form State
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
@@ -192,7 +207,9 @@ export default function App() {
 
   useEffect(() => {
     const baseValue = activeSegment === 'buy' ? 2000000 : 8000;
-    setMaxPrice(currency === 'EUR' ? Math.round(baseValue * eurRate) : baseValue);
+    if (currency === 'MAD') setMaxPrice(baseValue * 10.10);
+    else if (currency === 'EUR') setMaxPrice(Math.round(baseValue * eurRate));
+    else setMaxPrice(baseValue);
   }, [activeSegment, currency, eurRate]);
 
   // Carousel timer
@@ -204,7 +221,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Auth Submit Handler (Firebase + Fallback)
+  // Auth Submit Handler
   const handleRegisterAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
@@ -218,15 +235,20 @@ export default function App() {
             name: regName || regEmail.split('@')[0],
             email: regEmail,
             phone: regPhone || '+212 600-000000',
-            avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 900000)}?auto=format&fit=crop&w=120&h=120&q=80`,
+            avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
             role: regRole
           };
           await syncUserApi(newUser);
           setCurrentUser(newUser);
+          setIsLoggedIn(true);
+          localStorage.setItem('hostkeys_logged_in', 'true');
+          localStorage.setItem('hostkeys_current_user', JSON.stringify(newUser));
         } else {
           await loginWithEmail(regEmail, regPassword);
+          setIsLoggedIn(true);
         }
         setShowRegisterDialog(false);
+        setActiveTab('dashboard');
         return;
       } catch (err: any) {
         console.error('Firebase Auth error:', err);
@@ -234,27 +256,28 @@ export default function App() {
       }
     }
 
-    // Fallback Account creation if Firebase env vars are unpopulated
-    if (!regName || !regEmail) return;
+    // Direct Login/Register Fallback
+    if (!regEmail) return;
 
     const newUser: User = {
       id: `user-${Date.now()}`,
-      name: regName,
+      name: regName || regEmail.split('@')[0],
       email: regEmail,
       phone: regPhone || '+212 600-000000',
-      avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 900000)}?auto=format&fit=crop&w=120&h=120&q=80`,
+      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
       role: regRole
     };
 
     try {
       await syncUserApi(newUser);
-    } catch (e) {
-      console.warn('Synced locally');
-    }
+    } catch (e) {}
 
-    setUsers(prev => [...prev, newUser]);
     setCurrentUser(newUser);
+    setIsLoggedIn(true);
+    localStorage.setItem('hostkeys_logged_in', 'true');
+    localStorage.setItem('hostkeys_current_user', JSON.stringify(newUser));
     setShowRegisterDialog(false);
+    setActiveTab('dashboard');
   };
 
   const handleGoogleAuth = async () => {
@@ -262,16 +285,22 @@ export default function App() {
       try {
         await loginWithGoogle();
         setShowRegisterDialog(false);
+        setActiveTab('dashboard');
       } catch (err: any) {
         setAuthError(err?.message || 'Google authentication failed');
       }
     } else {
-      alert("Firebase configuration variables (VITE_FIREBASE_API_KEY) are empty in .env. Please populate them to enable live Google Auth.");
+      alert("Firebase is unconfigured. Please fill email to sign in.");
     }
   };
 
-  // Add Property (API / DB integration)
+  // Add Property
   const handleAddProperty = async (propertyData: Omit<Listing, 'id' | 'status' | 'ownerId' | 'createdAt' | 'approvedByAdminId'>) => {
+    if (!currentUser) {
+      setShowRegisterDialog(true);
+      return;
+    }
+
     const newProperty: Listing = {
       ...propertyData,
       id: `prop-${Date.now()}`,
@@ -286,12 +315,11 @@ export default function App() {
       setListings(prev => [res.listing, ...prev]);
       if (res.isLiveDb) setIsLiveDb(true);
     } catch (err) {
-      console.warn('Saving property locally:', err);
       setListings(prev => [newProperty, ...prev]);
     }
   };
 
-  // Approve / Reject Property (API / DB integration)
+  // Approve / Reject Property
   const handleApproveListing = async (listingId: string, adminId: string) => {
     setListings(prev => prev.map(listing => {
       if (listing.id === listingId) {
@@ -302,9 +330,7 @@ export default function App() {
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
-    } catch (err) {
-      console.warn('Updated listing approval locally');
-    }
+    } catch (err) {}
   };
 
   const handleRejectListing = async (listingId: string) => {
@@ -317,9 +343,7 @@ export default function App() {
 
     try {
       await updatePropertyStatusApi(listingId, 'rejected');
-    } catch (err) {
-      console.warn('Updated listing rejection locally');
-    }
+    } catch (err) {}
   };
 
   const handleResetFilters = () => {
@@ -327,22 +351,17 @@ export default function App() {
     setSelectedLocation('All');
     setBedroomsFilter('All');
     setSelectedAmenities([]);
-    setMaxPrice(activeSegment === 'buy' ? 2000000 : 8000);
-  };
-
-  const switchDemoAccount = (user: User) => {
-    setCurrentUser(user);
-    setMobileMenuOpen(false);
+    const baseValue = activeSegment === 'buy' ? 2000000 : 8000;
+    if (currency === 'MAD') setMaxPrice(baseValue * 10.10);
+    else setMaxPrice(baseValue);
   };
 
   const handleUpdateProfile = async (updatedUser: User) => {
     setCurrentUser(updatedUser);
-    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+    localStorage.setItem('hostkeys_current_user', JSON.stringify(updatedUser));
     try {
       await syncUserApi(updatedUser);
-    } catch (e) {
-      console.warn('Updated profile locally');
-    }
+    } catch (e) {}
   };
 
   // Filter listings
@@ -368,7 +387,7 @@ export default function App() {
       }
     }
 
-    const valuationInActiveCurrency = currency === 'EUR' ? item.price * eurRate : item.price;
+    const valuationInActiveCurrency = convertValue(item.price, currency, eurRate);
     if (valuationInActiveCurrency > maxPrice) return false;
 
     if (selectedAmenities.length > 0) {
@@ -382,72 +401,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#030303] text-slate-100 font-sans flex flex-col antialiased">
       
-      {/* VERCEL, NEON DB & FIREBASE LIVE CONFIGURATION STATUS DISCLAIMER BANNER */}
-      <div className="bg-gradient-to-r from-[#0c0c0c] via-[#11160a] to-[#0c0c0c] border-b border-neutral-850 px-4 py-2 text-xs font-mono">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-slate-300">
-          <div className="flex items-center gap-2">
-            <Info className="h-3.5 w-3.5 text-brand shrink-0" />
-            <span>
-              <strong>VERCEL & NEON DB INTEGRATION STATUS:</strong>{' '}
-              {isLiveDb ? (
-                <span className="text-[#a6fe00] font-semibold">🟢 Connected to Live Neon PostgreSQL</span>
-              ) : (
-                <span className="text-amber-400 font-semibold">🟡 DATABASE_URL is empty — running in fallback mode with demo data</span>
-              )}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-[11px] text-slate-400">
-            <span>
-              Firebase Auth:{' '}
-              {isFirebaseReady ? (
-                <span className="text-[#a6fe00]">🟢 Active</span>
-              ) : (
-                <span className="text-slate-400">⚪ Unconfigured in .env</span>
-              )}
-            </span>
-            <span className="opacity-50">|</span>
-            <span className="text-slate-300">Deploy ready on Vercel 🚀</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky Demo Controller Strip */}
-      <div className="bg-[#0c0c0c] border-b border-neutral-900 py-2 px-4 sticky top-0 z-40 text-xs text-slate-300">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-brand animate-pulse" />
-            <span className="font-mono text-[11px] text-slate-400">AUTHENTICATED PERSONA:</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono text-slate-400">Quick Switcher:</span>
-            <button
-              onClick={() => switchDemoAccount(DEMO_OWNER)}
-              className={`px-2.5 py-1 rounded-md border font-mono tracking-tight transition-all ${currentUser.id === DEMO_OWNER.id ? 'bg-brand/10 border-brand text-brand font-medium' : 'bg-transparent border-neutral-800 text-slate-400 hover:text-white'}`}
-            >
-              👤 Owner (Lucas)
-            </button>
-            <button
-              onClick={() => switchDemoAccount(DEMO_ADMIN)}
-              className={`px-2.5 py-1 rounded-md border font-mono tracking-tight transition-all ${currentUser.id === DEMO_ADMIN.id ? 'bg-brand/10 border-brand text-brand font-medium' : 'bg-transparent border-neutral-800 text-slate-400 hover:text-white'}`}
-            >
-              🛡️ Team Admin (Marcus)
-            </button>
-            <button
-              onClick={() => setShowRegisterDialog(true)}
-              className="px-2.5 py-1 rounded-md border border-dashed border-slate-600/50 font-mono text-slate-300 hover:border-brand/40 hover:text-brand transition-all"
-            >
-              + Login / Register (Firebase)
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Main Header */}
-      <header className="border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md py-4 px-4 sticky top-10 z-35">
+      <header className="border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md py-4 px-4 sticky top-0 z-35">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="text-[#a6fe00] font-sans text-xl font-black tracking-tighter flex items-center gap-1 leading-none uppercase select-none">
-              PRIME ESTATES
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('catalog')}>
+            <div className="text-[#a6fe00] font-sans text-2xl font-black tracking-tighter flex items-center gap-1 leading-none uppercase select-none">
+              HOSTKEYS
               <span className="h-2 w-2 bg-brand rounded-full inline-block" />
             </div>
           </div>
@@ -462,7 +421,7 @@ export default function App() {
                 }}
                 className={`px-4 py-1.5 rounded-lg transition-all ${activeTab === 'catalog' && activeSegment === 'buy' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-450 hover:text-slate-200'}`}
               >
-                {lang === 'fr' ? 'Acheter' : 'Buy (Catalog)'}
+                {t('navBuyCatalog', lang)}
               </button>
               <button
                 id="header-nav-rent"
@@ -472,64 +431,102 @@ export default function App() {
                 }}
                 className={`px-4 py-1.5 rounded-lg transition-all ${activeTab === 'catalog' && activeSegment === 'rent' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-450 hover:text-slate-200'}`}
               >
-                {lang === 'fr' ? 'Louer' : 'Rent (Catalog)'}
+                {t('navRentCatalog', lang)}
               </button>
+              {isLoggedIn && (
+                <button
+                  id="header-nav-dashboard"
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`px-4 py-1.5 rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-450 hover:text-slate-200'}`}
+                >
+                  {t('navDashboard', lang)}
+                </button>
+              )}
             </div>
           </nav>
 
           {/* Currency & Language Switchers */}
           <div className="hidden md:flex items-center gap-3">
-            <div className="bg-neutral-900/65 p-1 rounded-xl border border-neutral-850 text-xs font-mono select-none">
+            {/* Currency Selector */}
+            <div className="bg-neutral-900/65 p-1 rounded-xl border border-neutral-850 text-xs font-mono select-none flex">
+              <button
+                onClick={() => setCurrency('MAD')}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${currency === 'MAD' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                title={t('tooltipMAD', lang)}
+              >
+                MAD DH
+              </button>
               <button
                 onClick={() => setCurrency('USD')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${currency === 'USD' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${currency === 'USD' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                title={t('tooltipUSD', lang)}
               >
                 USD $
               </button>
               <button
                 onClick={() => setCurrency('EUR')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${currency === 'EUR' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${currency === 'EUR' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                title={t('tooltipEUR', lang)}
               >
                 EUR €
               </button>
             </div>
 
-            <div className="bg-neutral-900/65 p-1 rounded-xl border border-neutral-850 text-xs font-mono select-none">
+            {/* Language Selector */}
+            <div className="bg-neutral-900/65 p-1 rounded-xl border border-neutral-850 text-xs font-mono select-none flex">
               <button
                 onClick={() => setLang('en')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
               >
                 EN
               </button>
               <button
                 onClick={() => setLang('fr')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
               >
                 FR
               </button>
             </div>
           </div>
 
-          {/* User Status Profile Button */}
+          {/* User Auth Buttons / Profile Menu */}
           <div className="hidden md:flex items-center gap-3">
-            <button 
-              id="user-profile-header-btn"
-              onClick={() => setActiveTab('dashboard')}
-              className="flex items-center gap-2 bg-[#0c0c0c] hover:bg-neutral-900 border border-neutral-800 p-1.5 pr-3 rounded-full text-left transition-all group"
-            >
-              <img 
-                src={currentUser.avatar} 
-                alt={currentUser.name}
-                referrerPolicy="no-referrer"
-                className="h-7 w-7 rounded-full border border-brand/20 object-cover group-hover:border-brand transition-all" 
-              />
-              <div className="text-left">
-                <p className="text-[11.5px] font-semibold text-slate-100 group-hover:text-brand leading-tight transition-colors line-clamp-1">{currentUser.name}</p>
-                <p className="text-[9px] font-mono leading-none tracking-wider uppercase text-slate-400">
-                  {currentUser.role === 'admin' ? '🛡️ Admin' : '👤 Owner'}
-                </p>
+            {!isLoggedIn ? (
+              <button
+                onClick={() => setShowRegisterDialog(true)}
+                className="px-4 py-2 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] cursor-pointer"
+              >
+                {lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button 
+                  id="user-profile-header-btn"
+                  onClick={() => setActiveTab('dashboard')}
+                  className="flex items-center gap-2 bg-[#0c0c0c] hover:bg-neutral-900 border border-neutral-800 p-1.5 pr-3 rounded-full text-left transition-all group cursor-pointer"
+                >
+                  <img 
+                    src={currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80'} 
+                    alt={currentUser?.name || 'User'}
+                    referrerPolicy="no-referrer"
+                    className="h-7 w-7 rounded-full border border-brand/20 object-cover group-hover:border-brand transition-all" 
+                  />
+                  <div className="text-left">
+                    <p className="text-[11.5px] font-semibold text-slate-100 group-hover:text-brand leading-tight transition-colors line-clamp-1">{currentUser?.name}</p>
+                    <p className="text-[9px] font-mono leading-none tracking-wider uppercase text-slate-400">
+                      {currentUser?.role === 'admin' ? '🛡️ Admin' : '👤 Owner'}
+                    </p>
+                  </div>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  className="p-2 rounded-full bg-neutral-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-neutral-800 transition-all cursor-pointer"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
               </div>
-            </button>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -544,7 +541,7 @@ export default function App() {
         </div>
       </header>
 
-      {activeTab === 'dashboard' ? (
+      {activeTab === 'dashboard' && currentUser ? (
         <motion.div 
           key="dashboard-tab"
           initial={{ opacity: 0, y: 15 }}
@@ -558,7 +555,7 @@ export default function App() {
             listings={listings}
             onApprove={handleApproveListing}
             onReject={handleRejectListing}
-            onSelectListing={setExpandedListing}
+            onSelectListing={(listing) => setExpandedListing(listing)}
             onAddListing={() => setShowNewListingForm(true)}
             currency={currency}
             eurRate={eurRate}
@@ -566,113 +563,210 @@ export default function App() {
           />
         </motion.div>
       ) : (
-        <motion.div
+        /* MAIN CATALOG & SEARCH HERO */
+        <motion.main 
           key="catalog-tab"
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35 }}
+          className="flex-grow"
         >
-          {/* Hero Banner */}
-          <section className="relative overflow-hidden pt-12 pb-12 px-4 text-center border-b border-neutral-900/40 min-h-[360px] flex items-center justify-center">
+          {/* HERO CAROUSEL */}
+          <section className="relative min-h-[360px] md:min-h-[440px] flex items-center justify-center overflow-hidden border-b border-neutral-900 bg-[#030303]">
             <div className="absolute inset-0 z-0">
-              <AnimatePresence mode="popLayout">
-                <motion.div
+              <AnimatePresence mode="wait">
+                <motion.img
                   key={heroImgIndex}
+                  src={HERO_CAROUSEL_IMAGES[heroImgIndex]}
+                  alt="Hostkeys Real Estate"
+                  className="w-full h-full object-cover opacity-25"
                   initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  animate={{ opacity: 0.25, scale: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1.2, ease: "easeInOut" }}
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url(${HERO_CAROUSEL_IMAGES[heroImgIndex]})` }}
+                  transition={{ duration: 1 }}
                 />
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-transparent to-black/15 z-1" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-[#0a0a0a]/65 z-1" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/60 to-transparent" />
             </div>
 
-            <div className="relative z-10 max-w-2xl mx-auto bg-black/65 border border-white/20 backdrop-blur-lg p-6 md:p-8 rounded-2xl md:rounded-3xl shadow-2xl space-y-4 animate-fade-in">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#a6fe00]/15 border border-[#a6fe00]/30 text-[11px] font-mono uppercase tracking-widest text-brand font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand animate-ping" />
-                {lang === 'fr' ? 'Plateforme Immobilière Vercel & Neon Database' : 'Vercel & Neon Database Real-Estate Platform'}
-              </span>
-              <h1 className="text-2xl md:text-3xl font-sans tracking-tight font-extrabold text-white leading-tight">
-                {lang === 'fr' ? 'Demeures Minimalistes' : 'Minimalist Shelters'} <br className="hidden sm:inline" />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-[#fafdfb] to-brand">
-                  {lang === 'fr' ? 'Pour un Mode de Vie Pur et Organique' : 'For Pure Organic Living'}
-                </span>
+            <div className="relative z-10 max-w-5xl mx-auto px-4 text-center space-y-4 py-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-mono">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>{t('brokerRepresentativeText', lang)}</span>
+              </div>
+
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase font-sans">
+                {t('heroHeadingMain', lang)}{' '}
+                <span className="text-brand block md:inline">{t('heroHeadingHighlight', lang)}</span>
               </h1>
-              <p className="text-xs md:text-sm text-slate-200 max-w-xl mx-auto leading-relaxed">
-                {lang === 'fr' 
-                  ? "Soumettez votre propriété d'élite avec un stockage Neon DB réel et une authentification Firebase." 
-                  : "Submit your elite real estate listing backed by real Neon DB storage and Firebase authentication."}
+
+              <p className="max-w-2xl mx-auto text-xs md:text-sm text-slate-300 font-sans leading-relaxed">
+                {t('heroSubheading', lang)}
               </p>
+
+              {/* SEARCH & FILTERS BAR */}
+              <div className="pt-4 max-w-3xl mx-auto">
+                <div className="bg-[#0c0c0c]/90 p-2 rounded-2xl border border-neutral-800 shadow-2xl flex flex-col md:flex-row items-center gap-2 backdrop-blur-md">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={t('searchPlaceholder', lang)}
+                      className="w-full bg-[#030303] border border-neutral-850 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-brand focus:outline-none font-mono"
+                    />
+                    {searchTerm && (
+                      <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 hover:text-white">
+                        {t('searchClear', lang)}
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={`px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center gap-2 transition-all cursor-pointer ${showFilters ? 'bg-brand/10 border-brand text-brand' : 'bg-[#030303] border-neutral-850 text-slate-300 hover:text-white'}`}
+                    >
+                      <SlidersHorizontal className="h-3.5 w-3.5" />
+                      <span>{t('filtersLabel', lang)}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (!isLoggedIn) setShowRegisterDialog(true);
+                        else setShowNewListingForm(true);
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] hover:bg-brand/90 cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>{t('addListingBtn', lang)}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* FILTER PANEL EXPANSION */}
+                <AnimatePresence>
+                  {showFilters && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-3 bg-[#0c0c0c] border border-neutral-850 rounded-2xl p-4 text-left space-y-4 overflow-hidden font-mono text-xs"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-slate-400 mb-1">{t('filterNeighborhood', lang)}</label>
+                          <select
+                            value={selectedLocation}
+                            onChange={(e) => setSelectedLocation(e.target.value)}
+                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
+                          >
+                            <option value="All">{t('allFilters', lang)}</option>
+                            {ALL_LOCATIONS.map(loc => (
+                              <option key={loc} value={loc}>{loc}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-400 mb-1">{t('filterBedrooms', lang)}</label>
+                          <select
+                            value={bedroomsFilter}
+                            onChange={(e) => setBedroomsFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
+                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
+                          >
+                            <option value="All">{t('allFilters', lang)}</option>
+                            <option value={1}>1 Bed</option>
+                            <option value={2}>2 Beds</option>
+                            <option value={3}>3 Beds</option>
+                            <option value={4}>4+ Beds</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-400 mb-1">
+                            {t('filterMaxBudget', lang, { currency })}: <span className="text-brand font-bold">{formatCurrency(maxPrice, currency, eurRate)}</span>
+                          </label>
+                          <input
+                            type="range"
+                            min={activeSegment === 'buy' ? 100000 : 500}
+                            max={activeSegment === 'buy' ? (currency === 'MAD' ? 30000000 : 3000000) : (currency === 'MAD' ? 100000 : 12000)}
+                            step={activeSegment === 'buy' ? 50000 : 500}
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(Number(e.target.value))}
+                            className="w-full accent-brand cursor-pointer"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end gap-2 pt-2 border-t border-neutral-900">
+                        <button onClick={handleResetFilters} className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">
+                          {t('resetFilters', lang)}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </section>
 
-          {/* Main Workplace Frame */}
-          <main className="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 lg:p-8 space-y-8">
-            <div className="space-y-6">
-              {/* Search Bar */}
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative w-full flex-grow">
-                  <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-450" />
-                  <input
-                    type="text"
-                    id="property-search-input"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder={lang === 'fr' ? 'Rechercher par quartier, style architectural...' : 'Search by neighborhood, architectural style...'}
-                    className="w-full bg-[#0c0c0c] border border-neutral-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:border-brand focus:outline-none"
-                  />
-                </div>
+          {/* PROPERTIES GRID SECTION */}
+          <section className="max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-mono text-slate-400 uppercase tracking-wider">
+                {t(filteredListings.length === 1 ? 'filteredCountSingular' : 'filteredCountPlural', lang, { count: filteredListings.length })}
+              </h2>
+            </div>
 
-                <div className="flex gap-2 w-full sm:w-auto shrink-0">
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center justify-center gap-2 rounded-xl text-xs font-mono px-4 py-2.5 border bg-[#0c0c0c] border-neutral-800 text-slate-350 hover:text-white"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    {lang === 'fr' ? 'Filtres' : 'Filters'}
-                  </button>
-
-                  <button
-                    onClick={() => setShowNewListingForm(true)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-brand font-mono text-[#030303] font-bold text-xs px-4 py-2.5 hover:shadow-[0_0_15px_rgba(166,254,0,0.3)] transition-all w-full sm:w-auto"
-                  >
-                    <Plus className="h-4 w-4 shrink-0" />
-                    {lang === 'fr' ? 'Publier un bien' : 'Submit Property'}
-                  </button>
-                </div>
+            {filteredListings.length === 0 ? (
+              <div className="text-center py-20 bg-[#0c0c0c] rounded-2xl border border-neutral-850 p-8 space-y-4">
+                <Building className="h-12 w-12 text-slate-600 mx-auto" />
+                <h3 className="text-lg font-bold text-white">{t('noListingsFound', lang)}</h3>
+                <button
+                  onClick={() => {
+                    if (!isLoggedIn) setShowRegisterDialog(true);
+                    else setShowNewListingForm(true);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs inline-flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{t('addListingBtn', lang)}</span>
+                </button>
               </div>
-
-              {/* Property Cards Grid */}
+            ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredListings.map((listing) => (
+                {filteredListings.map(listing => (
                   <PropertyCard
                     key={listing.id}
                     listing={translateListing(listing, lang)}
                     currentUser={currentUser}
-                    onSelect={() => setExpandedListing(listing)}
+                    onSelect={(l) => setExpandedListing(l)}
                     currency={currency}
                     eurRate={eurRate}
                     lang={lang}
                   />
                 ))}
               </div>
-            </div>
-          </main>
-        </motion.div>
+            )}
+          </section>
+        </motion.main>
       )}
 
-      {/* Footer */}
-      <footer className="border-t border-neutral-900 bg-[#030303] py-8 text-center text-xs text-slate-500 font-mono">
-        <div className="max-w-7xl mx-auto px-4 space-y-2">
-          <p>PRIME RESIDENTIA & BROKERAGE SYSTEM © 2026 — VERCEL & NEON DB COMPATIBLE</p>
+      {/* FOOTER */}
+      <footer className="border-t border-neutral-900 bg-[#030303] py-8 px-4 text-center text-xs font-mono text-slate-450 mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-brand font-extrabold uppercase text-sm">
+            HOSTKEYS
+            <span className="h-1.5 w-1.5 bg-brand rounded-full" />
+          </div>
+          <p>HOSTKEYS REAL ESTATE PORTAL © 2026 — VERCEL & NEON DB LIVE</p>
         </div>
       </footer>
 
-      {/* Property Form Modal */}
-      {showNewListingForm && (
+      {/* NEW PROPERTY FORM MODAL */}
+      {showNewListingForm && currentUser && (
         <PropertyForm
           currentUser={currentUser}
           onAddListing={handleAddProperty}
@@ -683,104 +777,108 @@ export default function App() {
         />
       )}
 
-      {/* Auth Modal */}
+      {/* AUTH & ACCOUNT DIALOG MODAL */}
       <AnimatePresence>
-        {showRegisterDialog && (
-          <motion.div 
+        {showRegisterDialog && !isLoggedIn && (
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030303]/85 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           >
-            <motion.div 
-              initial={{ scale: 0.93, y: 15, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.93, y: 15, opacity: 0 }}
-              className="relative w-full max-w-sm rounded-2xl bg-[#0c0c0c] border border-neutral-850 p-6 text-slate-200 shadow-2xl"
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#0c0c0c] border border-neutral-850 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl"
             >
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold tracking-tight text-white">
-                  {authMode === 'register' ? 'Firebase / Neon Auth Signup' : 'Firebase Login'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 font-mono">
-                  {isFirebaseReady 
-                    ? 'Connected to Firebase Authentication' 
-                    : 'Firebase keys empty in .env — create local demo identity below'}
-                </p>
+              <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
+                <div>
+                  <h3 className="text-lg font-bold text-white font-sans">{t('regTitle', lang)}</h3>
+                  <p className="text-xs font-mono text-slate-400 mt-0.5">{t('regSubtitle', lang)}</p>
+                </div>
+                <button onClick={() => setShowRegisterDialog(false)} className="text-slate-400 hover:text-white p-1">
+                  ✕
+                </button>
               </div>
 
               {authError && (
-                <div className="mb-3 p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono">
+                <div className="bg-rose-500/10 text-rose-400 p-3 rounded-xl border border-rose-500/20 text-xs font-mono">
                   {authError}
                 </div>
               )}
 
-              <div className="space-y-3 mb-4 pb-4 border-b border-neutral-850">
+              <div className="space-y-3">
                 <button
                   type="button"
                   onClick={handleGoogleAuth}
-                  className="w-full flex items-center justify-center gap-2 bg-[#141414] hover:bg-[#1a1a1a] hover:text-white border border-neutral-850 rounded-xl py-2 px-3 text-xs font-mono transition-all text-slate-300"
+                  className="w-full flex items-center justify-center gap-2 bg-[#141414] hover:bg-[#1a1a1a] border border-neutral-800 rounded-xl py-2.5 px-3 text-xs font-mono transition-all text-slate-200 cursor-pointer"
                 >
-                  <span className="text-amber-500 font-bold">G</span> Sign in with Google (Firebase)
+                  <span className="text-amber-400 font-bold">G</span> {t('regGoogleConnect', lang)}
                 </button>
               </div>
 
-              <form onSubmit={handleRegisterAccount} className="space-y-3.5">
+              <div className="relative flex items-center justify-center text-xs font-mono text-slate-500">
+                <div className="border-t border-neutral-850 w-full" />
+                <span className="bg-[#0c0c0c] px-3 absolute">OR</span>
+              </div>
+
+              <form onSubmit={handleRegisterAccount} className="space-y-3 font-mono text-xs">
                 {authMode === 'register' && (
                   <div>
-                    <label className="block text-[10px] font-mono text-slate-400 mb-1">Full Name</label>
+                    <label className="block text-slate-400 mb-1">{t('regFullNameLabel', lang)}</label>
                     <input
                       type="text"
                       required
                       value={regName}
                       onChange={(e) => setRegName(e.target.value)}
-                      placeholder="Eleanor Vance"
-                      className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-xs text-slate-100 focus:border-brand focus:outline-none"
+                      placeholder="Yassine Sadik"
+                      className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-[10px] font-mono text-slate-400 mb-1">Email Address</label>
+                  <label className="block text-slate-400 mb-1">{t('regEmailLabel', lang)}</label>
                   <input
                     type="email"
                     required
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
-                    placeholder="user@example.com"
-                    className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-xs text-slate-100 focus:border-brand focus:outline-none"
+                    placeholder="user@hostkeys.ma"
+                    className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-mono text-slate-400 mb-1">Password</label>
+                  <label className="block text-slate-400 mb-1">Password</label>
                   <input
                     type="password"
                     required
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-xs text-slate-100 focus:border-brand focus:outline-none"
+                    className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
                   />
                 </div>
 
                 {authMode === 'register' && (
                   <div>
-                    <label className="block text-[10px] font-mono text-slate-400 mb-1">Account Role</label>
+                    <label className="block text-slate-400 mb-1">{t('regSystemRoleLabel', lang)}</label>
                     <div className="grid grid-cols-2 gap-2 bg-[#030303] p-1 rounded-xl border border-neutral-850">
                       <button
                         type="button"
                         onClick={() => setRegRole('owner')}
-                        className={`py-1.5 rounded-lg text-[10px] font-mono ${regRole === 'owner' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-450'}`}
+                        className={`py-1.5 rounded-lg text-xs ${regRole === 'owner' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}
                       >
-                        👤 Owner
+                        {t('regRoleOwnerMember', lang)}
                       </button>
                       <button
                         type="button"
                         onClick={() => setRegRole('admin')}
-                        className={`py-1.5 rounded-lg text-[10px] font-mono ${regRole === 'admin' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-450'}`}
+                        className={`py-1.5 rounded-lg text-xs ${regRole === 'admin' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}
                       >
-                        🛡️ Admin
+                        {t('regRoleAdmin', lang)}
                       </button>
                     </div>
                   </div>
@@ -790,19 +888,19 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
-                    className="text-[10px] font-mono text-brand hover:underline"
+                    className="text-[11px] text-brand hover:underline"
                   >
                     {authMode === 'register' ? 'Already have an account? Login' : 'Need an account? Register'}
                   </button>
                 </div>
 
-                <div className="flex justify-end gap-2.5 pt-2 border-t border-neutral-850 font-mono text-[10px]">
+                <div className="flex justify-end gap-2.5 pt-2 border-t border-neutral-850 font-mono text-xs">
                   <button
                     type="button"
                     onClick={() => setShowRegisterDialog(false)}
                     className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white"
                   >
-                    Cancel
+                    {t('cancel', lang)}
                   </button>
                   <button
                     type="submit"
@@ -817,7 +915,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Property Drawer */}
+      {/* PROPERTY DETAILS DRAWER */}
       <AnimatePresence>
         {expandedListing && (
           <PropertyDetailDrawer
