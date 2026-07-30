@@ -1,0 +1,6 @@
+{
+  "name": "Prime Estates Portal",
+  "description": "A dark-skinned real estate search and brokerage platform featuring Buy and Rent filters, listing submissions, custom Admin approval overrides, demo account switching, and deep high-thinking Gemini property advisor recommendations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
