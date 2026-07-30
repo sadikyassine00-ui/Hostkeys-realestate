@@ -27,6 +27,14 @@
       "dest": "api/init-db.ts"
     },
     {
+      "src": "/api/users",
+      "dest": "api/users.ts"
+    },
+    {
+      "src": "/api/upload",
+      "dest": "api/upload.ts"
+    },
+    {
       "handle": "filesystem"
     },
     {

@@ -1,5 +1,8 @@
 import { User, Listing } from './types';
 
+// The one and only super admin email — hardcoded for security
+export const SUPER_ADMIN_EMAIL = 'yassinesadik0@gmail.com';
+
 export const DEMO_OWNER: User = {
   id: 'owner-lucas',
   name: 'Property Owner',
@@ -44,5 +47,4 @@ export const ALL_AMENITIES = [
   'Covered Parking'
 ];
 
-// Start clean without demo listings so real users can sign in and add their own properties!
 export const INITIAL_LISTINGS: Listing[] = [];

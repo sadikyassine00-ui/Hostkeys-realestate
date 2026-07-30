@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Listing } from './types';
-import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS } from './mockData';
+import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS, SUPER_ADMIN_EMAIL } from './mockData';
 import PropertyCard from './components/PropertyCard';
 import PropertyForm from './components/PropertyForm';
 import PropertyDetailDrawer from './components/PropertyDetailDrawer';
@@ -104,13 +104,15 @@ export default function App() {
   useEffect(() => {
     const unsubscribe = subscribeToAuthState(async (fbUser) => {
       if (fbUser) {
+        const userEmail = fbUser.email || '';
+        const autoRole = userEmail === SUPER_ADMIN_EMAIL ? 'superadmin' : 'owner';
         const syncedUser: User = {
           id: fbUser.uid,
-          name: fbUser.displayName || fbUser.email?.split('@')[0] || 'User',
-          email: fbUser.email || '',
+          name: fbUser.displayName || userEmail.split('@')[0] || 'User',
+          email: userEmail,
           phone: fbUser.phoneNumber || '+212 600-000000',
           avatar: fbUser.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
-          role: 'owner'
+          role: autoRole
         };
 
         setCurrentUser(syncedUser);
@@ -231,13 +233,14 @@ export default function App() {
       try {
         if (authMode === 'register') {
           const fbUser = await registerWithEmail(regEmail, regPassword);
+          const autoRole = regEmail === SUPER_ADMIN_EMAIL ? 'superadmin' : regRole;
           const newUser: User = {
             id: fbUser.uid,
             name: regName || regEmail.split('@')[0],
             email: regEmail,
             phone: regPhone || '+212 600-000000',
             avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
-            role: regRole
+            role: autoRole
           };
           await syncUserApi(newUser);
           setCurrentUser(newUser);
@@ -260,13 +263,14 @@ export default function App() {
     // Direct Login/Register Fallback
     if (!regEmail) return;
 
+    const fallbackRole = regEmail === SUPER_ADMIN_EMAIL ? 'superadmin' : regRole;
     const newUser: User = {
       id: `user-${Date.now()}`,
       name: regName || regEmail.split('@')[0],
       email: regEmail,
       phone: regPhone || '+212 600-000000',
       avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
-      role: regRole
+      role: fallbackRole
     };
 
     try {
@@ -515,7 +519,7 @@ export default function App() {
                   <div className="text-left">
                     <p className="text-[11.5px] font-semibold text-slate-100 group-hover:text-brand leading-tight transition-colors line-clamp-1">{currentUser?.name}</p>
                     <p className="text-[9px] font-mono leading-none tracking-wider uppercase text-slate-400">
-                      {currentUser?.role === 'admin' ? '🛡️ Admin' : '👤 Owner'}
+                      {currentUser?.role === 'superadmin' ? '👑 Super Admin' : currentUser?.role === 'admin' ? '🛡️ Admin' : '👤 Owner'}
                     </p>
                   </div>
                 </button>

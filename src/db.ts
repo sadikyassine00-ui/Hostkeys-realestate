@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { Listing, User } from './types';
-import { INITIAL_LISTINGS, DEMO_OWNER, DEMO_ADMIN } from './mockData';
+import { INITIAL_LISTINGS, DEMO_OWNER, DEMO_ADMIN, SUPER_ADMIN_EMAIL } from './mockData';
 
 // Helper to get active Neon SQL function if DATABASE_URL is present
 export function getDb() {
@@ -90,9 +90,12 @@ export async function upsertUser(user: User): Promise<User> {
   const sql = getDb();
   if (!sql) throw new Error('Database not connected');
 
+  // Auto-detect superadmin by email
+  const finalRole = user.email === SUPER_ADMIN_EMAIL ? 'superadmin' : user.role;
+
   await sql`
     INSERT INTO users (id, name, email, phone, avatar, role)
-    VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${user.role})
+    VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${finalRole})
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       email = EXCLUDED.email,
@@ -100,7 +103,7 @@ export async function upsertUser(user: User): Promise<User> {
       avatar = EXCLUDED.avatar,
       role = EXCLUDED.role;
   `;
-  return user;
+  return { ...user, role: finalRole };
 }
 
 export async function getUserById(id: string): Promise<User | null> {
@@ -116,8 +119,60 @@ export async function getUserById(id: string): Promise<User | null> {
     email: rows[0].email,
     phone: rows[0].phone || '',
     avatar: rows[0].avatar || '',
-    role: rows[0].role as 'owner' | 'admin'
+    role: rows[0].role as 'owner' | 'admin' | 'superadmin'
   };
+}
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const sql = getDb();
+  if (!sql) return null;
+
+  const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users WHERE email = ${email} LIMIT 1;`;
+  if (rows.length === 0) return null;
+
+  return {
+    id: rows[0].id,
+    name: rows[0].name,
+    email: rows[0].email,
+    phone: rows[0].phone || '',
+    avatar: rows[0].avatar || '',
+    role: rows[0].role as 'owner' | 'admin' | 'superadmin'
+  };
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  const sql = getDb();
+  if (!sql) return [];
+
+  const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users ORDER BY created_at DESC;`;
+  return rows.map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    phone: r.phone || '',
+    avatar: r.avatar || '',
+    role: r.role as 'owner' | 'admin' | 'superadmin'
+  }));
+}
+
+export async function updateUserRole(userId: string, newRole: 'owner' | 'admin', requestorEmail: string): Promise<{ success: boolean; message: string }> {
+  const sql = getDb();
+  if (!sql) return { success: false, message: 'Database not connected' };
+
+  // Only the super admin can change roles
+  if (requestorEmail !== SUPER_ADMIN_EMAIL) {
+    return { success: false, message: 'Unauthorized: only the super admin can change user roles.' };
+  }
+
+  // Don't allow changing the super admin's own role
+  const targetUser = await getUserById(userId);
+  if (!targetUser) return { success: false, message: 'User not found' };
+  if (targetUser.email === SUPER_ADMIN_EMAIL) {
+    return { success: false, message: 'Cannot modify the super admin role.' };
+  }
+
+  await sql`UPDATE users SET role = ${newRole} WHERE id = ${userId};`;
+  return { success: true, message: `User role updated to ${newRole}` };
 }
 
 // Listing CRUD

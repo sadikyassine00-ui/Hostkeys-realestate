@@ -111,3 +111,52 @@ export async function syncUserApi(user: User): Promise<{ success: boolean; user:
 
   return await res.json();
 }
+
+// --- Image Upload ---
+export async function uploadImageApi(file: File): Promise<{ url: string; success: boolean }> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || 'Image upload failed');
+  }
+
+  return await res.json();
+}
+
+// --- User Management (Super Admin) ---
+export async function fetchUsersApi(requestorEmail: string): Promise<{ users: User[]; isLiveDb: boolean }> {
+  try {
+    const res = await fetch('/api/users', {
+      headers: { 'x-user-email': requestorEmail }
+    });
+    if (!res.ok) return { users: [], isLiveDb: false };
+    return await res.json();
+  } catch (err) {
+    console.warn('Failed to fetch users:', err);
+    return { users: [], isLiveDb: false };
+  }
+}
+
+export async function updateUserRoleApi(
+  userId: string, 
+  newRole: 'owner' | 'admin', 
+  requestorEmail: string
+): Promise<{ success: boolean; message: string }> {
+  const res = await fetch('/api/users', {
+    method: 'PATCH',
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-user-email': requestorEmail 
+    },
+    body: JSON.stringify({ userId, newRole })
+  });
+
+  return await res.json();
+}
