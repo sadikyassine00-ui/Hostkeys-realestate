@@ -42,7 +42,8 @@ import {
   UserCheck,
   Database,
   Key,
-  Info
+  Info,
+  Sparkles
 } from 'lucide-react';
 
 const HERO_CAROUSEL_IMAGES = [
