@@ -4,10 +4,11 @@ import { INITIAL_LISTINGS, DEMO_OWNER, DEMO_ADMIN } from './mockData';
 
 // Helper to get active Neon SQL function if DATABASE_URL is present
 export function getDb() {
-  const connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL;
   if (!connectionString || connectionString.trim() === '') {
     return null;
   }
+  connectionString = connectionString.trim().replace(/^["']|["']$/g, '');
   try {
     return neon(connectionString);
   } catch (err) {
