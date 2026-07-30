@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Listing, User } from '../types';
 import { ALL_AMENITIES, ALL_LOCATIONS } from '../mockData';
-import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2, MapPin, Link as LinkIcon } from 'lucide-react';
 import { translateAmenity, translateLocation } from '../translations';
 import { Currency, formatCurrency } from '../utils';
 import { uploadImageApi } from '../api';
@@ -40,14 +40,15 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
   const [type, setType] = useState<'buy' | 'rent'>('buy');
   const [price, setPrice] = useState<number | ''>('');
   const [location, setLocation] = useState(ALL_LOCATIONS[0]);
+  const [address, setAddress] = useState('');
   const [bedrooms, setBedrooms] = useState<number>(3);
   const [bathrooms, setBathrooms] = useState<number>(2.5);
   const [squareMeters, setSquareMeters] = useState<number | ''>('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
-  // Image state
+  // Image state — supports multiple images
   const [imageSource, setImageSource] = useState<'upload' | 'preset' | 'url'>('upload');
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [selectedPreset, setSelectedPreset] = useState(HOUSING_PRESETS[0].url);
   const [customImageUrl, setCustomImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -59,13 +60,18 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
   const [personalEmail, setPersonalEmail] = useState(currentUser.email);
   const [personalPhone, setPersonalPhone] = useState(currentUser.phone);
 
-  const handleFileUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      setUploadError(lang === 'fr' ? 'Fichier invalide. Veuillez utiliser une image.' : 'Invalid file. Please upload an image.');
+  const handleFileUpload = async (files: FileList | File[]) => {
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(f => f.type.startsWith('image/'));
+    
+    if (validFiles.length === 0) {
+      setUploadError(lang === 'fr' ? 'Fichier invalide. Veuillez utiliser des images.' : 'Invalid file(s). Please upload images.');
       return;
     }
-    if (file.size > 4.5 * 1024 * 1024) {
-      setUploadError(lang === 'fr' ? 'Image trop volumineuse (max 4.5 MB).' : 'Image too large (max 4.5 MB).');
+
+    const oversized = validFiles.filter(f => f.size > 4.5 * 1024 * 1024);
+    if (oversized.length > 0) {
+      setUploadError(lang === 'fr' ? 'Certaines images sont trop volumineuses (max 4.5 MB chacune).' : 'Some images are too large (max 4.5 MB each).');
       return;
     }
 
@@ -73,14 +79,22 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
     setUploadError('');
 
     try {
-      const result = await uploadImageApi(file);
-      setUploadedImageUrl(result.url);
+      const newUrls: string[] = [];
+      for (const file of validFiles) {
+        const result = await uploadImageApi(file);
+        newUrls.push(result.url);
+      }
+      setUploadedImages(prev => [...prev, ...newUrls]);
       setImageSource('upload');
     } catch (err: any) {
       setUploadError(err?.message || 'Upload failed');
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -94,14 +108,14 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileUpload(e.dataTransfer.files[0]);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFileUpload(e.target.files[0]);
+    if (e.target.files && e.target.files.length > 0) {
+      handleFileUpload(e.target.files);
     }
   };
 
@@ -113,10 +127,10 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
     }
   };
 
-  const getFinalImageUrl = (): string => {
-    if (imageSource === 'upload' && uploadedImageUrl) return uploadedImageUrl;
-    if (imageSource === 'url' && customImageUrl.trim()) return customImageUrl.trim();
-    return selectedPreset;
+  const getFinalImages = (): string[] => {
+    if (imageSource === 'upload' && uploadedImages.length > 0) return uploadedImages;
+    if (imageSource === 'url' && customImageUrl.trim()) return [customImageUrl.trim()];
+    return [selectedPreset];
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -126,17 +140,21 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
       return;
     }
 
+    const finalImages = getFinalImages();
+
     onAddListing({
       title,
       description,
       type,
       price: Number(price),
       location,
+      address: address.trim(),
       bedrooms: Number(bedrooms),
       bathrooms: Number(bathrooms),
       squareMeters: Number(squareMeters),
       amenities: selectedAmenities,
-      image: getFinalImageUrl(),
+      image: finalImages[0] || '',
+      images: finalImages,
       personalOwnerInfo: {
         name: personalName,
         email: personalEmail,
@@ -154,10 +172,10 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
           <div>
             <h2 className="text-xl font-bold text-white font-sans flex items-center gap-2">
               <FilePlus className="h-5 w-5 text-brand" />
-              {lang === 'fr' ? 'Publier Votre Propriété' : 'Publish Your Property'}
+              {lang === 'fr' ? 'Publier Votre Propriete' : 'Publish Your Property'}
             </h2>
             <p className="text-xs font-mono text-slate-400 mt-1">
-              {lang === 'fr' ? 'Soumettez les détails de votre bien pour validation Hostkeys.' : 'Submit property details for Hostkeys verification.'}
+              {lang === 'fr' ? 'Soumettez les details de votre bien pour validation Hostkeys.' : 'Submit property details for Hostkeys verification.'}
             </p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-neutral-900 text-slate-400 hover:text-white cursor-pointer">
@@ -182,13 +200,13 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
           {/* Title */}
           <div>
             <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Titre de l\'Annonce *' : 'Property Title *'}</label>
-            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder={lang === 'fr' ? 'ex: Villa Moderne avec Piscine à Marrakech' : 'e.g., Luxury Villa with Private Pool'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
+            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder={lang === 'fr' ? 'ex: Villa Moderne avec Piscine a Marrakech' : 'e.g., Luxury Villa with Private Pool'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Description Détaillée *' : 'Description *'}</label>
-            <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={lang === 'fr' ? 'Décrivez les atouts, équipements et pièces...' : 'Describe the architectural layout, amenities, and unique features...'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
+            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Description Detaillee *' : 'Description *'}</label>
+            <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={lang === 'fr' ? 'Decrivez les atouts, equipements et pieces...' : 'Describe the architectural layout, amenities, and unique features...'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
           </div>
 
           {/* Price & Area */}
@@ -199,11 +217,11 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
               </label>
               <input type="number" required min={1} value={price} onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : '')} placeholder="250000" className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
               {price !== '' && (
-                <span className="text-[10px] text-brand mt-1 block">≈ {formatCurrency(Number(price), currency, eurRate)}</span>
+                <span className="text-[10px] text-brand mt-1 block">{formatCurrency(Number(price), currency, eurRate)}</span>
               )}
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Surface Habitable (m²) *' : 'Interior Area (m²) *'}</label>
+              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Surface Habitable (m2) *' : 'Interior Area (m2) *'}</label>
               <input type="number" required min={10} value={squareMeters} onChange={(e) => setSquareMeters(e.target.value ? Number(e.target.value) : '')} placeholder="220" className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
             </div>
           </div>
@@ -238,64 +256,88 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
             </select>
           </div>
 
+          {/* Address */}
+          <div>
+            <label className="block text-slate-400 mb-1 flex items-center gap-1.5">
+              <MapPin className="h-3 w-3" />
+              {lang === 'fr' ? 'Adresse Exacte' : 'Property Address'}
+            </label>
+            <input
+              type="text"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder={lang === 'fr' ? 'ex: 24 Rue des Jasmins, Gueliz, Marrakech 40000' : 'e.g., 24 Jasmine Street, Gueliz, Marrakech 40000'}
+              className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none"
+            />
+          </div>
+
           {/* IMAGE UPLOAD SECTION */}
           <div>
-            <label className="block text-slate-400 mb-2">{lang === 'fr' ? 'Photo de la Propriété' : 'Property Photo'}</label>
+            <label className="block text-slate-400 mb-2">{lang === 'fr' ? 'Photos de la Propriete' : 'Property Photos'}</label>
             
             {/* Image source tabs */}
             <div className="flex gap-1 bg-[#030303] p-1 rounded-xl border border-neutral-850 mb-3">
               <button type="button" onClick={() => setImageSource('upload')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'upload' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
-                <UploadCloud className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Téléverser' : 'Upload'}
+                <UploadCloud className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Televerser' : 'Upload'}
               </button>
               <button type="button" onClick={() => setImageSource('preset')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'preset' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
                 <ImageIcon className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Galerie' : 'Gallery'}
               </button>
               <button type="button" onClick={() => setImageSource('url')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'url' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
-                🔗 URL
+                <LinkIcon className="h-3.5 w-3.5" /> URL
               </button>
             </div>
 
-            {/* Upload Zone */}
+            {/* Upload Zone — Multiple */}
             {imageSource === 'upload' && (
               <div>
-                {!uploadedImageUrl ? (
-                  <div
-                    onDragEnter={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDragOver={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${dragActive ? 'border-brand bg-brand/5' : 'border-neutral-800 hover:border-brand/40 bg-[#030303]'}`}
-                  >
-                    {isUploading ? (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="h-8 w-8 text-brand animate-spin" />
-                        <span className="text-slate-300">{lang === 'fr' ? 'Téléversement en cours...' : 'Uploading...'}</span>
+                {/* Uploaded images grid */}
+                {uploadedImages.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {uploadedImages.map((url, idx) => (
+                      <div key={idx} className="relative group">
+                        <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-24 rounded-lg object-cover border border-neutral-800" />
+                        <button
+                          type="button"
+                          onClick={() => removeUploadedImage(idx)}
+                          className="absolute top-1 right-1 p-0.5 rounded-full bg-black/70 text-white hover:bg-rose-500 transition-all cursor-pointer opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-full bg-brand/90 text-[8px] font-bold text-[#030303]">
+                            {lang === 'fr' ? 'Principale' : 'Primary'}
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <UploadCloud className="h-8 w-8 text-slate-500" />
-                        <span className="text-slate-300">{lang === 'fr' ? 'Glissez-déposez ou cliquez pour sélectionner' : 'Drag & drop or click to select'}</span>
-                        <span className="text-[10px] text-slate-500">JPG, PNG, WebP — Max 4.5 MB</span>
-                      </div>
-                    )}
-                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img src={uploadedImageUrl} alt="Uploaded" className="w-full h-40 rounded-xl object-cover border border-neutral-800" />
-                    <button
-                      type="button"
-                      onClick={() => { setUploadedImageUrl(''); setUploadError(''); }}
-                      className="absolute top-2 right-2 p-1 rounded-full bg-black/70 text-white hover:bg-rose-500 transition-all cursor-pointer"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-emerald-500/90 text-[10px] font-bold text-white">
-                      ✓ {lang === 'fr' ? 'Image téléversée' : 'Uploaded'}
-                    </span>
+                    ))}
                   </div>
                 )}
+
+                {/* Drop zone */}
+                <div
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${dragActive ? 'border-brand bg-brand/5' : 'border-neutral-800 hover:border-brand/40 bg-[#030303]'}`}
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="h-7 w-7 text-brand animate-spin" />
+                      <span className="text-slate-300">{lang === 'fr' ? 'Televersement en cours...' : 'Uploading...'}</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <UploadCloud className="h-7 w-7 text-slate-500" />
+                      <span className="text-slate-300">{lang === 'fr' ? 'Glissez-deposez ou cliquez pour selectionner' : 'Drag & drop or click to select'}</span>
+                      <span className="text-[10px] text-slate-500">{lang === 'fr' ? 'JPG, PNG, WebP — Max 4.5 MB par image — Plusieurs fichiers acceptes' : 'JPG, PNG, WebP — Max 4.5 MB each — Multiple files accepted'}</span>
+                    </div>
+                  )}
+                  <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+                </div>
+
                 {uploadError && (
                   <p className="text-rose-400 text-[11px] mt-1">{uploadError}</p>
                 )}
@@ -343,16 +385,17 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
 
           {/* Amenities */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Équipements' : 'Amenities & Features'}</label>
+            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Equipements' : 'Amenities & Features'}</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#030303] p-3 rounded-xl border border-neutral-850 max-h-36 overflow-y-auto">
               {ALL_AMENITIES.map(amenity => (
                 <button
                   type="button"
                   key={amenity}
                   onClick={() => toggleAmenity(amenity)}
-                  className={`p-2 rounded-lg text-[10px] text-left transition-all border cursor-pointer ${selectedAmenities.includes(amenity) ? 'bg-brand/10 border-brand text-brand font-bold' : 'border-neutral-850 text-slate-400 hover:text-white'}`}
+                  className={`p-2 rounded-lg text-[10px] text-left transition-all border cursor-pointer flex items-center gap-1 ${selectedAmenities.includes(amenity) ? 'bg-brand/10 border-brand text-brand font-bold' : 'border-neutral-850 text-slate-400 hover:text-white'}`}
                 >
-                  {selectedAmenities.includes(amenity) ? '✓ ' : ''}{amenity}
+                  {selectedAmenities.includes(amenity) && <Check className="h-2.5 w-2.5 shrink-0" />}
+                  {amenity}
                 </button>
               ))}
             </div>
@@ -364,7 +407,7 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
               {lang === 'fr' ? 'Annuler' : 'Cancel'}
             </button>
             <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] cursor-pointer">
-              {lang === 'fr' ? 'Publier la Propriété' : 'Publish Property'}
+              {lang === 'fr' ? 'Publier la Propriete' : 'Publish Property'}
             </button>
           </div>
         </form>

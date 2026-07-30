@@ -18,14 +18,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       await sql`
         INSERT INTO listings (
-          id, title, description, type, price, location, 
+          id, title, description, type, price, location, address,
           bedrooms, bathrooms, square_meters, amenities, status, 
-          owner_id, approved_by_admin_id, image, personal_owner_info, created_at
+          owner_id, approved_by_admin_id, image, images, personal_owner_info, created_at
         ) VALUES (
           ${listing.id}, ${listing.title}, ${listing.description}, ${listing.type}, 
-          ${listing.price}, ${listing.location}, ${listing.bedrooms}, ${listing.bathrooms}, 
+          ${listing.price}, ${listing.location}, ${listing.address || ''},
+          ${listing.bedrooms}, ${listing.bathrooms}, 
           ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status}, 
           ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image}, 
+          ${listing.images || []},
           ${personalInfoJson}::jsonb, ${listing.createdAt || new Date().toISOString()}
         );
       `;
@@ -35,10 +37,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // GET /api/properties
     const rows = await sql`
       SELECT 
-        id, title, description, type, price::float, location, 
+        id, title, description, type, price::float, location, address,
         bedrooms, bathrooms::float, square_meters as "squareMeters", 
         amenities, status, owner_id as "ownerId", 
-        approved_by_admin_id as "approvedByAdminId", image, 
+        approved_by_admin_id as "approvedByAdminId", image, images,
         personal_owner_info as "personalOwnerInfo", created_at as "createdAt"
       FROM listings
       ORDER BY created_at DESC;
@@ -51,6 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       type: r.type,
       price: Number(r.price),
       location: r.location,
+      address: r.address || '',
       bedrooms: Number(r.bedrooms),
       bathrooms: Number(r.bathrooms),
       squareMeters: Number(r.squareMeters),
@@ -59,6 +62,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ownerId: r.ownerId,
       approvedByAdminId: r.approvedByAdminId || undefined,
       image: r.image || '',
+      images: Array.isArray(r.images) ? r.images : [],
       personalOwnerInfo: typeof r.personalOwnerInfo === 'string' ? JSON.parse(r.personalOwnerInfo) : r.personalOwnerInfo,
       createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString()
     }));

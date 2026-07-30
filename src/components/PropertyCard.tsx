@@ -49,7 +49,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
       {/* Property Image & Badges */}
       <div className="relative aspect-[1.6] w-full overflow-hidden bg-[#030303]">
         <img 
-          src={listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&h=500&q=80'} 
+          src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&h=500&q=80'} 
           referrerPolicy="no-referrer"
           alt={listing.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -61,7 +61,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
             {listing.type === 'buy' ? t('cardForSale', lang) : t('cardForRent', lang)}
           </span>
           {isMyListing && (
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20 backdrop-blur-md">
+            <span className="rounded-full bg-[#030303]/90 px-3 py-1 text-xs font-medium text-brand border border-brand/20 backdrop-blur-md">
               {t('cardYourSubmission', lang)}
             </span>
           )}

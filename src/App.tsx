@@ -306,13 +306,14 @@ export default function App() {
       return;
     }
 
+    const isAdminOrSuper = currentUser.role === 'admin' || currentUser.role === 'superadmin';
     const newProperty: Listing = {
       ...propertyData,
       id: `prop-${Date.now()}`,
-      status: currentUser.role === 'admin' ? 'approved' : 'pending',
+      status: isAdminOrSuper ? 'approved' : 'pending',
       ownerId: currentUser.id,
       createdAt: new Date().toISOString(),
-      approvedByAdminId: currentUser.role === 'admin' ? currentUser.id : undefined
+      approvedByAdminId: isAdminOrSuper ? currentUser.id : undefined
     };
 
     try {
@@ -519,7 +520,7 @@ export default function App() {
                   <div className="text-left">
                     <p className="text-[11.5px] font-semibold text-slate-100 group-hover:text-brand leading-tight transition-colors line-clamp-1">{currentUser?.name}</p>
                     <p className="text-[9px] font-mono leading-none tracking-wider uppercase text-slate-400">
-                      {currentUser?.role === 'superadmin' ? '👑 Super Admin' : currentUser?.role === 'admin' ? '🛡️ Admin' : '👤 Owner'}
+                      {currentUser?.role === 'superadmin' ? 'Super Admin' : currentUser?.role === 'admin' ? 'Admin' : 'Owner'}
                     </p>
                   </div>
                 </button>
@@ -802,8 +803,8 @@ export default function App() {
                   <h3 className="text-lg font-bold text-white font-sans">{t('regTitle', lang)}</h3>
                   <p className="text-xs font-mono text-slate-400 mt-0.5">{t('regSubtitle', lang)}</p>
                 </div>
-                <button onClick={() => setShowRegisterDialog(false)} className="text-slate-400 hover:text-white p-1">
-                  ✕
+                <button onClick={() => setShowRegisterDialog(false)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
@@ -867,27 +868,7 @@ export default function App() {
                   />
                 </div>
 
-                {authMode === 'register' && (
-                  <div>
-                    <label className="block text-slate-400 mb-1">{t('regSystemRoleLabel', lang)}</label>
-                    <div className="grid grid-cols-2 gap-2 bg-[#030303] p-1 rounded-xl border border-neutral-850">
-                      <button
-                        type="button"
-                        onClick={() => setRegRole('owner')}
-                        className={`py-1.5 rounded-lg text-xs ${regRole === 'owner' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}
-                      >
-                        {t('regRoleOwnerMember', lang)}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRegRole('admin')}
-                        className={`py-1.5 rounded-lg text-xs ${regRole === 'admin' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}
-                      >
-                        {t('regRoleAdmin', lang)}
-                      </button>
-                    </div>
-                  </div>
-                )}
+
 
                 <div className="flex items-center justify-between pt-2">
                   <button

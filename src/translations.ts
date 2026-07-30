@@ -14,8 +14,8 @@ export const DICTIONARY = {
     tooltipMAD: "Show pricing in Moroccan Dirham (DH MAD)",
     tooltipUSD: "Show pricing in US Dollars ($ USD)",
     tooltipEUR: "Show pricing in Euros (€ EUR)",
-    roleAdmin: "🛡️ Admin",
-    roleOwner: "👤 Owner",
+    roleAdmin: "Admin",
+    roleOwner: "Owner",
     activeCurrencyLabel: "Active Unit Currency",
     activeCurrencyMAD: "Moroccan Dirham (DH)",
     activeCurrencyUSD: "Dollars ($ USD)",
@@ -175,8 +175,8 @@ export const DICTIONARY = {
     regEmailLabel: "Email Address",
     regPhoneLabel: "Phone Number",
     regSystemRoleLabel: "Account Role",
-    regRoleOwnerMember: "👤 Property Owner",
-    regRoleAdmin: "🛡️ Administrator",
+    regRoleOwnerMember: "Property Owner",
+    regRoleAdmin: "Administrator",
 
     // Common words
     statusApprovedShort: "Approved",
@@ -197,8 +197,8 @@ export const DICTIONARY = {
     tooltipMAD: "Afficher les prix en Dirhams Marocains (DH)",
     tooltipUSD: "Afficher les prix en Dollars ($ USD)",
     tooltipEUR: "Afficher les prix en Euros (€ EUR)",
-    roleAdmin: "🛡️ Administrateur",
-    roleOwner: "👤 Propriétaire",
+    roleAdmin: "Administrateur",
+    roleOwner: "Propriétaire",
     activeCurrencyLabel: "Devise d'affichage",
     activeCurrencyMAD: "Dirhams Marocains (DH)",
     activeCurrencyUSD: "Dollars ($ USD)",
@@ -358,8 +358,8 @@ export const DICTIONARY = {
     regEmailLabel: "Adresse Courriel",
     regPhoneLabel: "Numéro de Téléphone",
     regSystemRoleLabel: "Rôle du Compte",
-    regRoleOwnerMember: "👤 Propriétaire",
-    regRoleAdmin: "🛡️ Administrateur",
+    regRoleOwnerMember: "Propriétaire",
+    regRoleAdmin: "Administrateur",
 
     // Common words
     statusApprovedShort: "Approuvé",

@@ -14,6 +14,7 @@ export interface Listing {
   type: 'buy' | 'rent';
   price: number;
   location: string;
+  address: string;
   bedrooms: number;
   bathrooms: number;
   squareMeters: number;
@@ -22,6 +23,7 @@ export interface Listing {
   ownerId: string;
   approvedByAdminId?: string;
   image: string;
+  images: string[];
   personalOwnerInfo: {
     name: string;
     email: string;

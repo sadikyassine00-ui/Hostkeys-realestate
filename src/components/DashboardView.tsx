@@ -20,11 +20,17 @@ import {
   Sparkles,
   ClipboardList,
   Check,
+  X,
   Lock,
   ArrowRight,
   Crown,
   Users,
   Shield,
+  Settings,
+  Home,
+  RefreshCw,
+  ArrowUp,
+  ArrowDown,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -143,9 +149,9 @@ export default function DashboardView({
   };
 
   const getRoleBadge = (role: string) => {
-    if (role === 'superadmin') return { icon: '👑', label: lang === 'fr' ? 'Super Admin' : 'Super Admin', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
-    if (role === 'admin') return { icon: '🛡️', label: lang === 'fr' ? 'Admin' : 'Admin', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
-    return { icon: '👤', label: lang === 'fr' ? 'Propriétaire' : 'Owner', color: 'text-slate-400 bg-neutral-900 border-neutral-800' };
+    if (role === 'superadmin') return { icon: <Crown className="h-3 w-3" />, label: 'Super Admin', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
+    if (role === 'admin') return { icon: <Shield className="h-3 w-3" />, label: 'Admin', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+    return { icon: <UserIcon className="h-3 w-3" />, label: lang === 'fr' ? 'Propri\u00e9taire' : 'Owner', color: 'text-slate-400 bg-neutral-900 border-neutral-800' };
   };
 
   const myBadge = getRoleBadge(currentUser.role);
@@ -168,19 +174,21 @@ export default function DashboardView({
                 referrerPolicy="no-referrer"
                 className="h-16 w-16 md:h-20 md:w-20 rounded-2xl border-2 border-brand/40 object-cover shadow-xl"
               />
-              <span className="absolute -bottom-1 -right-1 h-5 w-5 bg-brand text-[#030303] rounded-full flex items-center justify-center text-[10px] font-bold">✓</span>
+              <span className="absolute -bottom-1 -right-1 h-5 w-5 bg-brand text-[#030303] rounded-full flex items-center justify-center">
+                <Check className="h-3 w-3" />
+              </span>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl md:text-3xl font-extrabold text-white font-sans tracking-tight">{currentUser.name}</h1>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono tracking-wide uppercase border ${myBadge.color}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono tracking-wide uppercase border flex items-center gap-1 ${myBadge.color}`}>
                   {myBadge.icon} {myBadge.label}
                 </span>
               </div>
               <p className="text-xs font-mono text-slate-400 mt-1 flex items-center gap-2">
                 <span>{currentUser.email}</span>
-                <span>•</span>
+                <span>·</span>
                 <span>{currentUser.phone || '+212 600-000000'}</span>
               </p>
             </div>
@@ -200,24 +208,24 @@ export default function DashboardView({
         {isAdmin ? (
           <>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Volume Global Approuvé' : 'Total Brokered Volume'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Volume Global Approuv\u00e9' : 'Total Brokered Volume'}</span>
               <div className="text-2xl font-bold font-mono text-brand mt-1">{formatCurrency(baseBrokeredVolume, currency, eurRate)}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{totalApprovedListings.length} {lang === 'fr' ? 'propriétés en ligne' : 'active listings'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{totalApprovedListings.length} {lang === 'fr' ? 'propri\u00e9t\u00e9s en ligne' : 'active listings'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Audits en Attente' : 'Pending Queue'}</span>
               <div className="text-2xl font-bold font-mono text-amber-400 mt-1">{totalPendingListings.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Nécessite votre validation' : 'Requires admin review'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'N\u00e9cessite votre validation' : 'Requires admin review'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Propriétés Actives' : 'Live Properties'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Propri\u00e9t\u00e9s Actives' : 'Live Properties'}</span>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">{totalApprovedListings.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Publiées sur le portail' : 'Published on portal'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Publi\u00e9es sur le portail' : 'Published on portal'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Partenaires Actifs' : 'Active Owners'}</span>
               <div className="text-2xl font-bold font-mono text-sky-400 mt-1">{totalContributorsCount}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Propriétaires uniques' : 'Unique property owners'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Propri\u00e9taires uniques' : 'Unique property owners'}</span>
             </div>
           </>
         ) : (
@@ -225,7 +233,7 @@ export default function DashboardView({
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Valeur de mon Portefeuille' : 'My Portfolio Value'}</span>
               <div className="text-2xl font-bold font-mono text-brand mt-1">{formatCurrency(basePortfolioValue, currency, eurRate)}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{myApprovedCount} {lang === 'fr' ? 'biens certifiés' : 'approved listings'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{myApprovedCount} {lang === 'fr' ? 'biens certifi\u00e9s' : 'approved listings'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'En Cours de Validation' : 'Pending Verification'}</span>
@@ -233,14 +241,14 @@ export default function DashboardView({
               <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Audit Hostkeys en cours' : 'Hostkeys review in progress'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Biens Publiés' : 'Live Listings'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Biens Publi\u00e9s' : 'Live Listings'}</span>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">{myApprovedCount}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Visibles sur le marché' : 'Visible to public'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Visibles sur le march\u00e9' : 'Visible to public'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
               <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Total des Soumissions' : 'Total Submissions'}</span>
               <div className="text-2xl font-bold font-mono text-slate-200 mt-1">{mySubmissions.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Soumissions immobilières' : 'Property submissions'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Soumissions immobili\u00e8res' : 'Property submissions'}</span>
             </div>
           </>
         )}
@@ -250,28 +258,28 @@ export default function DashboardView({
       <div className="flex border-b border-neutral-850 gap-4 text-xs font-mono overflow-x-auto">
         {isAdmin ? (
           <>
-            <button onClick={() => setAdminTab('pending')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${adminTab === 'pending' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              📋 {lang === 'fr' ? 'Validation' : 'Pending Queue'} ({totalPendingListings.length})
+            <button onClick={() => setAdminTab('pending')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'pending' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+              <ClipboardList className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Validation' : 'Pending Queue'} ({totalPendingListings.length})
             </button>
-            <button onClick={() => setAdminTab('approved')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${adminTab === 'approved' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              ✅ {lang === 'fr' ? 'Actives' : 'Live Properties'} ({totalApprovedListings.length})
+            <button onClick={() => setAdminTab('approved')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'approved' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+              <CheckCircle className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Actives' : 'Live Properties'} ({totalApprovedListings.length})
             </button>
             {isSuperAdmin && (
-              <button onClick={() => setAdminTab('team')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${adminTab === 'team' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-                👑 {lang === 'fr' ? 'Gestion Équipe' : 'Team Management'}
+              <button onClick={() => setAdminTab('team')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'team' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+                <Crown className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Gestion \u00c9quipe' : 'Team Management'}
               </button>
             )}
-            <button onClick={() => setAdminTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${adminTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              ⚙️ {lang === 'fr' ? 'Profil' : 'Profile'}
+            <button onClick={() => setAdminTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+              <Settings className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Profil' : 'Profile'}
             </button>
           </>
         ) : (
           <>
-            <button onClick={() => setOwnerTab('listings')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${ownerTab === 'listings' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              🏠 {lang === 'fr' ? 'Mes Biens' : 'My Properties'} ({mySubmissions.length})
+            <button onClick={() => setOwnerTab('listings')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${ownerTab === 'listings' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+              <Home className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Mes Biens' : 'My Properties'} ({mySubmissions.length})
             </button>
-            <button onClick={() => setOwnerTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${ownerTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              ⚙️ {lang === 'fr' ? 'Profil' : 'Profile'}
+            <button onClick={() => setOwnerTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${ownerTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
+              <Settings className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Profil' : 'Profile'}
             </button>
           </>
         )}
@@ -291,27 +299,27 @@ export default function DashboardView({
               {totalPendingListings.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <CheckCircle className="h-12 w-12 text-brand mx-auto opacity-70 mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propriété en attente' : 'No Pending Properties'}</h4>
-                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Toutes les soumissions ont été vérifiées.' : 'All submitted properties have been reviewed.'}</p>
+                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 en attente' : 'No Pending Properties'}</h4>
+                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Toutes les soumissions ont \u00e9t\u00e9 v\u00e9rifi\u00e9es.' : 'All submitted properties have been reviewed.'}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {totalPendingListings.map(listing => (
                     <div key={listing.id} className="bg-[#030303] border border-neutral-850 p-4 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <img src={listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=200&h=150&q=80'} alt={listing.title} className="h-16 w-24 rounded-lg object-cover border border-neutral-800" />
+                        <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=200&h=150&q=80'} alt={listing.title} className="h-16 w-24 rounded-lg object-cover border border-neutral-800" />
                         <div>
                           <h4 className="text-sm font-semibold text-white">{listing.title}</h4>
-                          <p className="text-xs font-mono text-brand mt-0.5">{formatCurrency(listing.price, currency, eurRate)} • {listing.location}</p>
+                          <p className="text-xs font-mono text-brand mt-0.5">{formatCurrency(listing.price, currency, eurRate)} · {listing.location}</p>
                           <p className="text-[11px] font-mono text-slate-400 mt-1">Owner: {listing.personalOwnerInfo?.name || listing.ownerId}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 self-end md:self-center">
-                        <button onClick={() => onApprove(listing.id, currentUser.id)} className="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-black font-mono text-xs font-bold transition-all border border-emerald-500/20 cursor-pointer">
-                          ✓ {lang === 'fr' ? 'Approuver' : 'Approve'}
+                        <button onClick={() => onApprove(listing.id, currentUser.id)} className="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-black font-mono text-xs font-bold transition-all border border-emerald-500/20 cursor-pointer flex items-center gap-1.5">
+                          <Check className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Approuver' : 'Approve'}
                         </button>
-                        <button onClick={() => onReject(listing.id)} className="px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-xs font-bold transition-all border border-rose-500/20 cursor-pointer">
-                          ✕ {lang === 'fr' ? 'Refuser' : 'Refuse'}
+                        <button onClick={() => onReject(listing.id)} className="px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-xs font-bold transition-all border border-rose-500/20 cursor-pointer flex items-center gap-1.5">
+                          <X className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Refuser' : 'Refuse'}
                         </button>
                       </div>
                     </div>
@@ -324,18 +332,18 @@ export default function DashboardView({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-emerald-400" />
-                {lang === 'fr' ? 'Propriétés Actives sur Hostkeys' : 'Live Hostkeys Properties'}
+                {lang === 'fr' ? 'Propri\u00e9t\u00e9s Actives sur Hostkeys' : 'Live Hostkeys Properties'}
               </h3>
               {totalApprovedListings.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Building className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propriété active' : 'No Live Properties'}</h4>
+                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 active' : 'No Live Properties'}</h4>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {totalApprovedListings.map(listing => (
                     <div key={listing.id} onClick={() => onSelectListing(listing)} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 cursor-pointer hover:border-brand/30 transition-all">
-                      <img src={listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
+                      <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
                       <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
                       <p className="text-xs font-mono text-brand mt-1">{formatCurrency(listing.price, currency, eurRate)}</p>
                     </div>
@@ -349,15 +357,15 @@ export default function DashboardView({
               <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Crown className="h-5 w-5 text-amber-400" />
-                  {lang === 'fr' ? 'Gestion de l\'Équipe' : 'Team & Role Management'}
+                  {lang === 'fr' ? 'Gestion de l\'Equipe' : 'Team & Role Management'}
                 </h3>
-                <button onClick={loadTeamUsers} className="px-3 py-1.5 rounded-lg bg-neutral-900 text-slate-400 hover:text-white font-mono text-xs border border-neutral-800 cursor-pointer">
-                  {lang === 'fr' ? '↻ Rafraîchir' : '↻ Refresh'}
+                <button onClick={loadTeamUsers} className="px-3 py-1.5 rounded-lg bg-neutral-900 text-slate-400 hover:text-white font-mono text-xs border border-neutral-800 cursor-pointer flex items-center gap-1.5">
+                  <RefreshCw className="h-3 w-3" /> {lang === 'fr' ? 'Rafra\u00eechir' : 'Refresh'}
                 </button>
               </div>
 
               <p className="text-xs font-mono text-slate-400">
-                {lang === 'fr' ? 'En tant que Super Admin, vous pouvez promouvoir ou rétrograder les utilisateurs.' : 'As Super Admin, you can promote users to Admin or demote them back to Owner.'}
+                {lang === 'fr' ? 'En tant que Super Admin, vous pouvez promouvoir ou r\u00e9trograder les utilisateurs.' : 'As Super Admin, you can promote users to Admin or demote them back to Owner.'}
               </p>
 
               {teamLoading ? (
@@ -370,8 +378,8 @@ export default function DashboardView({
               ) : teamUsers.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Users className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucun utilisateur enregistré' : 'No Registered Users'}</h4>
-                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Les utilisateurs apparaîtront ici lorsqu\'ils s\'inscriront.' : 'Users will appear here when they sign up.'}</p>
+                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucun utilisateur enregistr\u00e9' : 'No Registered Users'}</h4>
+                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Les utilisateurs appara\u00eetront ici lorsqu\'ils s\'inscriront.' : 'Users will appear here when they sign up.'}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -394,7 +402,7 @@ export default function DashboardView({
                         </div>
 
                         <div className="flex items-center gap-2 self-end sm:self-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border ${badge.color}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border flex items-center gap-1 ${badge.color}`}>
                             {badge.icon} {badge.label}
                           </span>
                           
@@ -405,17 +413,19 @@ export default function DashboardView({
                                 <button
                                   onClick={() => handleRoleChange(user.id, 'admin')}
                                   disabled={roleUpdateLoading === user.id}
-                                  className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50"
+                                  className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                 >
-                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? '↑ Promouvoir Admin' : '↑ Promote to Admin')}
+                                  <ArrowUp className="h-3 w-3" />
+                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Promouvoir Admin' : 'Promote to Admin')}
                                 </button>
                               ) : (
                                 <button
                                   onClick={() => handleRoleChange(user.id, 'owner')}
                                   disabled={roleUpdateLoading === user.id}
-                                  className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50"
+                                  className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                 >
-                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? '↓ Rétrograder' : '↓ Demote to Owner')}
+                                  <ArrowDown className="h-3 w-3" />
+                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'R\u00e9trograder' : 'Demote to Owner')}
                                 </button>
                               )}
                             </div>
@@ -434,7 +444,7 @@ export default function DashboardView({
               {saveSuccess && (
                 <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-2">
                   <Check className="h-4 w-4" />
-                  <span>{lang === 'fr' ? 'Profil mis à jour avec succès !' : 'Profile updated successfully!'}</span>
+                  <span>{lang === 'fr' ? 'Profil mis \u00e0 jour avec succ\u00e8s !' : 'Profile updated successfully!'}</span>
                 </div>
               )}
               <div>
@@ -446,7 +456,7 @@ export default function DashboardView({
                 <input type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Téléphone' : 'Phone Number'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'T\u00e9l\u00e9phone' : 'Phone Number'}</label>
                 <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <button type="submit" className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all cursor-pointer">
@@ -472,11 +482,11 @@ export default function DashboardView({
               {mySubmissions.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Building className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propriété publiée' : 'No Properties Listed Yet'}</h4>
+                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 publi\u00e9e' : 'No Properties Listed Yet'}</h4>
                   <p className="text-xs font-mono text-slate-400 mt-1 max-w-sm mx-auto">{lang === 'fr' ? 'Cliquez sur le bouton pour soumettre votre premier bien.' : 'Click "Add Property" to publish your first listing.'}</p>
                   <button onClick={onAddListing} className="mt-4 px-4 py-2 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs inline-flex items-center gap-2 cursor-pointer">
                     <Plus className="h-4 w-4" />
-                    <span>{lang === 'fr' ? 'Publier ma Première Propriété' : 'Publish My First Property'}</span>
+                    <span>{lang === 'fr' ? 'Publier ma Premi\u00e8re Propri\u00e9t\u00e9' : 'Publish My First Property'}</span>
                   </button>
                 </div>
               ) : (
@@ -484,7 +494,7 @@ export default function DashboardView({
                   {mySubmissions.map(listing => (
                     <div key={listing.id} onClick={() => onSelectListing(listing)} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 cursor-pointer hover:border-brand/30 transition-all">
                       <div className="relative">
-                        <img src={listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
+                        <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
                         <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase ${listing.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (listing.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30')}`}>
                           {listing.status}
                         </span>
@@ -503,7 +513,7 @@ export default function DashboardView({
               {saveSuccess && (
                 <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-2">
                   <Check className="h-4 w-4" />
-                  <span>{lang === 'fr' ? 'Profil mis à jour !' : 'Profile updated!'}</span>
+                  <span>{lang === 'fr' ? 'Profil mis \u00e0 jour !' : 'Profile updated!'}</span>
                 </div>
               )}
               <div>
@@ -515,7 +525,7 @@ export default function DashboardView({
                 <input type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Téléphone' : 'Phone Number'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'T\u00e9l\u00e9phone' : 'Phone Number'}</label>
                 <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <button type="submit" className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all cursor-pointer">

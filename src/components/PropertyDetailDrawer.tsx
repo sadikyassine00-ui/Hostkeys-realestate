@@ -12,6 +12,7 @@ import {
   X, 
   Copy, 
   Check,
+  CheckCircle,
   Compass,
   ChevronLeft,
   ChevronRight
@@ -46,12 +47,16 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
-  const propertyImages = [
-    listing.image,
-    MOROCCO_VILLA_IMAGES[(listing.id.charCodeAt(0) || 0) % MOROCCO_VILLA_IMAGES.length],
-    MOROCCO_VILLA_IMAGES[(listing.id.charCodeAt(listing.id.length - 1) || 1) % MOROCCO_VILLA_IMAGES.length],
-    MOROCCO_VILLA_IMAGES[Math.abs(listing.price) % MOROCCO_VILLA_IMAGES.length]
-  ].filter((v, i, a) => Boolean(v) && a.indexOf(v) === i);
+  const propertyImages = (
+    listing.images && listing.images.length > 0 
+      ? listing.images 
+      : [
+          listing.image,
+          MOROCCO_VILLA_IMAGES[(listing.id.charCodeAt(0) || 0) % MOROCCO_VILLA_IMAGES.length],
+          MOROCCO_VILLA_IMAGES[(listing.id.charCodeAt(listing.id.length - 1) || 1) % MOROCCO_VILLA_IMAGES.length],
+          MOROCCO_VILLA_IMAGES[Math.abs(listing.price) % MOROCCO_VILLA_IMAGES.length]
+        ]
+  ).filter((v, i, a) => Boolean(v) && a.indexOf(v) === i);
 
   const handleNextPhoto = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -181,7 +186,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
             )}
             
             {isMyListing && (
-              <span className="absolute top-4 left-4 z-10 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 border border-emerald-500/20 backdrop-blur-md">
+              <span className="absolute top-4 left-4 z-10 rounded-full bg-[#030303]/90 px-3 py-1 text-xs font-medium text-brand border border-brand/20 backdrop-blur-md">
                 {t('cardYourSubmission', lang)}
               </span>
             )}
@@ -277,7 +282,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
                 <div>
                   <div className="flex items-center gap-1 text-slate-200">
                     <span className="font-semibold text-xs">{contactName}</span>
-                    <span className="text-brand">✓</span>
+                    <span className="text-brand"><CheckCircle className="h-3.5 w-3.5 inline" /></span>
                   </div>
                   <span className="text-[10px] text-neutral-450 block">{t('drawerContactOwnerLabel', lang)}</span>
                 </div>
