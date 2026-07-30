@@ -8,8 +8,7 @@ import {
   createListing, 
   updateListingStatus, 
   deleteListing, 
-  upsertUser, 
-  getUserById 
+  upsertUser 
 } from "./src/db";
 import { INITIAL_LISTINGS, DEMO_OWNER, DEMO_ADMIN } from "./src/mockData";
 import { Listing, User } from "./src/types";
@@ -19,31 +18,45 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// In-memory fallback cache when DATABASE_URL is not provided
+// Memory fallbacks
 let memoryListings: Listing[] = [...INITIAL_LISTINGS];
 let memoryUsers: User[] = [DEMO_OWNER, DEMO_ADMIN];
 
-// Health Check API
-app.get("/api/health", async (req, res) => {
-  const sql = getDb();
-  const dbConnected = Boolean(sql);
-  res.json({
-    status: "alive",
-    dbConnected,
-    message: dbConnected 
-      ? "Connected to Neon PostgreSQL Database." 
-      : "DATABASE_URL is not set. Running with local fallback data."
-  });
-});
+// Health Route Handler
+const handleHealth = async (req: express.Request, res: express.Response) => {
+  try {
+    const sql = getDb();
+    const dbConnected = Boolean(sql);
+    res.json({
+      status: "alive",
+      dbConnected,
+      message: dbConnected 
+        ? "Connected to Neon PostgreSQL Database." 
+        : "DATABASE_URL is not set. Running with local fallback data."
+    });
+  } catch (err: any) {
+    res.json({
+      status: "alive",
+      dbConnected: false,
+      message: `Health check fallback: ${err?.message || err}`
+    });
+  }
+};
 
-// Init DB API
-app.post("/api/init-db", async (req, res) => {
+app.get("/api/health", handleHealth);
+app.get("/health", handleHealth);
+
+// Init DB Handler
+const handleInitDb = async (req: express.Request, res: express.Response) => {
   const result = await initDatabase();
   res.status(result.success ? 200 : 400).json(result);
-});
+};
 
-// GET /api/properties (Filterable)
-app.get("/api/properties", async (req, res) => {
+app.post("/api/init-db", handleInitDb);
+app.post("/init-db", handleInitDb);
+
+// GET /properties Handler
+const handleGetProperties = async (req: express.Request, res: express.Response) => {
   try {
     const sql = getDb();
     const type = req.query.type as string | undefined;
@@ -57,7 +70,6 @@ app.get("/api/properties", async (req, res) => {
       return res.json({ listings: dbListings, isLiveDb: true });
     }
 
-    // Fallback to in-memory listings
     let filtered = [...memoryListings];
     if (status) filtered = filtered.filter(l => l.status === status);
     if (type) filtered = filtered.filter(l => l.type === type);
@@ -77,10 +89,13 @@ app.get("/api/properties", async (req, res) => {
     console.error("Error fetching properties:", err);
     res.status(500).json({ error: "Failed to fetch properties", message: err?.message });
   }
-});
+};
 
-// POST /api/properties
-app.post("/api/properties", async (req, res) => {
+app.get("/api/properties", handleGetProperties);
+app.get("/properties", handleGetProperties);
+
+// POST /properties Handler
+const handleCreateProperty = async (req: express.Request, res: express.Response) => {
   try {
     const listingData = req.body as Listing;
     if (!listingData.title || !listingData.price || !listingData.location) {
@@ -93,17 +108,19 @@ app.post("/api/properties", async (req, res) => {
       return res.json({ success: true, listing: created, isLiveDb: true });
     }
 
-    // Fallback memory state
     memoryListings.unshift(listingData);
     res.json({ success: true, listing: listingData, isLiveDb: false });
   } catch (err: any) {
     console.error("Error creating property:", err);
     res.status(500).json({ error: "Failed to create property", message: err?.message });
   }
-});
+};
 
-// PATCH /api/properties/:id/status
-app.patch("/api/properties/:id/status", async (req, res) => {
+app.post("/api/properties", handleCreateProperty);
+app.post("/properties", handleCreateProperty);
+
+// PATCH /properties/:id/status Handler
+const handleUpdateStatus = async (req: express.Request, res: express.Response) => {
   try {
     const { id } = req.params;
     const { status, adminId } = req.body;
@@ -130,10 +147,13 @@ app.patch("/api/properties/:id/status", async (req, res) => {
     console.error("Error updating property status:", err);
     res.status(500).json({ error: "Failed to update property status", message: err?.message });
   }
-});
+};
 
-// DELETE /api/properties/:id
-app.delete("/api/properties/:id", async (req, res) => {
+app.patch("/api/properties/:id/status", handleUpdateStatus);
+app.patch("/properties/:id/status", handleUpdateStatus);
+
+// DELETE /properties/:id Handler
+const handleDeleteProperty = async (req: express.Request, res: express.Response) => {
   try {
     const { id } = req.params;
     const sql = getDb();
@@ -148,10 +168,13 @@ app.delete("/api/properties/:id", async (req, res) => {
     console.error("Error deleting property:", err);
     res.status(500).json({ error: "Failed to delete property", message: err?.message });
   }
-});
+};
 
-// POST /api/auth/sync (User sync)
-app.post("/api/auth/sync", async (req, res) => {
+app.delete("/api/properties/:id", handleDeleteProperty);
+app.delete("/properties/:id", handleDeleteProperty);
+
+// POST /auth/sync Handler
+const handleSyncUser = async (req: express.Request, res: express.Response) => {
   try {
     const user = req.body as User;
     if (!user.id || !user.email) {
@@ -176,10 +199,13 @@ app.post("/api/auth/sync", async (req, res) => {
     console.error("Error syncing user:", err);
     res.status(500).json({ error: "Failed to sync user", message: err?.message });
   }
-});
+};
 
-// GET /api/exchange-rate
-app.get("/api/exchange-rate", async (req, res) => {
+app.post("/api/auth/sync", handleSyncUser);
+app.post("/auth/sync", handleSyncUser);
+
+// Exchange Rate Handler
+const handleExchangeRate = async (req: express.Request, res: express.Response) => {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3500);
@@ -211,7 +237,10 @@ app.get("/api/exchange-rate", async (req, res) => {
       source: "fallback"
     });
   }
-});
+};
+
+app.get("/api/exchange-rate", handleExchangeRate);
+app.get("/exchange-rate", handleExchangeRate);
 
 // Vite Integration for local dev
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
@@ -230,7 +259,6 @@ if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
   });
 }
 
-// Start standalone server when running directly
 if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
