@@ -1,12 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { neon } from '@neondatabase/serverless';
-import { INITIAL_LISTINGS } from '../src/mockData';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const url = process.env.DATABASE_URL;
     if (!url || url.trim() === '') {
-      return res.status(200).json({ listings: INITIAL_LISTINGS, isLiveDb: false });
+      return res.status(200).json({ listings: [], isLiveDb: false, message: 'DATABASE_URL is missing' });
     }
 
     const cleanUrl = url.trim().replace(/^["']|["']$/g, '');
@@ -67,6 +66,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ listings, isLiveDb: true });
   } catch (err: any) {
     console.error('Properties API error:', err);
-    return res.status(200).json({ listings: INITIAL_LISTINGS, isLiveDb: false, error: err?.message || String(err) });
+    return res.status(200).json({ listings: [], isLiveDb: false, error: err?.message || String(err) });
   }
 }
