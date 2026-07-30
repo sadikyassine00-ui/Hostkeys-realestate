@@ -6,6 +6,7 @@ import PropertyCard from './components/PropertyCard';
 import PropertyForm from './components/PropertyForm';
 import PropertyDetailDrawer from './components/PropertyDetailDrawer';
 import DashboardView from './components/DashboardView';
+import Toast, { ToastMessage } from './components/Toast';
 import { formatCurrency, convertValue, Currency } from './utils';
 import { t, translateListing, translateLocation, translateAmenity } from './translations';
 import { 
@@ -75,6 +76,21 @@ export default function App() {
   const [isLiveDb, setIsLiveDb] = useState<boolean>(false);
   const [isFirebaseReady, setIsFirebaseReady] = useState<boolean>(isFirebaseConfigured());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // Toast Notification State
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const addToast = (type: 'success' | 'error' | 'info', message: string) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    setToasts(prev => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   // Load properties from API backend / Neon Postgres
   const loadPropertiesFromApi = async () => {
@@ -318,17 +334,23 @@ export default function App() {
 
     try {
       const res = await createPropertyApi(newProperty);
-      setListings(prev => [res.listing, ...prev]);
-      if (res.isLiveDb) setIsLiveDb(true);
-    } catch (err) {
+      if (res && res.listing) {
+        setListings(prev => [res.listing, ...prev]);
+      } else {
+        setListings(prev => [newProperty, ...prev]);
+      }
+      if (res && res.isLiveDb) setIsLiveDb(true);
+      addToast('success', lang === 'fr' ? 'Propriété créée avec succès !' : 'Property created successfully!');
+    } catch (err: any) {
       setListings(prev => [newProperty, ...prev]);
+      addToast('info', lang === 'fr' ? 'Propriété enregistrée localement.' : 'Property saved in active session.');
     }
   };
 
   // Approve / Reject Property
   const handleApproveListing = async (listingId: string, adminId: string) => {
     setListings(prev => prev.map(listing => {
-      if (listing.id === listingId) {
+      if (listing && listing.id === listingId) {
         return { ...listing, status: 'approved', approvedByAdminId: adminId };
       }
       return listing;
@@ -336,12 +358,15 @@ export default function App() {
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
-    } catch (err) {}
+      addToast('success', lang === 'fr' ? 'Propriété approuvée et publiée !' : 'Property approved and live on portal!');
+    } catch (err) {
+      addToast('info', lang === 'fr' ? 'Statut mis à jour localement.' : 'Status updated locally.');
+    }
   };
 
   const handleRejectListing = async (listingId: string) => {
     setListings(prev => prev.map(listing => {
-      if (listing.id === listingId) {
+      if (listing && listing.id === listingId) {
         return { ...listing, status: 'rejected' };
       }
       return listing;
@@ -349,7 +374,10 @@ export default function App() {
 
     try {
       await updatePropertyStatusApi(listingId, 'rejected');
-    } catch (err) {}
+      addToast('info', lang === 'fr' ? 'Propriété refusée.' : 'Property submission rejected.');
+    } catch (err) {
+      addToast('info', lang === 'fr' ? 'Statut mis à jour localement.' : 'Status updated locally.');
+    }
   };
 
   const handleResetFilters = () => {
@@ -916,6 +944,8 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* TOAST NOTIFICATION CONTAINER */}
+      <Toast toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

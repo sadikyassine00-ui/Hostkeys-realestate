@@ -5,6 +5,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const url = process.env.DATABASE_URL;
     if (!url || url.trim() === '') {
+      if (req.method === 'POST') {
+        return res.status(400).json({ success: false, error: 'DATABASE_URL environment variable is missing.' });
+      }
       return res.status(200).json({ listings: [], isLiveDb: false, message: 'DATABASE_URL is missing' });
     }
 
@@ -14,6 +17,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // POST /api/properties
     if (req.method === 'POST') {
       const listing = req.body;
+      if (!listing || !listing.id || !listing.title) {
+        return res.status(400).json({ success: false, error: 'Invalid listing payload.' });
+      }
+
       const personalInfoJson = JSON.stringify(listing.personalOwnerInfo || {});
 
       await sql`
@@ -26,7 +33,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${listing.price}, ${listing.location}, ${listing.address || ''},
           ${listing.bedrooms}, ${listing.bathrooms}, 
           ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status}, 
-          ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image}, 
+          ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image || ''}, 
           ${listing.images || []},
           ${personalInfoJson}::jsonb, ${listing.createdAt || new Date().toISOString()}
         );
@@ -70,6 +77,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ listings, isLiveDb: true });
   } catch (err: any) {
     console.error('Properties API error:', err);
+    if (req.method === 'POST') {
+      return res.status(500).json({ success: false, error: 'Failed to create listing in database.' });
+    }
     return res.status(200).json({ listings: [], isLiveDb: false, error: err?.message || String(err) });
   }
 }
