@@ -1,3 +1,8 @@
 {
-  "version": 2
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/health.ts" },
+    { "source": "/api/properties", "destination": "/api/properties.ts" },
+    { "source": "/api/init-db", "destination": "/api/init-db.ts" },
+    { "source": "/api/(.*)", "destination": "/api/$1" }
+  ]
 }
