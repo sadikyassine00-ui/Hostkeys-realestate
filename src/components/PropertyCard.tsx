@@ -19,7 +19,32 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, currency, eurRate, lang }: PropertyCardProps) {
-  const [showShareModal, setShowShareModal] = useState(false);
+  const handleSystemShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
+    const priceFormatted = formatCurrency(listing.price, currency, eurRate, true, listing.type);
+    const shareTitle = `${listing.title} - Hostkeys`;
+    const shareText = `Check out this property on Hostkeys: ${listing.title} (${listing.location}) - ${priceFormatted}`;
+
+    if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+      try {
+        await (navigator as any).share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        // User closed native menu or cancelled
+      }
+    }
+
+    // Fallback if native system share unavailable
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      alert(lang === 'fr' ? 'Lien de la propriété copié !' : 'Property link copied!');
+    } catch (err) {}
+  };
   const renderAgentAvatar = (agent: User, size = "h-7 w-7", textSize = "text-xs") => {
     const nameToUse = agent?.name || agent?.email || 'Agent';
     const initial = nameToUse.charAt(0).toUpperCase();
@@ -94,10 +119,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
         {/* Protection / Masked Badge & Share Button */}
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
           <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowShareModal(true);
-            }}
+            onClick={handleSystemShare}
             className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-slate-300 hover:text-brand border border-neutral-800 backdrop-blur-md cursor-pointer hover:scale-110 transition-all" 
             title="Share Property"
           >
@@ -220,16 +242,6 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
             })}
           </div>
         </div>
-      )}
-      {/* Share Modal Pop-up */}
-      {showShareModal && (
-        <ShareModal
-          listing={listing}
-          currency={currency}
-          eurRate={eurRate}
-          lang={lang}
-          onClose={() => setShowShareModal(false)}
-        />
       )}
     </motion.div>
   );

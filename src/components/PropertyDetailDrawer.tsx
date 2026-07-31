@@ -112,16 +112,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
     ? "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80"
     : (adminUser?.avatar || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80");
 
-  const convertedPrice = convertValue(listing.price, currency, eurRate);
-  const pricePerSqMeter = Math.round(convertedPrice / (listing.squareMeters || 1));
   const isMyListing = currentUser && listing.ownerId === currentUser.id;
-
-  const handleCopyLink = () => {
-    const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -138,18 +129,16 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm"
         onClick={onClose}
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
       />
 
-      {/* Slide-over panel */}
-      <motion.div 
-        id="property-drawer-panel"
+      {/* Drawer Container */}
+      <motion.div
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 26, stiffness: 210 }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className="relative z-10 w-full max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#0b0b0b] border-l border-neutral-900 h-full flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header bar */}
@@ -174,40 +163,37 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
           <div 
             className="relative h-56 md:h-64 rounded-xl overflow-hidden bg-neutral-950/45 border border-neutral-900 group cursor-pointer select-none"
             onClick={() => handleNextPhoto()}
-            title="Click to view next image"
           >
             <AnimatePresence mode="wait">
               <motion.img 
                 key={currentImgIndex}
                 src={propertyImages[currentImgIndex]} 
                 referrerPolicy="no-referrer"
-                alt={`${listing.title} - View ${currentImgIndex + 1}`}
-                className="w-full h-full object-cover"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
+                alt={listing.title} 
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
               />
             </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0b0b]/90 via-transparent to-transparent pointer-events-none" />
             
-            {/* Navigation Chevron Arrows */}
+            {/* Slider controls */}
             {propertyImages.length > 1 && (
               <>
                 <button
-                  onClick={handlePrevPhoto}
+                  onClick={(e) => handlePrevPhoto(e)}
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/65 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-10 cursor-pointer"
                 >
-                  <ChevronLeft className="h-4.5 w-4.5" />
+                  <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={handleNextPhoto}
+                  onClick={(e) => handleNextPhoto(e)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/65 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-10 cursor-pointer"
                 >
-                  <ChevronRight className="h-4.5 w-4.5" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
-
-                <div className="absolute bottom-4 right-4 z-10 rounded-full bg-black/75 border border-neutral-900 px-2.5 py-0.5 text-[10px] font-mono text-slate-300">
+                <div className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/75 border border-neutral-800 text-[10px] font-mono text-slate-300 backdrop-blur-md">
                   {currentImgIndex + 1} / {propertyImages.length}
                 </div>
               </>
@@ -239,79 +225,96 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             </div>
           </div>
 
-            {listing.address && (
-              <div className="flex items-center gap-2 text-slate-300 font-mono text-xs bg-[#030303] p-3 rounded-xl border border-neutral-900">
-                <MapPin className="h-4 w-4 text-brand shrink-0" />
-                <span className="leading-tight">{listing.address}</span>
-              </div>
-            )}
-
-          {/* Metric specs breakdown: Bedrooms, Beds, Bathrooms, Area */}
+          {/* Metric specs breakdown */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Caractéristiques' : 'Property Specifications'}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <DoorOpen className="h-4 w-4 text-brand mb-1" />
-                <span className="block text-sm font-semibold text-white">{listing.bedrooms}</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</span>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBedrooms', lang)}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bedrooms}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Bed className="h-4 w-4 text-brand mb-1" />
-                <span className="block text-sm font-semibold text-white">{listing.beds || listing.bedrooms || 1}</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Lits' : 'Beds'}</span>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBeds', lang)}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.beds || listing.bedrooms}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Bath className="h-4 w-4 text-brand mb-1" />
-                <span className="block text-sm font-semibold text-white">{listing.bathrooms}</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</span>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBaths', lang)}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bathrooms}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Maximize className="h-4 w-4 text-brand mb-1" />
-                <span className="block text-sm font-semibold text-white">{listing.squareMeters} m²</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Surface' : 'Floor Space'}</span>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Surface' : 'Area'}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.squareMeters} m²</p>
               </div>
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Description' : 'Property Description'}</h3>
-            <p className="text-neutral-300 text-sm leading-relaxed font-sans">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Description' : 'Property Overview'}</h3>
+            <div className="bg-[#030303] p-4 rounded-xl border border-neutral-900 text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-line">
               {listing.description}
-            </p>
-          </div>
-
-          {/* Full Amenities */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{t('drawerAmenitiesTitle', lang)} ({listing.amenities.length})</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {listing.amenities.map((amenity, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-[#030303] border border-neutral-900 rounded-lg p-2.5 text-xs text-neutral-300 font-mono">
-                  <Check className="h-3.5 w-3.5 text-brand shrink-0" />
-                  <span>{amenity}</span>
-                </div>
-              ))}
             </div>
           </div>
+
+          {/* Amenities */}
+          {listing.amenities && listing.amenities.length > 0 && (
+            <div className="space-y-2.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{t('drawerAmenitiesTitle', lang)}</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {listing.amenities.map((amenity, idx) => (
+                  <div key={idx} className="bg-[#030303] border border-neutral-900 px-3 py-2 rounded-xl flex items-center gap-2">
+                    <Check className="h-3.5 w-3.5 text-brand shrink-0" />
+                    <span className="text-xs text-slate-300 font-mono leading-tight">{amenity}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Representative Security & 3 Assigned Advisory Agents */}
           <div className="bg-[#0f0f0f] p-5 rounded-xl border border-neutral-900 hover:border-brand/20 transition-all space-y-4 font-mono text-xs">
             <div className="flex items-center gap-2 text-brand font-bold">
               <ShieldCheck className="h-4.5 w-4.5 text-brand shrink-0" />
-              <span>HOSTKEYS VERIFIED & PROTECTED</span>
+              <span className="uppercase text-[11px] tracking-wider">{t('drawerBrokerContactHeader', lang)}</span>
             </div>
-            <p className="text-neutral-300 leading-relaxed font-sans text-xs">
-              {lang === 'fr' 
-                ? "Cette annonce est certifiée et sécurisée par l'équipe Hostkeys Maroc. L'identité du propriétaire est protégée. Nos conseillers dédiés gèrent les visites et l'accompagnement juridique." 
-                : "This listing is verified under Hostkeys Morocco. Owner privacy is protected. Our dedicated advisors manage buyer vetting, viewings, and transaction compliance."}
+
+            <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
+              {t('cardVettedAdvisoryNotice', lang)}
             </p>
-            
+
+            {/* If direct admin personal info exists */}
+            {isDirectAdminListing && (
+              <div className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                    <img src={contactAvatar} alt={contactName} className="h-10 w-10 rounded-full border border-brand/30 object-cover" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
+                  </div>
+                  <div>
+                    <span className="font-semibold text-xs text-white block">{contactName}</span>
+                    <span className="text-[10px] text-slate-400 block font-mono">{contactPhone}</span>
+                  </div>
+                </div>
+                <a 
+                  href={`tel:${contactPhone}`} 
+                  className="px-3 py-1.5 rounded-lg bg-brand text-[#030303] font-bold text-xs flex items-center gap-1.5 hover:bg-brand/90 transition-colors"
+                >
+                  <Phone className="h-3.5 w-3.5" />
+                  <span>{lang === 'fr' ? 'Appeler' : 'Call'}</span>
+                </a>
+              </div>
+            )}
+
+            {/* List of Real Active Agents */}
             {agents && agents.length > 0 && (
               <div className="border-t border-neutral-900 pt-3.5 space-y-3">
                 <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
                   {lang === 'fr' ? 'Conseiller(s) Dédié(s)' : 'Assigned Agent(s)'} ({agents.length})
                 </span>
-
                 <div className="space-y-2.5">
                   {agents.map((agent, idx) => (
                     <div key={agent?.id || `agent-${idx}`} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
@@ -323,36 +326,17 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="font-semibold text-xs text-white truncate max-w-[150px] sm:max-w-none">{agent?.name || agent?.email?.split('@')[0] || 'Agent'}</span>
-                            <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold shrink-0">
-                              {agent?.role === 'superadmin' ? 'Super Admin' : 'Admin Agent'}
-                            </span>
                           </div>
                           <span className="text-[10px] text-slate-400 block font-mono truncate max-w-[200px] sm:max-w-none">{agent?.email || 'admin@hostkeys.ma'}</span>
-                          <div className="flex items-center gap-1 mt-1">
-                            {(agent?.languages && agent.languages.length > 0 ? agent.languages : ['FR', 'EN']).map((lCode: string) => (
-                              <span key={lCode} className="text-[8.5px] font-mono text-brand bg-brand/10 border border-brand/20 px-1.5 py-0.2 rounded font-bold uppercase">
-                                {lCode}
-                              </span>
-                            ))}
-                          </div>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-900">
-                        <a
-                          href={`tel:${agent?.phone || '+212 600-000000'}`}
-                          className="px-2.5 py-1.5 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1.5"
-                        >
-                          <Phone className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{agent?.phone || '+212 600-000000'}</span>
-                        </a>
-                        <a
-                          href={`mailto:${agent?.email || 'admin@hostkeys.ma'}`}
-                          className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline cursor-pointer shrink-0"
-                        >
-                          {lang === 'fr' ? 'Email direct' : 'Direct Email'}
-                        </a>
-                      </div>
+                      <a
+                        href={`tel:${agent?.phone || '+212 600-000000'}`}
+                        className="px-2.5 py-1.5 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Phone className="h-3 w-3 shrink-0" />
+                        <span>{agent?.phone || '+212 600-000000'}</span>
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -372,11 +356,11 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
           <div className="flex gap-2">
             <button
-              onClick={() => setShowShareModal(true)}
+              onClick={handleSystemShare}
               className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-neutral-850 text-neutral-300 hover:text-brand hover:bg-[#0b0b0b] transition-all cursor-pointer"
             >
-              <Share2 className="h-4 w-4 text-brand" />
-              <span>{lang === 'fr' ? 'Partager' : 'Share'}</span>
+              {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4 text-brand" />}
+              <span>{copied ? (lang === 'fr' ? 'Lien Copié !' : 'Link Copied!') : (lang === 'fr' ? 'Partager' : 'Share')}</span>
             </button>
             <button
               onClick={onClose}
