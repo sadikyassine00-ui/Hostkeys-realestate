@@ -18,25 +18,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(500).json({ success: false, error: 'Database connection string not configured.' });
     }
 
-    // 1. Wipe all listings table
+    // 1. Drop existing tables to guarantee clean schema with all UNIQUE constraints
     try {
-      await sql`TRUNCATE TABLE listings;`;
-    } catch (e) {
-      await sql`DELETE FROM listings;`;
-    }
+      await sql`DROP TABLE IF EXISTS listings CASCADE;`;
+      await sql`DROP TABLE IF EXISTS users CASCADE;`;
+    } catch (e) {}
 
-    // 2. Wipe all users table except Super Admin
-    try {
-      await sql`
-        DELETE FROM users WHERE LOWER(email) != ${SUPER_ADMIN_EMAIL.toLowerCase()};
-      `;
-    } catch (e) {
-      // Table might not exist yet
-    }
-
-    // 3. Re-seed Super Admin
+    // 2. Re-create users table with proper UNIQUE constraint on email
     await sql`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE users (
         id VARCHAR(255) PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
@@ -49,6 +39,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
     `;
 
+    // 3. Re-create listings table
+    await sql`
+      CREATE TABLE listings (
+        id VARCHAR(255) PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        price NUMERIC NOT NULL,
+        location VARCHAR(255) NOT NULL,
+        address TEXT DEFAULT '',
+        bedrooms INT NOT NULL,
+        beds INT DEFAULT 0,
+        bathrooms NUMERIC NOT NULL,
+        square_meters INT NOT NULL,
+        amenities TEXT[] DEFAULT '{}',
+        status VARCHAR(50) DEFAULT 'pending',
+        owner_id VARCHAR(255) NOT NULL,
+        approved_by_admin_id VARCHAR(255),
+        image TEXT,
+        images TEXT[] DEFAULT '{}',
+        personal_owner_info JSONB,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    // 4. Insert Super Admin
     await sql`
       INSERT INTO users (id, name, email, phone, role, is_agent, languages)
       VALUES (
@@ -59,15 +75,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'superadmin',
         true,
         ARRAY['FR', 'EN', 'AR']
-      )
-      ON CONFLICT (email) DO UPDATE SET
-        role = 'superadmin',
-        is_agent = true;
+      );
     `;
 
     return res.status(200).json({
       success: true,
-      message: 'Database reset successfully! All listings and non-superadmin users have been removed.'
+      message: 'DATABASE COMPLETELY WIPED AND RECREATED! Tables users & listings are clean. Only Super Admin remains.'
     });
   } catch (err: any) {
     console.error('Reset database error:', err);
