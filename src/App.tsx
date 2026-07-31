@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Listing } from './types';
-import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS, SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
+import { ALL_AMENITIES, ALL_LOCATIONS, SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
 import PropertyCard from './components/PropertyCard';
 import PropertyForm from './components/PropertyForm';
 import PropertyDetailDrawer from './components/PropertyDetailDrawer';
@@ -67,7 +67,7 @@ export default function App() {
     if (cached) {
       try { return JSON.parse(cached); } catch (e) {}
     }
-    return localStorage.getItem('hostkeys_logged_in') === 'true' ? DEMO_ADMIN : null;
+    return localStorage.getItem('hostkeys_logged_in') === 'true' ? DEFAULT_SUPER_ADMIN : null;
   });
 
   const [listings, setListings] = useState<Listing[]>(() => {
@@ -83,7 +83,7 @@ export default function App() {
       const cached = localStorage.getItem('hostkeys_all_users');
       if (cached) return JSON.parse(cached);
     } catch (e) {}
-    return [DEFAULT_SUPER_ADMIN, DEMO_OWNER];
+    return [DEFAULT_SUPER_ADMIN];
   });
 
   // Database & Firebase connection status flags
@@ -941,7 +941,7 @@ export default function App() {
                   <PropertyCard
                     key={listing.id}
                     listing={translateListing(listing, lang)}
-                    adminUser={users.find(u => u.id === listing.approvedByAdminId) || DEMO_ADMIN}
+                    adminUser={users.find(u => u.id === listing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
                     currentUser={currentUser}
                     agents={activeAgents}
                     onSelect={(l) => handleOpenListing(l)}
@@ -1106,7 +1106,7 @@ export default function App() {
             listing={translateListing(expandedListing, lang)}
             currentUser={currentUser}
             agents={activeAgents}
-            adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEMO_ADMIN}
+            adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
             onClose={handleCloseListing}
             currency={currency}
             eurRate={eurRate}

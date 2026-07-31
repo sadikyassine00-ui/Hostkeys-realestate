@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { Listing, User } from './types';
-import { INITIAL_LISTINGS, DEMO_OWNER, DEMO_ADMIN, SUPER_ADMIN_EMAIL } from './mockData';
+import { Listing, User } from './types';
+import { SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
 
 // Helper to get active Neon SQL function if DATABASE_URL is present
 export function getDb() {
@@ -71,19 +72,10 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';`;
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS beds INT DEFAULT 0;`;
 
-    // 3. Seed Users if empty
+    // 3. Seed Super Admin if users table is empty
     const existingUsers = await sql`SELECT COUNT(*)::int as count FROM users;`;
     if (existingUsers[0].count === 0) {
-      await upsertUser(DEMO_OWNER);
-      await upsertUser(DEMO_ADMIN);
-    }
-
-    // 4. Seed Listings if empty
-    const existingListings = await sql`SELECT COUNT(*)::int as count FROM listings;`;
-    if (existingListings[0].count === 0) {
-      for (const listing of INITIAL_LISTINGS) {
-        await createListing(listing);
-      }
+      await upsertUser(DEFAULT_SUPER_ADMIN);
     }
 
     return { success: true, message: 'Neon Database initialized successfully with table schemas.' };

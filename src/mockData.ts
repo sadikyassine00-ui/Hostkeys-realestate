@@ -12,24 +12,6 @@ export const DEFAULT_SUPER_ADMIN: User = {
   role: 'superadmin'
 };
 
-export const DEMO_ADMIN: User = {
-  id: 'admin-hostkeys',
-  name: 'Hostkeys Admin',
-  email: 'admin@hostkeys.ma',
-  phone: '+212 522 000000',
-  avatar: '',
-  role: 'admin'
-};
-
-export const DEMO_OWNER: User = {
-  id: 'owner-lucas',
-  name: 'Property Owner',
-  email: 'owner@example.com',
-  phone: '+212 600 000000',
-  avatar: '',
-  role: 'owner'
-};
-
 export const ALL_CITIES = [
   'Agadir',
   'Al Hoceima',
