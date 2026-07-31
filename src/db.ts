@@ -1,6 +1,5 @@
 import { neon } from '@neondatabase/serverless';
 import { Listing, User } from './types';
-import { Listing, User } from './types';
 import { SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
 
 // Helper to get active Neon SQL function if DATABASE_URL is present
