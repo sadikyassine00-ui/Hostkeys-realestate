@@ -16,11 +16,13 @@ import {
   CheckCircle,
   Compass,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
 import { t } from '../translations';
+import ShareModal from './ShareModal';
 
 const MOROCCO_VILLA_IMAGES = [
   "https://images.unsplash.com/photo-1549294413-26f195afcbce?auto=format&fit=crop&w=1200&q=80",
@@ -47,6 +49,7 @@ interface PropertyDetailDrawerProps {
 export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
 
   const renderAgentAvatar = (agent: User, size = "h-10 w-10", textSize = "text-sm") => {
@@ -369,11 +372,11 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
           <div className="flex gap-2">
             <button
-              onClick={handleCopyLink}
+              onClick={() => setShowShareModal(true)}
               className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-neutral-850 text-neutral-300 hover:text-brand hover:bg-[#0b0b0b] transition-all cursor-pointer"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-brand" /> : <Copy className="h-3.5 w-3.5" />}
-              <span>{copied ? (lang === 'fr' ? 'Lien Copié' : 'Link Copied') : (lang === 'fr' ? 'Partager' : 'Share')}</span>
+              <Share2 className="h-4 w-4 text-brand" />
+              <span>{lang === 'fr' ? 'Partager' : 'Share'}</span>
             </button>
             <button
               onClick={onClose}
@@ -384,6 +387,17 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
           </div>
         </div>
       </motion.div>
+
+      {/* Share Modal Pop-up */}
+      {showShareModal && (
+        <ShareModal
+          listing={listing}
+          currency={currency}
+          eurRate={eurRate}
+          lang={lang}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </div>
   );
 }

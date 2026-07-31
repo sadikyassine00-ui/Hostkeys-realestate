@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
-import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe } from 'lucide-react';
+import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2 } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
+import ShareModal from './ShareModal';
 
 interface PropertyCardProps {
   key?: string;
@@ -18,6 +19,7 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, currency, eurRate, lang }: PropertyCardProps) {
+  const [showShareModal, setShowShareModal] = useState(false);
   const renderAgentAvatar = (agent: User, size = "h-7 w-7", textSize = "text-xs") => {
     const nameToUse = agent?.name || agent?.email || 'Agent';
     const initial = nameToUse.charAt(0).toUpperCase();
@@ -89,8 +91,18 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
           )}
         </div>
 
-        {/* Protection / Masked Badge */}
-        <div className="absolute top-4 right-4 z-10">
+        {/* Protection / Masked Badge & Share Button */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowShareModal(true);
+            }}
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-slate-300 hover:text-brand border border-neutral-800 backdrop-blur-md cursor-pointer hover:scale-110 transition-all" 
+            title="Share Property"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-brand border border-brand/30 backdrop-blur-md cursor-pointer hover:bg-brand hover:text-[#030303] transition-colors" title="Hostkeys Verified & Protected">
             <ShieldCheck className="h-4.5 w-4.5" />
           </div>
@@ -208,6 +220,16 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
             })}
           </div>
         </div>
+      )}
+      {/* Share Modal Pop-up */}
+      {showShareModal && (
+        <ShareModal
+          listing={listing}
+          currency={currency}
+          eurRate={eurRate}
+          lang={lang}
+          onClose={() => setShowShareModal(false)}
+        />
       )}
     </motion.div>
   );
