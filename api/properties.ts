@@ -113,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       await sql`
         UPDATE listings 
         SET status = ${status}, approved_by_admin_id = ${adminId || null}
-        WHERE id = ${id};
+        WHERE TRIM(LOWER(id)) = TRIM(LOWER(${id})) OR id = ${id};
       `;
       return res.status(200).json({ success: true, isLiveDb: true });
     }

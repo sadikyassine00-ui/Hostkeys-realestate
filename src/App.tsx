@@ -478,8 +478,9 @@ export default function App() {
 
     setListings(prev => {
       const updated = prev.map(listing => {
-        if (listing && listing.id === listingId) {
-          approvedType = (listing.type || 'buy').toLowerCase() === 'rent' ? 'rent' : 'buy';
+        if (listing && (listing.id === listingId || listing.id.trim().toLowerCase() === listingId.trim().toLowerCase())) {
+          const rawType = (listing.type || 'buy').trim().toLowerCase();
+          approvedType = (rawType === 'rent' || rawType === 'rental' || rawType === 'for rent' || rawType === 'location') ? 'rent' : 'buy';
           return { ...listing, status: 'approved' as const, approvedByAdminId: adminId };
         }
         return listing;
@@ -488,17 +489,20 @@ export default function App() {
       return updated;
     });
 
-    // Auto-switch active category segment (Buy/Rent) & reset filters so property renders immediately
+    // Auto-switch active tab to catalog, category segment (Buy/Rent), & reset all search filters
+    setActiveTab('catalog');
     setActiveSegment(approvedType);
     setSearchTerm('');
     setSelectedLocation('All');
     setBedroomsFilter('All');
     setBathroomsFilter('All');
+    setSelectedAmenities([]);
+    setMaxPrice(1000000000); // 1 Billion limit so price filter never hides property
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
       addToast('success', lang === 'fr' ? 'Propriété approuvée et publiée dans le catalogue !' : 'Property approved & published live!');
-      loadPropertiesFromApi();
+      await loadPropertiesFromApi();
     } catch (err: any) {
       addToast('error', lang === 'fr' ? `Erreur de validation: ${err?.message || 'Erreur serveur'}` : `Approval error: ${err?.message || 'Server error'}`);
     }
@@ -607,13 +611,19 @@ export default function App() {
     if (!item) return false;
 
     // Status check (case-insensitive)
-    const statusNorm = (item.status || 'pending').toLowerCase();
+    const statusNorm = (item.status || 'pending').trim().toLowerCase();
     if (statusNorm !== 'approved') return false;
 
-    // Segment check (buy vs rent)
-    const typeNorm = (item.type || 'buy').toLowerCase();
-    const activeSegNorm = (activeSegment || 'buy').toLowerCase();
-    if (typeNorm !== activeSegNorm) return false;
+    // Segment check (buy vs rent) with synonym mapping
+    const typeNorm = (item.type || 'buy').trim().toLowerCase();
+    const activeSegNorm = (activeSegment || 'buy').trim().toLowerCase();
+
+    const isBuySegment = activeSegNorm === 'buy';
+    const isItemBuy = typeNorm === 'buy' || typeNorm === 'sale' || typeNorm === 'for sale' || typeNorm === 'for_sale' || typeNorm === 'purchase';
+    const isItemRent = typeNorm === 'rent' || typeNorm === 'rental' || typeNorm === 'for rent' || typeNorm === 'for_rent' || typeNorm === 'location';
+
+    if (isBuySegment && !isItemBuy && isItemRent) return false;
+    if (!isBuySegment && !isItemRent && isItemBuy) return false;
 
     if (searchTerm) {
       const query = searchTerm.trim().toLowerCase();
