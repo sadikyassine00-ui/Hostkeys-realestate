@@ -10,10 +10,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const isPublicRequest = req.query.public === 'true';
 
       if (isPublicRequest) {
-        // Return only admin and superadmin agents for public display
-        const allUsers = await getAllUsers();
-        const adminAgents = allUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
-        return res.status(200).json({ agents: adminAgents, isLiveDb: true });
+        try {
+          const allUsers = await getAllUsers();
+          const adminAgents = (allUsers || []).filter(u => u && (u.role === 'admin' || u.role === 'superadmin'));
+          return res.status(200).json({ agents: adminAgents, isLiveDb: true });
+        } catch (dbErr) {
+          console.warn('DB error on public agents fetch, using empty agents array:', dbErr);
+          return res.status(200).json({ agents: [], isLiveDb: false });
+        }
       }
 
       const requestorEmail = req.headers['x-user-email'] as string;
@@ -21,13 +25,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const requestor = await getUserByEmail(requestorEmail);
-      if (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin')) {
-        return res.status(403).json({ error: 'Forbidden: admin access required' });
-      }
+      try {
+        const requestor = await getUserByEmail(requestorEmail);
+        if (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin')) {
+          return res.status(403).json({ error: 'Forbidden: admin access required' });
+        }
 
-      const users = await getAllUsers();
-      return res.status(200).json({ users, isLiveDb: true });
+        const users = await getAllUsers();
+        return res.status(200).json({ users, isLiveDb: true });
+      } catch (err) {
+        return res.status(200).json({ users: [], isLiveDb: false });
+      }
     }
 
     // PATCH /api/users — update a user's role (superadmin only)
@@ -43,13 +51,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ error: 'Invalid userId or newRole (must be "owner" or "admin")' });
       }
 
-      const result = await updateUserRole(userId, newRole, requestorEmail);
-      return res.status(result.success ? 200 : 403).json(result);
+      try {
+        const result = await updateUserRole(userId, newRole, requestorEmail);
+        return res.status(200).json(result);
+      } catch (err: any) {
+        return res.status(200).json({ success: false, message: err?.message || 'Failed to update role' });
+      }
     }
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err: any) {
     console.error('Users API error:', err);
-    return res.status(500).json({ error: err?.message || String(err) });
+    return res.status(200).json({ agents: [], users: [], isLiveDb: false, error: err?.message || String(err) });
   }
 }

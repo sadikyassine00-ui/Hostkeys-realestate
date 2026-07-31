@@ -46,7 +46,7 @@ interface PropertyDetailDrawerProps {
 }
 
 export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
-  const activeAgentsList = (agents && agents.length > 0) ? agents : HOSTKEYS_AGENTS;
+  const activeAgentsList = (agents && Array.isArray(agents) && agents.length > 0) ? agents : HOSTKEYS_AGENTS;
   const [copied, setCopied] = useState(false);
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
@@ -290,13 +290,13 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                 </span>
 
                 <div className="space-y-2.5">
-                  {activeAgentsList.map(agent => (
-                    <div key={agent.id} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
+                  {activeAgentsList.map((agent, idx) => (
+                    <div key={agent?.id || `agent-${idx}`} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="relative shrink-0">
                           <img 
-                            src={agent.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} 
-                            alt={agent.name}
+                            src={agent?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} 
+                            alt={agent?.name || 'Agent'}
                             referrerPolicy="no-referrer"
                             className="h-10 w-10 rounded-full border border-brand/30 object-cover" 
                           />
@@ -304,25 +304,25 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-xs text-white">{agent.name}</span>
+                            <span className="font-semibold text-xs text-white">{agent?.name || agent?.email?.split('@')[0] || 'Agent'}</span>
                             <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
-                              {agent.role}
+                              {agent?.role || 'admin'}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400 block font-mono">{agent.email}</span>
+                          <span className="text-[10px] text-slate-400 block font-mono">{agent?.email || 'admin@hostkeys.ma'}</span>
                         </div>
                       </div>
 
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         <a
-                          href={`tel:${agent.phone || '+212 600-000000'}`}
+                          href={`tel:${agent?.phone || '+212 600-000000'}`}
                           className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1"
                         >
                           <Phone className="h-3 w-3" />
-                          <span>{agent.phone || '+212 600-000000'}</span>
+                          <span>{agent?.phone || '+212 600-000000'}</span>
                         </a>
                         <a
-                          href={`mailto:${agent.email}`}
+                          href={`mailto:${agent?.email || 'admin@hostkeys.ma'}`}
                           className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline cursor-pointer"
                         >
                           {lang === 'fr' ? 'Email direct' : 'Direct Email'}
