@@ -17,6 +17,11 @@ body {
   color: #f1f5f9;
 }
 
+/* Enforce pointer cursor on all buttons and interactive elements across the application */
+button, [role="button"], a, select, summary, input[type="submit"], input[type="button"], input[type="reset"], [onClick] {
+  cursor: pointer !important;
+}
+
 /* Custom scrollbar to keep layout premium */
 ::-webkit-scrollbar {
   width: 6px;

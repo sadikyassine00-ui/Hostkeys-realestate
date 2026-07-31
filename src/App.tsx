@@ -446,7 +446,7 @@ export default function App() {
       <header className="border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md py-4 px-4 sticky top-0 z-35">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('catalog')}>
-            <img src="/logo.png" alt="Hostkeys" className="h-7 md:h-8 object-contain" />
+            <img src="/logo.png" alt="Hostkeys" className="h-10 md:h-12 object-contain hover:opacity-90 transition-opacity" />
           </div>
 
           <nav className="hidden md:flex items-center gap-6">

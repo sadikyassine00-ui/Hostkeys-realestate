@@ -7,6 +7,18 @@ export interface User {
   role: 'owner' | 'admin' | 'superadmin';
 }
 
+export interface AdvisoryAgent {
+  id: string;
+  firstName: string;
+  fullName: string;
+  title: string;
+  email: string;
+  phone: string;
+  languages: string[];
+  avatar: string;
+  role: 'superadmin' | 'admin';
+}
+
 export interface Listing {
   id: string;
   title: string;

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
-import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles } from 'lucide-react';
+import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
+import { HOSTKEYS_AGENTS } from '../mockData';
 
 interface PropertyCardProps {
   key?: string;
@@ -135,36 +136,48 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
         </div>
       </div>
 
-      {/* Hostkeys Representative Footer */}
-      <div className="mx-5 mb-5 border-t border-neutral-900 pt-4 flex flex-col">
+      {/* 3 Hostkeys Advisory Agents Footer */}
+      <div className="mx-5 mb-5 border-t border-neutral-900 pt-3.5 flex flex-col gap-2.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img 
-              src={finalContactAvatar} 
-              alt={finalContactName}
-              referrerPolicy="no-referrer"
-              className="h-8 w-8 rounded-full border border-brand/20 object-cover" 
-            />
-            <div>
-              <div className="flex items-center gap-1 leading-none">
-                <span className="text-xs font-semibold text-slate-200 line-clamp-1">{finalContactName}</span>
-                <span className="flex h-1.5 w-1.5 rounded-full bg-brand" />
-              </div>
-              <span className="text-[10px] font-mono text-slate-450">{t('cardAdvisoryPartner', lang)}</span>
-            </div>
-          </div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
+            <ShieldCheck className="h-3 w-3 text-brand" />
+            {lang === 'fr' ? 'Équipe Conseil Hostkeys' : 'Hostkeys Advisory Team'}
+          </span>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect?.(listing);
+            }}
+            className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[11px] font-semibold font-mono transition-all border border-brand/20 cursor-pointer"
+          >
+            {t('cardDetailsBtn', lang)}
+          </button>
+        </div>
 
-          <div className="flex items-center gap-1">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect?.(listing);
-              }}
-              className="px-3 py-1.5 rounded-xl bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-xs font-semibold font-mono transition-all border border-brand/20 flex items-center gap-1"
-            >
-              <span>{t('cardDetailsBtn', lang)}</span>
-            </button>
-          </div>
+        {/* 3 Agents list */}
+        <div className="grid grid-cols-3 gap-1.5 pt-1">
+          {HOSTKEYS_AGENTS.map(agent => (
+            <div key={agent.id} className="bg-neutral-900/70 border border-neutral-850 p-1.5 rounded-lg flex flex-col items-center text-center">
+              <div className="relative mb-1">
+                <img 
+                  src={agent.avatar} 
+                  alt={agent.firstName}
+                  referrerPolicy="no-referrer"
+                  className="h-7 w-7 rounded-full border border-brand/30 object-cover" 
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand border border-[#030303]" />
+              </div>
+              <span className="text-[11px] font-bold text-slate-200 leading-tight">{agent.firstName}</span>
+              <span className="text-[9px] font-mono text-slate-450 mt-0.5 truncate w-full">{agent.phone}</span>
+              <div className="flex items-center justify-center gap-0.5 mt-1">
+                {agent.languages.map(l => (
+                  <span key={l} className="text-[8px] font-mono bg-neutral-800 text-slate-300 px-1 py-0.2 rounded">
+                    {l}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </motion.div>

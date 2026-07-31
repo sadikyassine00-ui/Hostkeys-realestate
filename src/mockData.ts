@@ -1,4 +1,4 @@
-import { User, Listing } from './types';
+import { User, Listing, AdvisoryAgent } from './types';
 
 // The one and only super admin email — hardcoded for security
 export const SUPER_ADMIN_EMAIL = 'yassinesadik0@gmail.com';
@@ -20,6 +20,43 @@ export const DEMO_ADMIN: User = {
   avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
   role: 'admin'
 };
+
+// 3 Assigned Hostkeys Advisory Agents (Admins & Super Admins)
+export const HOSTKEYS_AGENTS: AdvisoryAgent[] = [
+  {
+    id: 'agent-yassine',
+    firstName: 'Yassine',
+    fullName: 'Yassine Sadik',
+    title: 'Super Admin & Managing Director',
+    email: 'yassinesadik0@gmail.com',
+    phone: '+212 661-987654',
+    languages: ['FR', 'EN', 'AR'],
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
+    role: 'superadmin'
+  },
+  {
+    id: 'agent-sarah',
+    firstName: 'Sarah',
+    fullName: 'Sarah Benali',
+    title: 'Senior Property Advisor',
+    email: 'sarah.benali@hostkeys.ma',
+    phone: '+212 522-443322',
+    languages: ['FR', 'EN', 'ES'],
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
+    role: 'admin'
+  },
+  {
+    id: 'agent-karim',
+    firstName: 'Karim',
+    fullName: 'Karim El Amrani',
+    title: 'Valuation & Legal Partner',
+    email: 'karim.elamrani@hostkeys.ma',
+    phone: '+212 662-110099',
+    languages: ['FR', 'AR', 'EN'],
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
+    role: 'admin'
+  }
+];
 
 export const ALL_CITIES = [
   'Agadir',

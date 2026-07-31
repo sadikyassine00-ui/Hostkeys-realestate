@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { HOSTKEYS_AGENTS } from '../mockData';
 import { formatCurrency, convertValue, Currency } from '../utils';
 import { t } from '../translations';
 
@@ -267,55 +268,74 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
             </div>
           </div>
 
-          {/* Representative Identity & Connection */}
-          <div className="bg-[#0f0f0f] p-5 rounded-xl border border-neutral-900 hover:border-brand/20 transition-all space-y-3 font-mono text-xs">
+          {/* Representative Security & 3 Assigned Advisory Agents */}
+          <div className="bg-[#0f0f0f] p-5 rounded-xl border border-neutral-900 hover:border-brand/20 transition-all space-y-4 font-mono text-xs">
             <div className="flex items-center gap-2 text-brand font-bold">
-              <img src="/miniLogo.png" alt="Hostkeys Logo" className="h-4 w-4 object-contain" />
+              <ShieldCheck className="h-4.5 w-4.5 text-brand shrink-0" />
               <span>HOSTKEYS VERIFIED & PROTECTED</span>
             </div>
             <p className="text-neutral-300 leading-relaxed font-sans text-xs">
               {lang === 'fr' 
-                ? "Cette annonce est certifiée par Hostkeys Maroc. L'identité du propriétaire est protégée pour garantir une transaction sécurisée. Les conseillers Hostkeys filtrent les demandes d'acheteurs et organisent les visites." 
-                : "This listing is verified under Hostkeys Morocco. The owner's identity is masked for privacy. Hostkeys advisors vet buyer inquiries and coordinate property viewings."}
+                ? "Cette annonce est certifiée et sécurisée par l'équipe Hostkeys Maroc. L'identité du propriétaire est protégée. Nos conseillers dédiés gèrent les visites et l'accompagnement juridique." 
+                : "This listing is verified under Hostkeys Morocco. Owner privacy is protected. Our dedicated advisors manage buyer vetting, viewings, and transaction compliance."}
             </p>
-            <div className="border-t border-neutral-900 pt-4 flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <img 
-                  src={contactAvatar} 
-                  alt={contactName} 
-                  className="h-9 w-9 rounded-full border border-brand/20 object-cover"
-                />
-                <div>
-                  <div className="flex items-center gap-1 text-slate-200">
-                    <span className="font-semibold text-xs">{contactName}</span>
-                    <span className="text-brand"><CheckCircle className="h-3.5 w-3.5 inline" /></span>
+            
+            <div className="border-t border-neutral-900 pt-3.5 space-y-3">
+              <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
+                {lang === 'fr' ? 'Conseillers Immobiliers Dédiés (3)' : 'Assigned Advisory Partners (3)'}
+              </span>
+
+              <div className="space-y-2.5">
+                {HOSTKEYS_AGENTS.map(agent => (
+                  <div key={agent.id} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <img 
+                          src={agent.avatar} 
+                          alt={agent.fullName}
+                          referrerPolicy="no-referrer"
+                          className="h-10 w-10 rounded-full border border-brand/30 object-cover" 
+                        />
+                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-xs text-white">{agent.fullName}</span>
+                          <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
+                            {agent.role}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 block font-sans">{agent.title}</span>
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-[9px] text-slate-500 font-mono">{lang === 'fr' ? 'Langues:' : 'Languages:'}</span>
+                          {agent.languages.map(l => (
+                            <span key={l} className="text-[8px] font-mono bg-neutral-850 text-slate-300 px-1.5 py-0.2 rounded">
+                              {l}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <a
+                        href={`tel:${agent.phone}`}
+                        className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1"
+                      >
+                        <Phone className="h-3 w-3" />
+                        <span>{agent.phone}</span>
+                      </a>
+                      <a
+                        href={`mailto:${agent.email}`}
+                        className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline"
+                      >
+                        {lang === 'fr' ? 'Email direct' : 'Direct Email'}
+                      </a>
+                    </div>
                   </div>
-                  <span className="text-[10px] text-neutral-450 block">{t('drawerContactOwnerLabel', lang)}</span>
-                </div>
+                ))}
               </div>
-
-              <button
-                onClick={() => setShowBrokerDirect(!showBrokerDirect)}
-                className="w-full rounded-lg bg-brand px-4 py-2 text-xs font-bold text-[#030303] hover:shadow-[0_0_12px_rgba(166,254,0,0.3)] transition-all cursor-pointer text-center"
-              >
-                {showBrokerDirect ? (lang === 'fr' ? 'Masquer les coordonnées' : 'Hide Contact Details') : t('drawerContactButton', lang)}
-              </button>
             </div>
-
-            {showBrokerDirect && (
-              <div className="bg-[#030303] p-4 rounded-lg border border-brand/20 mt-3 space-y-2 text-xs">
-                <div className="flex items-center gap-2 text-neutral-300">
-                  <Mail className="h-3.5 w-3.5 text-brand" />
-                  <span className="font-semibold text-neutral-200">Email:</span>
-                  <a href={`mailto:${contactEmail}`} className="hover:underline hover:text-brand">{contactEmail}</a>
-                </div>
-                <div className="flex items-center gap-2 text-neutral-300">
-                  <Phone className="h-3.5 w-3.5 text-brand" />
-                  <span className="font-semibold text-neutral-200">{lang === 'fr' ? 'Téléphone:' : 'Phone:'}</span>
-                  <a href={`tel:${contactPhone}`} className="hover:underline hover:text-brand">{contactPhone}</a>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
