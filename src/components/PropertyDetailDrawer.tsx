@@ -19,7 +19,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { HOSTKEYS_AGENTS } from '../mockData';
 import { formatCurrency, convertValue, Currency } from '../utils';
 import { t } from '../translations';
 
@@ -46,10 +45,31 @@ interface PropertyDetailDrawerProps {
 }
 
 export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
-  const activeAgentsList = (agents && Array.isArray(agents) && agents.length > 0) ? agents : HOSTKEYS_AGENTS;
   const [copied, setCopied] = useState(false);
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  const renderAgentAvatar = (agent: User, size = "h-10 w-10", textSize = "text-sm") => {
+    const nameToUse = agent?.name || agent?.email || 'Agent';
+    const initial = nameToUse.charAt(0).toUpperCase();
+
+    if (agent?.avatar && agent.avatar.trim() !== '') {
+      return (
+        <img 
+          src={agent.avatar} 
+          alt={nameToUse}
+          referrerPolicy="no-referrer"
+          className={`${size} rounded-full border border-brand/30 object-cover`} 
+        />
+      );
+    }
+
+    return (
+      <div className={`${size} rounded-full bg-brand text-[#030303] font-bold flex items-center justify-center border border-brand/40 font-mono ${textSize} uppercase shadow-md shrink-0`}>
+        {initial}
+      </div>
+    );
+  };
 
   const propertyImages = (
     listing.images && listing.images.length > 0 
@@ -283,30 +303,25 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                 : "This listing is verified under Hostkeys Morocco. Owner privacy is protected. Our dedicated advisors manage buyer vetting, viewings, and transaction compliance."}
             </p>
             
-            {activeAgentsList.length > 0 && (
+            {agents && agents.length > 0 && (
               <div className="border-t border-neutral-900 pt-3.5 space-y-3">
                 <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
-                  {lang === 'fr' ? 'Conseillers Immobiliers Dédiés' : 'Assigned Advisory Partners'} ({activeAgentsList.length})
+                  {lang === 'fr' ? 'Conseiller(s) Dédié(s)' : 'Assigned Agent(s)'} ({agents.length})
                 </span>
 
                 <div className="space-y-2.5">
-                  {activeAgentsList.map((agent, idx) => (
+                  {agents.map((agent, idx) => (
                     <div key={agent?.id || `agent-${idx}`} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <div className="relative shrink-0">
-                          <img 
-                            src={agent?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} 
-                            alt={agent?.name || 'Agent'}
-                            referrerPolicy="no-referrer"
-                            className="h-10 w-10 rounded-full border border-brand/30 object-cover" 
-                          />
+                          {renderAgentAvatar(agent, "h-10 w-10", "text-sm")}
                           <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
                         </div>
                         <div>
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-xs text-white">{agent?.name || agent?.email?.split('@')[0] || 'Agent'}</span>
                             <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
-                              {agent?.role || 'admin'}
+                              {agent?.role === 'superadmin' ? 'Super Admin' : 'Admin Agent'}
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 block font-mono">{agent?.email || 'admin@hostkeys.ma'}</span>

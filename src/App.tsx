@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, Listing } from './types';
-import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS, SUPER_ADMIN_EMAIL } from './mockData';
+import { DEMO_ADMIN, ALL_AMENITIES, ALL_LOCATIONS, SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
 import PropertyCard from './components/PropertyCard';
 import PropertyForm from './components/PropertyForm';
 import PropertyDetailDrawer from './components/PropertyDetailDrawer';
@@ -211,16 +211,35 @@ export default function App() {
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
-  // Registered website admin agents
-  const [activeAgents, setActiveAgents] = useState<User[]>([]);
+  // Registered website admin agents from API
+  const [fetchedAgents, setFetchedAgents] = useState<User[]>([]);
 
   useEffect(() => {
     fetchPublicAgentsApi().then(agents => {
-      if (agents && agents.length > 0) {
-        setActiveAgents(agents);
+      if (agents && Array.isArray(agents)) {
+        setFetchedAgents(agents);
       }
     });
   }, []);
+
+  // Dynamically compute real active site agents (Super Admin + any promoted Admins strictly)
+  const getActiveSiteAgents = (): User[] => {
+    const superAdminInUsers = users.find(u => u && u.email === SUPER_ADMIN_EMAIL);
+    const currentSuperAdmin: User = (currentUser && currentUser.email === SUPER_ADMIN_EMAIL)
+      ? currentUser
+      : (superAdminInUsers || DEFAULT_SUPER_ADMIN);
+
+    const promotedAdmins = users.filter(u => u && u.role === 'admin' && u.email !== SUPER_ADMIN_EMAIL);
+    const apiAdmins = fetchedAgents.filter(u => u && u.email !== SUPER_ADMIN_EMAIL);
+
+    const allAdmins = [...promotedAdmins, ...apiAdmins];
+    const uniqueAdminsMap = new Map<string, User>();
+    allAdmins.forEach(u => uniqueAdminsMap.set(u.email, u));
+
+    return [currentSuperAdmin, ...Array.from(uniqueAdminsMap.values())];
+  };
+
+  const activeAgents = getActiveSiteAgents();
 
   // Responsive view states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

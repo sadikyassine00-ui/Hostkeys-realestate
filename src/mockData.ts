@@ -1,15 +1,15 @@
-import { User, Listing, AdvisoryAgent } from './types';
+import { User, Listing } from './types';
 
 // The one and only super admin email — hardcoded for security
 export const SUPER_ADMIN_EMAIL = 'yassinesadik0@gmail.com';
 
-export const DEMO_OWNER: User = {
-  id: 'owner-lucas',
-  name: 'Property Owner',
-  email: 'owner@example.com',
-  phone: '+212 600 000000',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80',
-  role: 'owner'
+export const DEFAULT_SUPER_ADMIN: User = {
+  id: 'superadmin-yassine',
+  name: 'Yassine Sadik',
+  email: 'yassinesadik0@gmail.com',
+  phone: '+212 661-987654',
+  avatar: '',
+  role: 'superadmin'
 };
 
 export const DEMO_ADMIN: User = {
@@ -17,46 +17,18 @@ export const DEMO_ADMIN: User = {
   name: 'Hostkeys Admin',
   email: 'admin@hostkeys.ma',
   phone: '+212 522 000000',
-  avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
+  avatar: '',
   role: 'admin'
 };
 
-// 3 Assigned Hostkeys Advisory Agents (Admins & Super Admins)
-export const HOSTKEYS_AGENTS: AdvisoryAgent[] = [
-  {
-    id: 'agent-yassine',
-    firstName: 'Yassine',
-    fullName: 'Yassine Sadik',
-    title: 'Super Admin & Managing Director',
-    email: 'yassinesadik0@gmail.com',
-    phone: '+212 661-987654',
-    languages: ['FR', 'EN', 'AR'],
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80',
-    role: 'superadmin'
-  },
-  {
-    id: 'agent-sarah',
-    firstName: 'Sarah',
-    fullName: 'Sarah Benali',
-    title: 'Senior Property Advisor',
-    email: 'sarah.benali@hostkeys.ma',
-    phone: '+212 522-443322',
-    languages: ['FR', 'EN', 'ES'],
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80',
-    role: 'admin'
-  },
-  {
-    id: 'agent-karim',
-    firstName: 'Karim',
-    fullName: 'Karim El Amrani',
-    title: 'Valuation & Legal Partner',
-    email: 'karim.elamrani@hostkeys.ma',
-    phone: '+212 662-110099',
-    languages: ['FR', 'AR', 'EN'],
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80',
-    role: 'admin'
-  }
-];
+export const DEMO_OWNER: User = {
+  id: 'owner-lucas',
+  name: 'Property Owner',
+  email: 'owner@example.com',
+  phone: '+212 600 000000',
+  avatar: '',
+  role: 'owner'
+};
 
 export const ALL_CITIES = [
   'Agadir',

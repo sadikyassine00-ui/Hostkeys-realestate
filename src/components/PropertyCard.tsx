@@ -4,7 +4,6 @@ import { Listing, User } from '../types';
 import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
-import { HOSTKEYS_AGENTS } from '../mockData';
 
 interface PropertyCardProps {
   key?: string;
@@ -19,12 +18,26 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, currency, eurRate, lang }: PropertyCardProps) {
-  const activeAgentsList = (agents && Array.isArray(agents) && agents.length > 0) ? agents : HOSTKEYS_AGENTS;
+  const renderAgentAvatar = (agent: User, size = "h-7 w-7", textSize = "text-xs") => {
+    const nameToUse = agent?.name || agent?.email || 'Agent';
+    const initial = nameToUse.charAt(0).toUpperCase();
 
-  const getAgentFirstName = (agent: any) => {
-    if (!agent) return 'Agent';
-    const nameStr = agent.name || agent.fullName || (agent.email ? agent.email.split('@')[0] : 'Agent');
-    return String(nameStr).split(' ')[0] || 'Agent';
+    if (agent?.avatar && agent.avatar.trim() !== '') {
+      return (
+        <img 
+          src={agent.avatar} 
+          alt={nameToUse}
+          referrerPolicy="no-referrer"
+          className={`${size} rounded-full border border-brand/30 object-cover`} 
+        />
+      );
+    }
+
+    return (
+      <div className={`${size} rounded-full bg-brand text-[#030303] font-bold flex items-center justify-center border border-brand/40 font-mono ${textSize} uppercase shadow-sm shrink-0`}>
+        {initial}
+      </div>
+    );
   };
   const isDirectAdminListing = listing.ownerId.startsWith('admin');
   const finalContactName = isDirectAdminListing
@@ -144,13 +157,13 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
         </div>
       </div>
 
-      {/* Active Hostkeys Agents Footer */}
-      {activeAgentsList.length > 0 && (
+      {/* Real Active Hostkeys Agents Footer */}
+      {agents && agents.length > 0 && (
         <div className="mx-5 mb-5 border-t border-neutral-900 pt-3.5 flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
               <ShieldCheck className="h-3 w-3 text-brand" />
-              {lang === 'fr' ? 'Équipe Conseil Hostkeys' : 'Hostkeys Advisory Team'}
+              {lang === 'fr' ? 'Conseiller Hostkeys' : 'Hostkeys Agent'}
             </span>
             <button 
               onClick={(e) => {
@@ -163,28 +176,29 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
             </button>
           </div>
 
-          {/* Agents list */}
-          <div className="grid grid-cols-3 gap-1.5 pt-1">
-            {activeAgentsList.slice(0, 3).map((agent, idx) => (
-              <div key={agent?.id || `agent-${idx}`} className="bg-neutral-900/70 border border-neutral-850 p-1.5 rounded-lg flex flex-col items-center text-center">
-                <div className="relative mb-1">
-                  <img 
-                    src={agent?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} 
-                    alt={getAgentFirstName(agent)}
-                    referrerPolicy="no-referrer"
-                    className="h-7 w-7 rounded-full border border-brand/30 object-cover" 
-                  />
-                  <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand border border-[#030303]" />
+          <div className={`grid gap-2 pt-0.5 ${agents.length === 1 ? 'grid-cols-1' : agents.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            {agents.map((agent, idx) => {
+              const firstName = (agent?.name || agent?.email?.split('@')[0] || 'Agent').split(' ')[0];
+              return (
+                <div key={agent?.id || `agent-${idx}`} className="bg-neutral-900/80 border border-neutral-850 p-2 rounded-xl flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 overflow-hidden w-full">
+                    <div className="relative shrink-0">
+                      {renderAgentAvatar(agent, "h-7 w-7", "text-xs")}
+                      <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-brand border border-[#030303]" />
+                    </div>
+                    <div className="overflow-hidden flex-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[11px] font-bold text-slate-200 truncate">{firstName}</span>
+                        <span className="text-[8px] font-mono text-brand bg-brand/10 px-1 rounded uppercase font-semibold shrink-0">
+                          {agent?.role === 'superadmin' ? 'SA' : 'Admin'}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-mono text-slate-450 block truncate">{agent?.phone || agent?.email || '+212 600-000000'}</span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-[11px] font-bold text-slate-200 leading-tight truncate w-full">{getAgentFirstName(agent)}</span>
-                <span className="text-[9px] font-mono text-slate-450 mt-0.5 truncate w-full">{agent?.phone || '+212 600-000000'}</span>
-                <div className="flex items-center justify-center gap-0.5 mt-1">
-                  <span className="text-[8px] font-mono bg-neutral-800 text-slate-300 px-1 py-0.2 rounded uppercase">
-                    {agent?.role || 'admin'}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
