@@ -28,8 +28,25 @@ async function ensureSchema(sql: ReturnType<typeof neon>) {
     `;
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_agent BOOLEAN DEFAULT false;`;
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT '{}';`;
+    
+    // Auto-seed/upsert default Super Admin row so DB is never without superadmin
+    await sql`
+      INSERT INTO users (id, name, email, phone, role, is_agent, languages)
+      VALUES (
+        'superadmin-yassine', 
+        'Yassine Sadik', 
+        ${SUPER_ADMIN_EMAIL}, 
+        '+212 661-987654', 
+        'superadmin', 
+        true, 
+        ARRAY['FR', 'EN', 'AR']
+      )
+      ON CONFLICT (email) DO UPDATE SET
+        role = 'superadmin',
+        is_agent = true;
+    `;
   } catch (e) {
-    // Ignore schema errors — table may already exist
+    // Ignore non-fatal migration warnings
   }
 }
 
@@ -54,32 +71,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           FROM users ORDER BY created_at DESC;
         `;
 
-        const users = rows.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          email: r.email,
-          phone: r.phone || '',
-          avatar: r.avatar || '',
-          role: r.role,
-          isAgent: Boolean(r.isAgent) || r.email === SUPER_ADMIN_EMAIL,
-          languages: Array.isArray(r.languages) && r.languages.length > 0
-            ? r.languages
-            : (r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [])
-        }));
+        const users = rows.map((r: any) => {
+          const emailLower = (r.email || '').trim().toLowerCase();
+          const isSA = emailLower === SUPER_ADMIN_EMAIL.toLowerCase();
+          return {
+            id: r.id,
+            name: r.name,
+            email: r.email,
+            phone: r.phone || '',
+            avatar: r.avatar || '',
+            role: isSA ? 'superadmin' : r.role,
+            isAgent: isSA ? true : Boolean(r.isAgent),
+            languages: Array.isArray(r.languages) && r.languages.length > 0
+              ? r.languages
+              : (isSA ? ['FR', 'EN', 'AR'] : [])
+          };
+        });
 
         if (isPublic) {
           const agents = users.filter((u: any) => u.isAgent || u.role === 'superadmin');
           return res.status(200).json({ agents, isLiveDb: true });
         }
 
-        const requestorEmail = req.headers['x-user-email'] as string;
+        const requestorEmail = (req.headers['x-user-email'] as string || '').trim().toLowerCase();
         if (!requestorEmail) {
-          return res.status(200).json({ users: [], isLiveDb: false, error: 'Unauthorized' });
+          return res.status(200).json({ users: [], isLiveDb: false, error: 'Unauthorized: missing x-user-email header' });
         }
 
-        const requestor = users.find((u: any) => u.email.toLowerCase() === requestorEmail.toLowerCase());
-        if (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin')) {
-          return res.status(200).json({ users: [], isLiveDb: false, error: 'Forbidden' });
+        const isSuperAdminReq = requestorEmail === SUPER_ADMIN_EMAIL.toLowerCase();
+        const requestor = users.find((u: any) => u.email.trim().toLowerCase() === requestorEmail);
+
+        // Always allow Super Admin to fetch all users, even if requestor wasn't matched in list
+        if (!isSuperAdminReq && (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin'))) {
+          return res.status(200).json({ users: [], isLiveDb: false, error: 'Forbidden: admin access required' });
         }
 
         return res.status(200).json({ users, isLiveDb: true });
@@ -92,14 +116,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── PATCH ─────────────────────────────────────────────────────────────────
     if (req.method === 'PATCH') {
-      const requestorEmail = req.headers['x-user-email'] as string;
+      const requestorEmail = (req.headers['x-user-email'] as string || '').trim().toLowerCase();
 
-      if (!requestorEmail || requestorEmail.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
+      if (!requestorEmail || requestorEmail !== SUPER_ADMIN_EMAIL.toLowerCase()) {
         return res.status(200).json({ success: false, isLiveDb: false, message: 'Forbidden: only super admin can update users' });
       }
 
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-      // Accept both userId and userEmail — email is the reliable key
       const { userId, userEmail, newRole, isAgent, languages } = body;
       const targetId = userId || userEmail;
 
@@ -114,21 +137,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         await ensureSchema(sql);
 
+        const cleanEmail = userEmail ? userEmail.trim().toLowerCase() : (targetId.includes('@') ? targetId.trim().toLowerCase() : null);
+
         // First find the user — check by email first, then by id
         const found = await sql`
           SELECT id, email, role FROM users
-          WHERE email = ${userEmail || targetId} OR id = ${userId || targetId}
+          WHERE LOWER(email) = ${cleanEmail || targetId.toLowerCase()} OR id = ${userId || targetId}
           LIMIT 1;
         `;
 
-        let targetEmail = found.length > 0 ? found[0].email : (userEmail || (targetId.includes('@') ? targetId : null));
+        let targetEmail = found.length > 0 ? found[0].email.trim().toLowerCase() : cleanEmail;
         const effectiveRole = newRole && ['owner', 'admin'].includes(newRole) ? newRole : (found.length > 0 ? found[0].role : 'admin');
         const agentVal = typeof isAgent === 'boolean' ? isAgent : false;
         const langsVal = Array.isArray(languages) ? languages : ['FR', 'EN'];
         const displayName = body.userName || body.name || (targetEmail ? targetEmail.split('@')[0] : 'User');
 
         if (found.length === 0) {
-          // User was not in Postgres DB yet (e.g. logged in previously before sync was working). Auto-create them now!
           if (!targetEmail) {
             return res.status(200).json({ success: false, message: `Cannot auto-create user without email for id: ${targetId}` });
           }
@@ -147,14 +171,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (newRole && ['owner', 'admin'].includes(newRole)) {
           await sql`
             UPDATE users SET role = ${newRole}
-            WHERE email = ${targetEmail} AND email != ${SUPER_ADMIN_EMAIL};
+            WHERE LOWER(email) = ${targetEmail} AND LOWER(email) != ${SUPER_ADMIN_EMAIL.toLowerCase()};
           `;
         }
 
         if (typeof isAgent === 'boolean' || Array.isArray(languages)) {
           await sql`
             UPDATE users SET is_agent = ${agentVal}, languages = ${langsVal}
-            WHERE email = ${targetEmail};
+            WHERE LOWER(email) = ${targetEmail};
           `;
         }
 

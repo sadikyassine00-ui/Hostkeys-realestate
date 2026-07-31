@@ -29,7 +29,7 @@ async function ensureUsersTable(sql: ReturnType<typeof neon>) {
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_agent BOOLEAN DEFAULT false;`;
     await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT '{}';`;
   } catch (e) {
-    // Ignore — table likely exists
+    // Ignore schema errors
   }
 }
 
@@ -42,7 +42,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
     const user = body;
 
-    if (!user || (!user.id && !user.email)) {
+    const rawEmail = (user?.email || '').trim().toLowerCase();
+
+    if (!user || (!user.id && !rawEmail)) {
       return res.status(200).json({ success: true, user: body || {}, isLiveDb: false });
     }
 
@@ -54,41 +56,42 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       await ensureUsersTable(sql);
 
-      const finalRole = user.email === SUPER_ADMIN_EMAIL ? 'superadmin' : (user.role || 'owner');
+      const isSA = rawEmail === SUPER_ADMIN_EMAIL.toLowerCase();
+      const finalRole = isSA ? 'superadmin' : (user.role || 'owner');
 
       // Check if user already exists by email — always preserve DB role
       const existing = await sql`
         SELECT id, role, is_agent AS "isAgent", languages
-        FROM users WHERE email = ${user.email} LIMIT 1;
+        FROM users WHERE LOWER(email) = ${rawEmail} LIMIT 1;
       `;
 
       if (existing.length > 0) {
         // User exists — update name/phone/avatar but NEVER overwrite role
         const dbRole = existing[0].role || finalRole;
-        const dbIsAgent = Boolean(existing[0].isAgent) || user.email === SUPER_ADMIN_EMAIL;
+        const dbIsAgent = Boolean(existing[0].isAgent) || isSA;
         const dbLangs = Array.isArray(existing[0].languages) && existing[0].languages.length > 0
           ? existing[0].languages
-          : (user.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : []);
+          : (isSA ? ['FR', 'EN', 'AR'] : []);
 
         await sql`
           UPDATE users
           SET name = ${user.name || ''}, phone = ${user.phone || ''}, avatar = ${user.avatar || ''}
-          WHERE email = ${user.email};
+          WHERE LOWER(email) = ${rawEmail};
         `;
 
         return res.status(200).json({
           success: true,
           isLiveDb: true,
-          user: { ...user, role: dbRole, isAgent: dbIsAgent, languages: dbLangs }
+          user: { ...user, email: rawEmail, role: dbRole, isAgent: dbIsAgent, languages: dbLangs }
         });
       } else {
         // New user — insert with default role (UPSERT on email conflict)
-        const isAgent = user.email === SUPER_ADMIN_EMAIL;
-        const langs = user.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [];
+        const isAgent = isSA;
+        const langs = isSA ? ['FR', 'EN', 'AR'] : [];
 
         await sql`
           INSERT INTO users (id, name, email, phone, avatar, role, is_agent, languages)
-          VALUES (${user.id || user.email}, ${user.name || ''}, ${user.email},
+          VALUES (${user.id || rawEmail}, ${user.name || ''}, ${rawEmail},
                   ${user.phone || ''}, ${user.avatar || ''}, ${finalRole}, ${isAgent}, ${langs})
           ON CONFLICT (email) DO UPDATE SET
             name = EXCLUDED.name,
@@ -99,7 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
           success: true,
           isLiveDb: true,
-          user: { ...user, role: finalRole, isAgent, languages: langs }
+          user: { ...user, email: rawEmail, role: finalRole, isAgent, languages: langs }
         });
       }
     } catch (dbErr: any) {
