@@ -4,7 +4,7 @@
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #00b4d8;
+  --color-brand: #00f0ff;
   --color-bg-dark: #030303;
 }
 
@@ -38,5 +38,5 @@ button, [role="button"], a, select, summary, input[type="submit"], input[type="b
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00b4d8;
+  background: #00f0ff;
 }

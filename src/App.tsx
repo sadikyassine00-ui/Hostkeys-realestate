@@ -698,7 +698,7 @@ export default function App() {
             {!isLoggedIn ? (
               <button
                 onClick={() => setShowRegisterDialog(true)}
-                className="px-4 py-2 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs transition-all shadow-[0_0_15px_rgba(0,180,216,0.25)] cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer"
               >
                 {lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
               </button>
@@ -925,7 +925,7 @@ export default function App() {
 
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase font-sans drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
                 {t('heroHeadingMain', lang)}{' '}
-                <span className="text-brand block md:inline drop-shadow-[0_0_20px_rgba(0,180,216,0.4)]">{t('heroHeadingHighlight', lang)}</span>
+                <span className="text-brand block md:inline drop-shadow-[0_0_25px_rgba(0,240,255,0.6)]">{t('heroHeadingHighlight', lang)}</span>
               </h1>
 
               <p className="max-w-2xl mx-auto text-xs md:text-sm text-slate-200 font-sans leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] bg-black/40 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
@@ -965,7 +965,7 @@ export default function App() {
                         if (!isLoggedIn) setShowRegisterDialog(true);
                         else setShowNewListingForm(true);
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(0,180,216,0.25)] hover:bg-brand/90 cursor-pointer"
+                      className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs flex items-center gap-1.5 transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:bg-brand/90 cursor-pointer"
                     >
                       <Plus className="h-4 w-4" />
                       <span>{t('addListingBtn', lang)}</span>
