@@ -64,9 +64,16 @@ export async function loginWithGoogle(): Promise<FirebaseUser | null> {
   if (!auth) {
     throw new Error('Firebase authentication is not configured yet. Please check your VITE_FIREBASE_* environment variables.');
   }
-  // Always use redirect — avoids all Cross-Origin-Opener-Policy popup errors on Vercel
-  await signInWithRedirect(auth, googleProvider);
-  return null;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (err: any) {
+    if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/cancelled-popup-request') {
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function logoutUser(): Promise<void> {
