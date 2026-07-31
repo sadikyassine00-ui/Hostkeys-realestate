@@ -326,7 +326,7 @@ export default function App() {
   const [authError, setAuthError] = useState<string>('');
 
   useEffect(() => {
-    const baseValue = activeSegment === 'buy' ? 2000000 : 8000;
+    const baseValue = activeSegment === 'buy' ? 10000000 : 200000;
     if (currency === 'MAD') setMaxPrice(baseValue * 10.10);
     else if (currency === 'EUR') setMaxPrice(Math.round(baseValue * eurRate));
     else setMaxPrice(baseValue);
@@ -552,38 +552,51 @@ export default function App() {
   };
 
   // Filter listings
+  // Filter listings
   const filteredListings = listings.filter(item => {
-    if (item.status !== 'approved') return false;
-    if (item.type !== activeSegment) return false;
+    if (!item) return false;
+
+    // Status check (case-insensitive)
+    const statusNorm = (item.status || 'pending').toLowerCase();
+    if (statusNorm !== 'approved') return false;
+
+    // Segment check (buy vs rent)
+    const typeNorm = (item.type || 'buy').toLowerCase();
+    const activeSegNorm = (activeSegment || 'buy').toLowerCase();
+    if (typeNorm !== activeSegNorm) return false;
 
     if (searchTerm) {
-      const query = searchTerm.toLowerCase();
-      const matchesTitle = item.title.toLowerCase().includes(query);
-      const matchesDesc = item.description.toLowerCase().includes(query);
-      const matchesLoc = item.location.toLowerCase().includes(query);
+      const query = searchTerm.trim().toLowerCase();
+      const matchesTitle = (item.title || '').toLowerCase().includes(query);
+      const matchesDesc = (item.description || '').toLowerCase().includes(query);
+      const matchesLoc = (item.location || '').toLowerCase().includes(query);
       if (!matchesTitle && !matchesDesc && !matchesLoc) return false;
     }
 
-    if (selectedLocation !== 'All' && item.location !== selectedLocation) return false;
+    if (selectedLocation !== 'All' && (item.location || '').trim().toLowerCase() !== selectedLocation.trim().toLowerCase()) {
+      return false;
+    }
 
     if (bedroomsFilter !== 'All') {
+      const bedsNum = Number(item.bedrooms || 0);
       if (bedroomsFilter === 4) {
-        if (item.bedrooms < 4) return false;
+        if (bedsNum < 4) return false;
       } else {
-        if (item.bedrooms < Number(bedroomsFilter)) return false;
+        if (bedsNum < Number(bedroomsFilter)) return false;
       }
     }
 
     if (bathroomsFilter !== 'All') {
+      const bathsNum = Number(item.bathrooms || 0);
       if (bathroomsFilter === 3) {
-        if (item.bathrooms < 3) return false;
+        if (bathsNum < 3) return false;
       } else {
-        if (item.bathrooms < Number(bathroomsFilter)) return false;
+        if (bathsNum < Number(bathroomsFilter)) return false;
       }
     }
 
-    const valuationInActiveCurrency = convertValue(item.price, currency, eurRate);
-    if (valuationInActiveCurrency > maxPrice) return false;
+    const valuationInActiveCurrency = convertValue(item.price || 0, currency, eurRate);
+    if (maxPrice > 0 && valuationInActiveCurrency > maxPrice) return false;
 
     if (selectedAmenities.length > 0) {
       const hasAll = selectedAmenities.every(amenity => item.amenities && item.amenities.includes(amenity));
@@ -1021,8 +1034,8 @@ export default function App() {
                           <input
                             type="range"
                             min={activeSegment === 'buy' ? 100000 : 500}
-                            max={activeSegment === 'buy' ? (currency === 'MAD' ? 30000000 : 3000000) : (currency === 'MAD' ? 100000 : 12000)}
-                            step={activeSegment === 'buy' ? 50000 : 500}
+                            max={activeSegment === 'buy' ? (currency === 'MAD' ? 100000000 : 10000000) : (currency === 'MAD' ? 2000000 : 200000)}
+                            step={activeSegment === 'buy' ? 100000 : 1000}
                             value={maxPrice}
                             onChange={(e) => setMaxPrice(Number(e.target.value))}
                             className="w-full accent-brand cursor-pointer mt-2"
