@@ -114,10 +114,23 @@ export default function App() {
       if (data.listings && data.listings.length > 0) {
         setListings(prev => {
           const apiIds = new Set(data.listings.map(l => l.id));
-          const localApprovedOnlyInPrev = prev.filter(l => l && l.status === 'approved' && !apiIds.has(l.id));
-          const merged = [...data.listings, ...localApprovedOnlyInPrev];
-          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(merged));
-          return merged;
+          const localApprovedOnlyInPrev = prev.filter(l => l && (l.status === 'approved' || l.status === 'rejected') && !apiIds.has(l.id));
+          
+          const merged = data.listings.map(apiListing => {
+            const localMatch = prev.find(p => p && p.id === apiListing.id);
+            if (localMatch && (localMatch.status === 'approved' || localMatch.status === 'rejected')) {
+              return { 
+                ...apiListing, 
+                status: apiListing.status === 'approved' ? 'approved' : localMatch.status, 
+                approvedByAdminId: apiListing.approvedByAdminId || localMatch.approvedByAdminId 
+              };
+            }
+            return apiListing;
+          });
+
+          const finalCombined = [...merged, ...localApprovedOnlyInPrev];
+          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(finalCombined));
+          return finalCombined;
         });
       }
       setIsLiveDb(data.isLiveDb);
@@ -426,13 +439,25 @@ export default function App() {
     try {
       const res = await createPropertyApi(newProperty);
       if (res && res.listing) {
-        setListings(prev => [res.listing, ...prev.filter(l => l && l.id !== res.listing.id)]);
+        setListings(prev => {
+          const updated = [res.listing, ...prev.filter(l => l && l.id !== res.listing.id)];
+          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+          return updated;
+        });
       } else {
-        setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
+        setListings(prev => {
+          const updated = [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)];
+          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+          return updated;
+        });
       }
       if (res && res.isLiveDb) setIsLiveDb(true);
     } catch (err: any) {
-      setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
+      setListings(prev => {
+        const updated = [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)];
+        localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+        return updated;
+      });
     }
 
     setShowNewListingForm(false);
