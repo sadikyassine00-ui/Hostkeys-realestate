@@ -115,12 +115,13 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
   const isMyListing = currentUser && listing.ownerId === currentUser.id;
 
   const handleSystemShare = async () => {
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
     const priceFormatted = formatCurrency(listing.price, currency, eurRate, true, listing.type);
     const shareTitle = `${listing.title} - Hostkeys`;
     const shareText = `Check out this property on Hostkeys: ${listing.title} (${listing.location}) - ${priceFormatted}`;
 
-    if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+    if (isMobileDevice && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
       try {
         await (navigator as any).share({
           title: shareTitle,

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
-import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2 } from 'lucide-react';
+import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2, Check } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
 import ShareModal from './ShareModal';
@@ -19,14 +19,18 @@ interface PropertyCardProps {
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, currency, eurRate, lang }: PropertyCardProps) {
+  const [copied, setCopied] = useState(false);
+
   const handleSystemShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
     const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
     const priceFormatted = formatCurrency(listing.price, currency, eurRate, true, listing.type);
     const shareTitle = `${listing.title} - Hostkeys`;
     const shareText = `Check out this property on Hostkeys: ${listing.title} (${listing.location}) - ${priceFormatted}`;
 
-    if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+    // On mobile, open system native share sheet!
+    if (isMobileDevice && typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
       try {
         await (navigator as any).share({
           title: shareTitle,
@@ -35,14 +39,15 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
         });
         return;
       } catch (err) {
-        // User closed native menu or cancelled
+        // User closed native menu
       }
     }
 
-    // Fallback if native system share unavailable
+    // On desktop, seamlessly copy to clipboard with instant notification
     try {
       await navigator.clipboard.writeText(shareUrl);
-      alert(lang === 'fr' ? 'Lien de la propriété copié !' : 'Property link copied!');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch (err) {}
   };
   const renderAgentAvatar = (agent: User, size = "h-7 w-7", textSize = "text-xs") => {
@@ -120,10 +125,15 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
           <button 
             onClick={handleSystemShare}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-slate-300 hover:text-brand border border-neutral-800 backdrop-blur-md cursor-pointer hover:scale-110 transition-all" 
-            title="Share Property"
+            className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-slate-300 hover:text-brand border border-neutral-800 backdrop-blur-md cursor-pointer hover:scale-110 transition-all" 
+            title={copied ? (lang === 'fr' ? 'Lien copié !' : 'Link Copied!') : (lang === 'fr' ? 'Partager' : 'Share Property')}
           >
-            <Share2 className="h-4 w-4" />
+            {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4" />}
+            {copied && (
+              <span className="absolute -bottom-7 right-0 px-2 py-0.5 rounded bg-emerald-500 text-black text-[9px] font-mono font-bold shrink-0 shadow-lg whitespace-nowrap z-20">
+                {lang === 'fr' ? 'Lien Copié !' : 'Link Copied!'}
+              </span>
+            )}
           </button>
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-brand border border-brand/30 backdrop-blur-md cursor-pointer hover:bg-brand hover:text-[#030303] transition-colors" title="Hostkeys Verified & Protected">
             <ShieldCheck className="h-4.5 w-4.5" />
