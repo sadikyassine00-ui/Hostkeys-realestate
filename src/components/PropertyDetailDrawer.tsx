@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Listing, User } from '../types';
 import { 
   Bed, 
+  DoorOpen,
   Bath, 
   Maximize, 
   ShieldCheck, 
@@ -223,12 +224,12 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
             <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Caractéristiques' : 'Property Specifications'}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Bed className="h-4 w-4 text-brand mb-1" />
+                <DoorOpen className="h-4 w-4 text-brand mb-1" />
                 <span className="block text-sm font-semibold text-white">{listing.bedrooms}</span>
                 <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</span>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Bed className="h-4 w-4 text-sky-400 mb-1" />
+                <Bed className="h-4 w-4 text-brand mb-1" />
                 <span className="block text-sm font-semibold text-white">{listing.beds || listing.bedrooms || 1}</span>
                 <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Lits' : 'Beds'}</span>
               </div>

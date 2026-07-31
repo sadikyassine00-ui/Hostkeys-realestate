@@ -41,7 +41,7 @@ export const DICTIONARY = {
     resetFilters: "Reset Filters",
 
     // Filter fields
-    filterNeighborhood: "Neighborhood / Region",
+    filterNeighborhood: "City in Morocco",
     filterType: "Listing Type",
     filterBedrooms: "Bedrooms Count",
     filterMaxBudget: "Max Budget Limit ({currency})",
@@ -226,7 +226,7 @@ export const DICTIONARY = {
     resetFilters: "Réinitialiser",
 
     // Filter fields
-    filterNeighborhood: "Ville / Région",
+    filterNeighborhood: "Ville au Maroc",
     filterType: "Type de transaction",
     filterBedrooms: "Nombre de chambres",
     filterMaxBudget: "Budget maximum ({currency})",

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Listing, User } from '../types';
-import { ALL_AMENITIES, ALL_LOCATIONS } from '../mockData';
-import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2, MapPin, Link as LinkIcon } from 'lucide-react';
+import { ALL_AMENITIES, ALL_CITIES } from '../mockData';
+import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2, MapPin, Link as LinkIcon, Search, ChevronDown } from 'lucide-react';
 import { translateAmenity, translateLocation } from '../translations';
 import { Currency, formatCurrency } from '../utils';
 import { uploadImageApi } from '../api';
@@ -39,8 +39,10 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
   const [description, setDescription] = useState('');
   const [type, setType] = useState<'buy' | 'rent'>('buy');
   const [price, setPrice] = useState<number | ''>('');
-  const [location, setLocation] = useState(ALL_LOCATIONS[0]);
+  const [location, setLocation] = useState(ALL_CITIES[0]);
   const [address, setAddress] = useState('');
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
   const [bedrooms, setBedrooms] = useState<number>(3);
   const [beds, setBeds] = useState<number>(4);
   const [bathrooms, setBathrooms] = useState<number>(2.5);
@@ -258,14 +260,53 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
             </div>
           </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Ville / Secteur' : 'City / Neighborhood'}</label>
-            <select value={location} onChange={(e) => setLocation(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
-              {ALL_LOCATIONS.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
+          {/* City Selection — Searchable */}
+          <div className="relative">
+            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Ville au Maroc *' : 'City in Morocco *'}</label>
+            <button
+              type="button"
+              onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
+              className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white flex items-center justify-between focus:border-brand focus:outline-none cursor-pointer"
+            >
+              <span className="font-semibold text-brand">{location}</span>
+              <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${cityDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {cityDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 z-30 mt-1 bg-[#0c0c0c] border border-neutral-800 rounded-xl shadow-2xl overflow-hidden p-2 space-y-2 max-h-60 flex flex-col">
+                <div className="relative shrink-0">
+                  <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={citySearchQuery}
+                    onChange={(e) => setCitySearchQuery(e.target.value)}
+                    placeholder={lang === 'fr' ? 'Rechercher une ville...' : 'Search city...'}
+                    className="w-full bg-[#030303] border border-neutral-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:border-brand focus:outline-none"
+                    autoFocus
+                  />
+                </div>
+                <div className="overflow-y-auto space-y-0.5 max-h-44 pr-1">
+                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase())).map(city => (
+                    <button
+                      key={city}
+                      type="button"
+                      onClick={() => {
+                        setLocation(city);
+                        setCityDropdownOpen(false);
+                        setCitySearchQuery('');
+                      }}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center justify-between ${location === city ? 'bg-brand/10 text-brand font-bold' : 'text-slate-300 hover:bg-neutral-900 hover:text-white'}`}
+                    >
+                      <span>{city}</span>
+                      {location === city && <Check className="h-3 w-3 text-brand shrink-0" />}
+                    </button>
+                  ))}
+                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase())).length === 0 && (
+                    <p className="text-[11px] text-slate-500 p-2 text-center">{lang === 'fr' ? 'Aucune ville trouvée' : 'No city found'}</p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Address */}

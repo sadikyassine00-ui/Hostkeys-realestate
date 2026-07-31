@@ -21,14 +21,49 @@ export const DEMO_ADMIN: User = {
   role: 'admin'
 };
 
-export const ALL_LOCATIONS = [
-  'Palmerie, Marrakech',
-  'Gueliz, Marrakech',
-  'Rif Mountains, Chefchaouen',
-  'La Marina, Casablanca',
-  'Marsham, Tanger',
-  'Fes El Bali, Fes'
+export const ALL_CITIES = [
+  'Agadir',
+  'Al Hoceima',
+  'Asilah',
+  'Azrou',
+  'Beni Mellal',
+  'Berkane',
+  'Bouznika',
+  'Casablanca',
+  'Chefchaouen',
+  'Dakhla',
+  'El Jadida',
+  'Errachidia',
+  'Essaouira',
+  'Fes',
+  'Ifrane',
+  'Kenitra',
+  'Khenifra',
+  'Khouribga',
+  'Ksar El Kebir',
+  'Laayoune',
+  'Larache',
+  'Marrakech',
+  'Meknes',
+  'Mohammedia',
+  'Nador',
+  'Ouarzazate',
+  'Oujda',
+  'Rabat',
+  'Safi',
+  'Salé',
+  'Sidi Ifni',
+  'Sidi Kacem',
+  'Sidi Slimane',
+  'Tanger',
+  'Tantan',
+  'Taroudant',
+  'Taza',
+  'Tetouan',
+  'Tiznit'
 ];
+
+export const ALL_LOCATIONS = ALL_CITIES;
 
 export const ALL_AMENITIES = [
   'Pool',

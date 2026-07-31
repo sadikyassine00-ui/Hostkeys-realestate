@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
-import { Bed, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles } from 'lucide-react';
+import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
 
@@ -87,7 +87,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
       {/* Property Info */}
       <div className="p-5 flex flex-col flex-grow">
         <div className="flex items-center gap-1.5 text-xs font-mono text-brand/80 mb-2">
-          <span>{listing.location.split(',')[1] || listing.location}</span>
+          <span>{listing.location}</span>
           <span>•</span>
           <span>{listing.squareMeters} m²</span>
         </div>
@@ -103,11 +103,11 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
         {/* Technical Specs: Bedrooms, Beds, Bathrooms, SqM */}
         <div className="mt-4 grid grid-cols-4 gap-1.5 border-t border-b border-neutral-800/60 py-3 text-[11px] text-slate-300 font-mono">
           <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Bedrooms">
-            <Bed className="h-3 w-3 text-brand shrink-0" />
+            <DoorOpen className="h-3 w-3 text-brand shrink-0" />
             <span className="truncate">{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBedroom', lang) : t('cardBedrooms', lang)}</span>
           </div>
           <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Physical Beds">
-            <Bed className="h-3 w-3 text-sky-400 shrink-0" />
+            <Bed className="h-3 w-3 text-brand shrink-0" />
             <span className="truncate">{listing.beds || listing.bedrooms || 1} { (listing.beds || listing.bedrooms) === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</span>
           </div>
           <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Bathrooms">
