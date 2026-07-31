@@ -66,7 +66,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -6, borderColor: 'var(--color-brand)' }}
       transition={{ duration: 0.35, ease: "easeOut" }}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[#0d0d0d] border border-neutral-900 shadow-md hover:shadow-[0_0_20px_-5px_rgba(166,254,0,0.15)] cursor-pointer"
+      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[#0d0d0d] border border-neutral-900 shadow-md hover:shadow-[0_0_20px_-5px_rgba(0,180,216,0.25)] cursor-pointer"
     >
       {/* Property Image & Badges */}
       <div className="relative aspect-[1.6] w-full overflow-hidden bg-[#030303]">

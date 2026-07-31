@@ -261,7 +261,7 @@ export default function DashboardView({
                 <span>{lang === 'fr' ? 'Réinitialiser la Base' : 'Reset Database'}</span>
               </button>
             )}
-            <button onClick={onAddListing} className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] cursor-pointer">
+            <button onClick={onAddListing} className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(0,180,216,0.25)] cursor-pointer">
               <Plus className="h-4 w-4" />
               <span>{lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
             </button>

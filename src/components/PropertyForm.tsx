@@ -459,7 +459,7 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
             <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl border border-neutral-800 text-slate-400 hover:text-white cursor-pointer">
               {lang === 'fr' ? 'Annuler' : 'Cancel'}
             </button>
-            <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] cursor-pointer">
+            <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all shadow-[0_0_15px_rgba(0,180,216,0.25)] cursor-pointer">
               {lang === 'fr' ? 'Publier la Propriete' : 'Publish Property'}
             </button>
           </div>
