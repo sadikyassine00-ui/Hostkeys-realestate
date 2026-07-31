@@ -441,16 +441,18 @@ export default function App() {
   };
 
   const handleGoogleAuth = async () => {
-    if (isFirebaseConfigured()) {
-      try {
-        await loginWithGoogle();
-        setShowRegisterDialog(false);
-        setActiveTab('dashboard');
-      } catch (err: any) {
-        setAuthError(err?.message || 'Google authentication failed');
-      }
-    } else {
-      alert("Firebase is unconfigured. Please fill email to sign in.");
+    if (!isFirebaseConfigured()) {
+      setAuthError('Firebase is not configured. Please use email login.');
+      return;
+    }
+    try {
+      setAuthError('');
+      await loginWithGoogle();
+      // onAuthStateChanged in subscribeToAuthState handles the rest
+      setShowRegisterDialog(false);
+    } catch (err: any) {
+      const msg = err?.message || 'Google authentication failed';
+      setAuthError(msg);
     }
   };
 
