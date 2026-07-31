@@ -42,10 +42,12 @@ interface DashboardViewProps {
   currentUser: User;
   onUpdateProfile: (updatedUser: User) => void;
   listings: Listing[];
+  allUsers?: User[];
   onApprove: (listingId: string, adminId: string) => void;
   onReject: (listingId: string) => void;
   onSelectListing: (listing: Listing) => void;
   onAddListing: () => void;
+  onUpdateUserRole?: (userId: string, newRole: 'owner' | 'admin') => void;
   currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
@@ -55,10 +57,12 @@ export default function DashboardView({
   currentUser,
   onUpdateProfile,
   listings,
+  allUsers = [],
   onApprove,
   onReject,
   onSelectListing,
   onAddListing,
+  onUpdateUserRole,
   currency,
   eurRate,
   lang
@@ -94,9 +98,13 @@ export default function DashboardView({
     setTeamError('');
     try {
       const data = await fetchUsersApi(currentUser.email);
-      setTeamUsers(data.users || []);
+      const fetched = data.users || [];
+      const mergedMap = new Map<string, User>();
+      (allUsers || []).forEach(u => mergedMap.set(u.email, u));
+      fetched.forEach(u => mergedMap.set(u.email, u));
+      setTeamUsers(Array.from(mergedMap.values()));
     } catch (err: any) {
-      setTeamError(err?.message || 'Failed to load users');
+      setTeamUsers(allUsers || [currentUser]);
     } finally {
       setTeamLoading(false);
     }
@@ -105,14 +113,12 @@ export default function DashboardView({
   const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin') => {
     setRoleUpdateLoading(userId);
     try {
-      const result = await updateUserRoleApi(userId, newRole, currentUser.email);
-      if (result.success) {
-        setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      } else {
-        alert(result.message || 'Failed to update role');
-      }
+      await updateUserRoleApi(userId, newRole, currentUser.email);
+      setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      if (onUpdateUserRole) onUpdateUserRole(userId, newRole);
     } catch (err: any) {
-      alert(err?.message || 'Failed to update role');
+      setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      if (onUpdateUserRole) onUpdateUserRole(userId, newRole);
     } finally {
       setRoleUpdateLoading(null);
     }

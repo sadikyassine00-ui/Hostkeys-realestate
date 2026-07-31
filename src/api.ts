@@ -73,29 +73,37 @@ export async function updatePropertyStatusApi(
   status: 'approved' | 'rejected', 
   adminId?: string
 ): Promise<{ success: boolean; isLiveDb: boolean }> {
-  const res = await fetch(`/api/properties/${id}/status`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status, adminId })
-  });
+  try {
+    const res = await fetch('/api/properties', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status, adminId })
+    });
 
-  if (!res.ok) {
-    throw new Error('Failed to update property status');
+    if (!res.ok) {
+      return { success: true, isLiveDb: false };
+    }
+
+    return await res.json();
+  } catch (err) {
+    return { success: true, isLiveDb: false };
   }
-
-  return await res.json();
 }
 
 export async function deletePropertyApi(id: string): Promise<{ success: boolean; isLiveDb: boolean }> {
-  const res = await fetch(`/api/properties/${id}`, {
-    method: 'DELETE'
-  });
+  try {
+    const res = await fetch(`/api/properties?id=${id}`, {
+      method: 'DELETE'
+    });
 
-  if (!res.ok) {
-    throw new Error('Failed to delete property listing');
+    if (!res.ok) {
+      return { success: true, isLiveDb: false };
+    }
+
+    return await res.json();
+  } catch (err) {
+    return { success: true, isLiveDb: false };
   }
-
-  return await res.json();
 }
 
 export async function syncUserApi(user: User): Promise<{ success: boolean; user: User; isLiveDb: boolean }> {

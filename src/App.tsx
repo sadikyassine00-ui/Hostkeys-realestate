@@ -441,6 +441,11 @@ export default function App() {
     }
   };
 
+  const handleUpdateUserRole = (userId: string, newRole: 'owner' | 'admin') => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    addToast('success', lang === 'fr' ? 'Rôle utilisateur mis à jour !' : 'User role updated successfully!');
+  };
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedLocation('All');
@@ -653,10 +658,12 @@ export default function App() {
             currentUser={currentUser}
             onUpdateProfile={handleUpdateProfile}
             listings={listings}
+            allUsers={users}
             onApprove={handleApproveListing}
             onReject={handleRejectListing}
-            onSelectListing={(listing) => setExpandedListing(listing)}
+            onSelectListing={(listing) => handleOpenListing(listing)}
             onAddListing={() => setShowNewListingForm(true)}
+            onUpdateUserRole={handleUpdateUserRole}
             currency={currency}
             eurRate={eurRate}
             lang={lang}

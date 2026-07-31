@@ -25,6 +25,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
+      // Super Admin ALWAYS bypasses DB lookup check!
+      if (requestorEmail === SUPER_ADMIN_EMAIL) {
+        try {
+          const users = await getAllUsers();
+          return res.status(200).json({ users: users || [], isLiveDb: true });
+        } catch (err) {
+          return res.status(200).json({ users: [], isLiveDb: false });
+        }
+      }
+
       try {
         const requestor = await getUserByEmail(requestorEmail);
         if (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin')) {
@@ -32,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         const users = await getAllUsers();
-        return res.status(200).json({ users, isLiveDb: true });
+        return res.status(200).json({ users: users || [], isLiveDb: true });
       } catch (err) {
         return res.status(200).json({ users: [], isLiveDb: false });
       }
