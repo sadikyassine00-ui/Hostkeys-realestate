@@ -335,15 +335,22 @@ export default function App() {
     try {
       const res = await createPropertyApi(newProperty);
       if (res && res.listing) {
-        setListings(prev => [res.listing, ...prev]);
+        setListings(prev => [res.listing, ...prev.filter(l => l && l.id !== res.listing.id)]);
       } else {
-        setListings(prev => [newProperty, ...prev]);
+        setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
       }
       if (res && res.isLiveDb) setIsLiveDb(true);
-      addToast('success', lang === 'fr' ? 'Propriété créée avec succès !' : 'Property created successfully!');
     } catch (err: any) {
-      setListings(prev => [newProperty, ...prev]);
-      addToast('info', lang === 'fr' ? 'Propriété enregistrée localement.' : 'Property saved in active session.');
+      setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
+    }
+
+    setShowNewListingForm(false);
+    setActiveTab('dashboard');
+
+    if (isAdminOrSuper) {
+      addToast('success', lang === 'fr' ? 'Propriété publiée et active sur le portail !' : 'Property published & live on portal!');
+    } else {
+      addToast('success', lang === 'fr' ? 'Propriété soumise ! Suivez sa validation ici dans votre tableau de bord.' : 'Property submitted for verification! Track it here in your Dashboard.');
     }
   };
 

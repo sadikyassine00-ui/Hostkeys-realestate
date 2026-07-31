@@ -14,6 +14,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cleanUrl = url.trim().replace(/^["']|["']$/g, '');
     const sql = neon(cleanUrl);
 
+    // Auto-migrate schema on connection to ensure table and all columns exist
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS listings (
+          id VARCHAR(255) PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          description TEXT NOT NULL,
+          type VARCHAR(50) NOT NULL,
+          price NUMERIC NOT NULL,
+          location VARCHAR(255) NOT NULL,
+          address TEXT DEFAULT '',
+          bedrooms INT NOT NULL,
+          bathrooms NUMERIC NOT NULL,
+          square_meters INT NOT NULL,
+          amenities TEXT[] DEFAULT '{}',
+          status VARCHAR(50) DEFAULT 'pending',
+          owner_id VARCHAR(255) NOT NULL,
+          approved_by_admin_id VARCHAR(255),
+          image TEXT,
+          images TEXT[] DEFAULT '{}',
+          personal_owner_info JSONB,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `;
+      await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '';`;
+      await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';`;
+    } catch (e) {
+      console.warn('Schema auto-migration warning:', e);
+    }
+
     // POST /api/properties
     if (req.method === 'POST') {
       const listing = req.body;
