@@ -99,10 +99,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-      const { userId, newRole, isAgent, languages } = body;
+      // Accept both userId and userEmail — email is the reliable key
+      const { userId, userEmail, newRole, isAgent, languages } = body;
+      const targetId = userId || userEmail;
 
-      if (!userId) {
-        return res.status(200).json({ success: false, error: 'Missing userId' });
+      if (!targetId) {
+        return res.status(200).json({ success: false, error: 'Missing userId or userEmail' });
       }
 
       if (!sql) {
@@ -112,10 +114,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         await ensureSchema(sql);
 
+        // First find the user — check by email first, then by id
+        const found = await sql`
+          SELECT id, email, role FROM users
+          WHERE email = ${targetId} OR id = ${targetId}
+          LIMIT 1;
+        `;
+
+        if (found.length === 0) {
+          console.warn('PATCH /api/users: no user found for targetId:', targetId);
+          return res.status(200).json({ success: false, message: `No user found matching: ${targetId}` });
+        }
+
+        const targetEmail = found[0].email;
+        console.log('PATCH /api/users: updating user', targetEmail, 'to role:', newRole);
+
         if (newRole && ['owner', 'admin'].includes(newRole)) {
           await sql`
             UPDATE users SET role = ${newRole}
-            WHERE (id = ${userId} OR email = ${userId}) AND email != ${SUPER_ADMIN_EMAIL};
+            WHERE email = ${targetEmail} AND email != ${SUPER_ADMIN_EMAIL};
           `;
         }
 
@@ -124,11 +141,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const langsVal = Array.isArray(languages) ? languages : ['FR', 'EN'];
           await sql`
             UPDATE users SET is_agent = ${agentVal}, languages = ${langsVal}
-            WHERE id = ${userId} OR email = ${userId};
+            WHERE email = ${targetEmail};
           `;
         }
 
-        return res.status(200).json({ success: true, message: 'User updated successfully', isLiveDb: true });
+        return res.status(200).json({ success: true, message: `User ${targetEmail} updated successfully`, isLiveDb: true });
       } catch (err: any) {
         console.error('PATCH /api/users error:', err);
         return res.status(200).json({ success: false, message: err.message || 'Database update failed', isLiveDb: false });

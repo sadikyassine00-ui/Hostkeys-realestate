@@ -183,7 +183,8 @@ export async function fetchUsersApi(requestorEmail: string): Promise<{ users: Us
 export async function updateUserRoleApi(
   userId: string, 
   newRole: 'owner' | 'admin', 
-  requestorEmail: string
+  requestorEmail: string,
+  userEmail?: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     const res = await fetch('/api/users', {
@@ -192,16 +193,16 @@ export async function updateUserRoleApi(
         'Content-Type': 'application/json',
         'x-user-email': requestorEmail 
       },
-      body: JSON.stringify({ userId, newRole })
+      body: JSON.stringify({ userId, userEmail: userEmail || userId, newRole })
     });
 
     if (!res.ok) {
-      return { success: true, message: 'Role updated locally' };
+      return { success: false, message: `Server error: ${res.status}` };
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, message: 'Role updated locally' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Network error' };
   }
 }
 
@@ -209,7 +210,8 @@ export async function updateUserAgentApi(
   userId: string,
   isAgent: boolean,
   languages: string[],
-  requestorEmail: string
+  requestorEmail: string,
+  userEmail?: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     const res = await fetch('/api/users', {
@@ -218,15 +220,15 @@ export async function updateUserAgentApi(
         'Content-Type': 'application/json',
         'x-user-email': requestorEmail 
       },
-      body: JSON.stringify({ userId, isAgent, languages })
+      body: JSON.stringify({ userId, userEmail: userEmail || userId, isAgent, languages })
     });
 
     if (!res.ok) {
-      return { success: true, message: 'Updated locally' };
+      return { success: false, message: `Server error: ${res.status}` };
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, message: 'Updated locally' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Network error' };
   }
 }

@@ -112,10 +112,10 @@ export default function DashboardView({
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin') => {
+  const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin', userEmail?: string) => {
     setRoleUpdateLoading(userId);
     try {
-      const res = await updateUserRoleApi(userId, newRole, currentUser.email);
+      const res = await updateUserRoleApi(userId, newRole, currentUser.email, userEmail);
       if (res && res.success) {
         setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
         if (onUpdateUserRole) onUpdateUserRole(userId, newRole, true);
@@ -132,7 +132,7 @@ export default function DashboardView({
   const handleAgentToggle = async (user: User, newIsAgent: boolean) => {
     const defaultLangs = user.languages && user.languages.length > 0 ? user.languages : ['FR', 'EN'];
     try {
-      const res = await updateUserAgentApi(user.id, newIsAgent, defaultLangs, currentUser.email);
+      const res = await updateUserAgentApi(user.id, newIsAgent, defaultLangs, currentUser.email, user.email);
       if (res && res.success) {
         setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, isAgent: newIsAgent, languages: defaultLangs } : u));
         if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs, true);
@@ -149,7 +149,7 @@ export default function DashboardView({
     const hasLang = currentLangs.includes(langCode);
     const newLangs = hasLang ? currentLangs.filter(l => l !== langCode) : [...currentLangs, langCode];
     try {
-      const res = await updateUserAgentApi(user.id, Boolean(user.isAgent), newLangs, currentUser.email);
+      const res = await updateUserAgentApi(user.id, Boolean(user.isAgent), newLangs, currentUser.email, user.email);
       if (res && res.success) {
         setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, languages: newLangs } : u));
         if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs, true);
@@ -455,7 +455,7 @@ export default function DashboardView({
                               <div className="flex items-center gap-1.5">
                                 {user.role !== 'admin' ? (
                                   <button
-                                    onClick={() => handleRoleChange(user.id, 'admin')}
+                                    onClick={() => handleRoleChange(user.id, 'admin', user.email)}
                                     disabled={roleUpdateLoading === user.id}
                                     className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >
@@ -464,7 +464,7 @@ export default function DashboardView({
                                   </button>
                                 ) : (
                                   <button
-                                    onClick={() => handleRoleChange(user.id, 'owner')}
+                                    onClick={() => handleRoleChange(user.id, 'owner', user.email)}
                                     disabled={roleUpdateLoading === user.id}
                                     className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >

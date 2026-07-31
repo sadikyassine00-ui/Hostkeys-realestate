@@ -82,7 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           user: { ...user, role: dbRole, isAgent: dbIsAgent, languages: dbLangs }
         });
       } else {
-        // New user — insert with default role
+        // New user — insert with default role (UPSERT on email conflict)
         const isAgent = user.email === SUPER_ADMIN_EMAIL;
         const langs = user.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [];
 
@@ -90,7 +90,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           INSERT INTO users (id, name, email, phone, avatar, role, is_agent, languages)
           VALUES (${user.id || user.email}, ${user.name || ''}, ${user.email},
                   ${user.phone || ''}, ${user.avatar || ''}, ${finalRole}, ${isAgent}, ${langs})
-          ON CONFLICT (email) DO NOTHING;
+          ON CONFLICT (email) DO UPDATE SET
+            name = EXCLUDED.name,
+            phone = EXCLUDED.phone,
+            avatar = EXCLUDED.avatar;
         `;
 
         return res.status(200).json({
