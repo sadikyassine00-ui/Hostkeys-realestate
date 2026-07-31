@@ -5,8 +5,8 @@ export const DICTIONARY = {
   en: {
     // Header
     brandName: "HOSTKEYS",
-    navBuyCatalog: "Buy (Properties)",
-    navRentCatalog: "Rent (Properties)",
+    navBuyCatalog: "Buy Properties",
+    navRentCatalog: "Rent Properties",
     navDashboard: "Dashboard",
     currencyMAD: "MAD DH",
     currencyUSD: "USD $",
@@ -22,13 +22,13 @@ export const DICTIONARY = {
     activeCurrencyEUR: "Euros (€ EUR)",
 
     // Hero Section
-    brokerRepresentativeText: "Hostkeys Verified Real Estate Portal",
-    heroHeadingMain: "Minimalist & Luxury Shelters",
-    heroHeadingHighlight: "For Organic Living in Morocco",
-    heroSubheading: "Browse certified properties or submit your luxury listing under direct identity protection. All entries are audited and verified by Hostkeys.",
+    brokerRepresentativeText: "Morocco's Premier Real Estate Portal",
+    heroHeadingMain: "Find Your Dream Property",
+    heroHeadingHighlight: "In Morocco",
+    heroSubheading: "Discover verified luxury villas, modern apartments, and authentic riads for sale or rent across Marrakech, Casablanca, Tangier, Agadir, and Rabat.",
 
     // Main workspace search & filters
-    searchPlaceholder: "Search by neighborhood, city, architectural style, or keyword...",
+    searchPlaceholder: "Search villas, apartments, or cities (Marrakech, Casablanca, Tangier...)",
     searchClear: "CLEAR",
     filtersLabel: "Filters",
     addListingBtn: "Add Property",
@@ -190,8 +190,8 @@ export const DICTIONARY = {
   fr: {
     // Header
     brandName: "HOSTKEYS",
-    navBuyCatalog: "Acheter",
-    navRentCatalog: "Louer",
+    navBuyCatalog: "Acheter un bien",
+    navRentCatalog: "Louer un bien",
     navDashboard: "Tableau de Bord",
     currencyMAD: "MAD DH",
     currencyUSD: "USD $",
@@ -207,13 +207,13 @@ export const DICTIONARY = {
     activeCurrencyEUR: "Euros (€ EUR)",
 
     // Hero Section
-    brokerRepresentativeText: "Portail Immobilier Certifié Hostkeys",
-    heroHeadingMain: "Propriétés d'Exception",
-    heroHeadingHighlight: "Pour une Vie Moderne au Maroc",
-    heroSubheading: "Parcourez des biens d'exception certifiés ou soumettez votre propriété sous protection d'identité. Tous les biens sont audités par Hostkeys.",
+    brokerRepresentativeText: "Le Premier Portail Immobilier au Maroc",
+    heroHeadingMain: "Trouvez la Propriété Idéale",
+    heroHeadingHighlight: "au Maroc",
+    heroSubheading: "Découvrez des villas de luxe, appartements modernes et riads authentiques à vendre ou à louer à Marrakech, Casablanca, Tanger, Agadir et Rabat.",
 
     // Main workspace search & filters
-    searchPlaceholder: "Rechercher par ville, quartier, style, mot-clé...",
+    searchPlaceholder: "Rechercher des villas, appartements ou villes (Marrakech, Casablanca, Tanger...)",
     searchClear: "EFFACER",
     filtersLabel: "Filtres",
     addListingBtn: "Publier un Bien",
