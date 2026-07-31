@@ -157,19 +157,44 @@ export async function getAllUsers(): Promise<User[]> {
   const sql = getDb();
   if (!sql) return [];
 
-  const rows = await sql`SELECT id, name, email, phone, avatar, role, is_agent as "isAgent", languages FROM users ORDER BY created_at DESC;`;
-  return rows.map((r: any) => ({
-    id: r.id,
-    name: r.name,
-    email: r.email,
-    phone: r.phone || '',
-    avatar: r.avatar || '',
-    role: r.role as 'owner' | 'admin' | 'superadmin',
-    isAgent: Boolean(r.isAgent || r.email === SUPER_ADMIN_EMAIL),
-    languages: Array.isArray(r.languages) && r.languages.length > 0 
-      ? r.languages 
-      : (r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [])
-  }));
+  try {
+    try {
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_agent BOOLEAN DEFAULT false;`;
+      await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT '{}';`;
+    } catch (e) {}
+
+    const rows = await sql`SELECT id, name, email, phone, avatar, role, is_agent as "isAgent", languages FROM users ORDER BY created_at DESC;`;
+    return rows.map((r: any) => ({
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone || '',
+      avatar: r.avatar || '',
+      role: r.role as 'owner' | 'admin' | 'superadmin',
+      isAgent: Boolean(r.isAgent || r.email === SUPER_ADMIN_EMAIL),
+      languages: Array.isArray(r.languages) && r.languages.length > 0 
+        ? r.languages 
+        : (r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [])
+    }));
+  } catch (err) {
+    console.warn('getAllUsers main query failed, trying basic query fallback:', err);
+    try {
+      const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users ORDER BY created_at DESC;`;
+      return rows.map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        email: r.email,
+        phone: r.phone || '',
+        avatar: r.avatar || '',
+        role: r.role as 'owner' | 'admin' | 'superadmin',
+        isAgent: r.email === SUPER_ADMIN_EMAIL,
+        languages: r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : []
+      }));
+    } catch (e2) {
+      console.error('getAllUsers fallback error:', e2);
+      return [];
+    }
+  }
 }
 
 export async function updateUserRole(userId: string, newRole: 'owner' | 'admin', requestorEmail: string): Promise<{ success: boolean; message: string }> {
