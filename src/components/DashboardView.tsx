@@ -32,7 +32,8 @@ import {
   ArrowUp,
   ArrowDown,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
@@ -238,6 +239,28 @@ export default function DashboardView({
           </div>
 
           <div className="flex items-center gap-3">
+            {isSuperAdmin && (
+              <button
+                onClick={async () => {
+                  if (confirm(lang === 'fr' ? 'Êtes-vous sûr de vouloir réinitialiser la base de données ? Tous les biens et utilisateurs (sauf Super Admin) seront supprimés.' : 'Are you sure you want to reset the database? All listings and users (except Super Admin) will be permanently cleared.')) {
+                    try {
+                      const res = await fetch('/api/reset', { method: 'POST' });
+                      const data = await res.json();
+                      alert(data.message || 'Database reset complete');
+                      localStorage.clear();
+                      window.location.reload();
+                    } catch (e: any) {
+                      alert('Reset failed: ' + e.message);
+                    }
+                  }
+                }}
+                className="px-4 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/30 font-bold font-mono text-xs flex items-center gap-2 transition-all cursor-pointer"
+                title="Wipe DB & Start Clean"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{lang === 'fr' ? 'Réinitialiser la Base' : 'Reset Database'}</span>
+              </button>
+            )}
             <button onClick={onAddListing} className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(166,254,0,0.2)] cursor-pointer">
               <Plus className="h-4 w-4" />
               <span>{lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
