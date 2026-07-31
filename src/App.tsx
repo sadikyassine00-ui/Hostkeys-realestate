@@ -253,9 +253,7 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState('All');
   const [bedroomsFilter, setBedroomsFilter] = useState<number | 'All'>('All');
   const [bathroomsFilter, setBathroomsFilter] = useState<number | 'All'>('All');
-  const [maxPrice, setMaxPrice] = useState<number>(() => {
-    return activeSegment === 'buy' ? 100000000 : 500000;
-  });
+  const [maxPrice, setMaxPrice] = useState<number>(0); // 0 means Unlimited / Any Budget
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
   // Registered website admin agents from API
@@ -497,7 +495,7 @@ export default function App() {
     setBedroomsFilter('All');
     setBathroomsFilter('All');
     setSelectedAmenities([]);
-    setMaxPrice(1000000000); // 1 Billion limit so price filter never hides property
+    setMaxPrice(0); // 0 means Unlimited / Any Budget
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
@@ -593,8 +591,7 @@ export default function App() {
     setBedroomsFilter('All');
     setBathroomsFilter('All');
     setSelectedAmenities([]);
-    const baseValue = activeSegment === 'buy' ? 20000000 : 80000;
-    setMaxPrice(baseValue);
+    setMaxPrice(0);
   };
 
   const handleUpdateProfile = async (updatedUser: User) => {
@@ -655,8 +652,12 @@ export default function App() {
       }
     }
 
-    const valuationInActiveCurrency = convertValue(item.price || 0, currency, eurRate);
-    if (maxPrice > 0 && valuationInActiveCurrency > maxPrice) return false;
+    // Price filter check (only filter if user set a specific budget limit below maximum)
+    const maxSliderBound = activeSegment === 'buy' ? (currency === 'MAD' ? 100000000 : 10000000) : (currency === 'MAD' ? 2000000 : 200000);
+    if (maxPrice > 0 && maxPrice < maxSliderBound) {
+      const valuationInActiveCurrency = convertValue(item.price || 0, currency, eurRate);
+      if (valuationInActiveCurrency > maxPrice) return false;
+    }
 
     if (selectedAmenities.length > 0) {
       const hasAll = selectedAmenities.every(amenity => item.amenities && item.amenities.includes(amenity));
@@ -1091,11 +1092,11 @@ export default function App() {
 
                         <div>
                           <label className="block text-slate-400 mb-1">
-                            {t('filterMaxBudget', lang, { currency })}: <span className="text-brand font-bold">{formatCurrency(maxPrice, currency, eurRate)}</span>
+                            {t('filterMaxBudget', lang, { currency })}: <span className="text-brand font-bold">{maxPrice === 0 ? (lang === 'fr' ? 'Tous les prix (Illimité)' : 'Any Price (Unlimited)') : formatCurrency(maxPrice, currency, eurRate)}</span>
                           </label>
                           <input
                             type="range"
-                            min={activeSegment === 'buy' ? 100000 : 500}
+                            min={0}
                             max={activeSegment === 'buy' ? (currency === 'MAD' ? 100000000 : 10000000) : (currency === 'MAD' ? 2000000 : 200000)}
                             step={activeSegment === 'buy' ? 100000 : 1000}
                             value={maxPrice}
