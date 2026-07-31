@@ -112,10 +112,10 @@ export default function DashboardView({
     }
   };
 
-  const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin', userEmail?: string) => {
+  const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin', userEmail?: string, userName?: string) => {
     setRoleUpdateLoading(userId);
     try {
-      const res = await updateUserRoleApi(userId, newRole, currentUser.email, userEmail);
+      const res = await updateUserRoleApi(userId, newRole, currentUser.email, userEmail, userName);
       if (res && res.success) {
         setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
         if (onUpdateUserRole) onUpdateUserRole(userId, newRole, true);
@@ -455,7 +455,7 @@ export default function DashboardView({
                               <div className="flex items-center gap-1.5">
                                 {user.role !== 'admin' ? (
                                   <button
-                                    onClick={() => handleRoleChange(user.id, 'admin', user.email)}
+                                    onClick={() => handleRoleChange(user.id, 'admin', user.email, user.name)}
                                     disabled={roleUpdateLoading === user.id}
                                     className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >
@@ -464,7 +464,7 @@ export default function DashboardView({
                                   </button>
                                 ) : (
                                   <button
-                                    onClick={() => handleRoleChange(user.id, 'owner', user.email)}
+                                    onClick={() => handleRoleChange(user.id, 'owner', user.email, user.name)}
                                     disabled={roleUpdateLoading === user.id}
                                     className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >

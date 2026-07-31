@@ -117,18 +117,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // First find the user — check by email first, then by id
         const found = await sql`
           SELECT id, email, role FROM users
-          WHERE email = ${targetId} OR id = ${targetId}
+          WHERE email = ${userEmail || targetId} OR id = ${userId || targetId}
           LIMIT 1;
         `;
 
+        let targetEmail = found.length > 0 ? found[0].email : (userEmail || (targetId.includes('@') ? targetId : null));
+        const effectiveRole = newRole && ['owner', 'admin'].includes(newRole) ? newRole : (found.length > 0 ? found[0].role : 'admin');
+        const agentVal = typeof isAgent === 'boolean' ? isAgent : false;
+        const langsVal = Array.isArray(languages) ? languages : ['FR', 'EN'];
+        const displayName = body.userName || body.name || (targetEmail ? targetEmail.split('@')[0] : 'User');
+
         if (found.length === 0) {
-          console.warn('PATCH /api/users: no user found for targetId:', targetId);
-          return res.status(200).json({ success: false, message: `No user found matching: ${targetId}` });
+          // User was not in Postgres DB yet (e.g. logged in previously before sync was working). Auto-create them now!
+          if (!targetEmail) {
+            return res.status(200).json({ success: false, message: `Cannot auto-create user without email for id: ${targetId}` });
+          }
+          await sql`
+            INSERT INTO users (id, name, email, role, is_agent, languages)
+            VALUES (${userId || targetId}, ${displayName}, ${targetEmail}, ${effectiveRole}, ${agentVal}, ${langsVal})
+            ON CONFLICT (email) DO UPDATE SET
+              role = EXCLUDED.role,
+              is_agent = EXCLUDED.is_agent,
+              languages = EXCLUDED.languages;
+          `;
+          return res.status(200).json({ success: true, message: `User ${targetEmail} created in DB and promoted to ${effectiveRole}`, isLiveDb: true });
         }
 
-        const targetEmail = found[0].email;
-        console.log('PATCH /api/users: updating user', targetEmail, 'to role:', newRole);
-
+        // User exists — update role and agent status
         if (newRole && ['owner', 'admin'].includes(newRole)) {
           await sql`
             UPDATE users SET role = ${newRole}
@@ -137,8 +152,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         if (typeof isAgent === 'boolean' || Array.isArray(languages)) {
-          const agentVal = Boolean(isAgent);
-          const langsVal = Array.isArray(languages) ? languages : ['FR', 'EN'];
           await sql`
             UPDATE users SET is_agent = ${agentVal}, languages = ${langsVal}
             WHERE email = ${targetEmail};

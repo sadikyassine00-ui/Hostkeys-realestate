@@ -184,7 +184,8 @@ export async function updateUserRoleApi(
   userId: string, 
   newRole: 'owner' | 'admin', 
   requestorEmail: string,
-  userEmail?: string
+  userEmail?: string,
+  userName?: string
 ): Promise<{ success: boolean; message: string }> {
   try {
     const res = await fetch('/api/users', {
@@ -193,7 +194,7 @@ export async function updateUserRoleApi(
         'Content-Type': 'application/json',
         'x-user-email': requestorEmail 
       },
-      body: JSON.stringify({ userId, userEmail: userEmail || userId, newRole })
+      body: JSON.stringify({ userId, userEmail: userEmail || userId, userName, newRole })
     });
 
     if (!res.ok) {
