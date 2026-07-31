@@ -269,8 +269,8 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
 
           {/* Representative Identity & Connection */}
           <div className="bg-[#0f0f0f] p-5 rounded-xl border border-neutral-900 hover:border-brand/20 transition-all space-y-3 font-mono text-xs">
-            <div className="flex items-center gap-1.5 text-brand font-bold">
-              <ShieldCheck className="h-4.5 w-4.5" />
+            <div className="flex items-center gap-2 text-brand font-bold">
+              <img src="/miniLogo.png" alt="Hostkeys Logo" className="h-4 w-4 object-contain" />
               <span>HOSTKEYS VERIFIED & PROTECTED</span>
             </div>
             <p className="text-neutral-300 leading-relaxed font-sans text-xs">

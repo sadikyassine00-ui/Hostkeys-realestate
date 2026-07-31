@@ -161,8 +161,8 @@ export default function DashboardView({
       
       {/* HEADER BANNER */}
       <div className="bg-gradient-to-r from-[#0d0d0d] via-[#12180c] to-[#0d0d0d] border border-neutral-850 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-lg">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Building className="h-64 w-64 text-brand" />
+        <div className="absolute top-0 right-0 p-6 opacity-15 pointer-events-none">
+          <img src="/miniLogo.png" alt="Hostkeys Logo" className="h-48 w-48 object-contain" />
         </div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

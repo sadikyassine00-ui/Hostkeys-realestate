@@ -446,10 +446,7 @@ export default function App() {
       <header className="border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md py-4 px-4 sticky top-0 z-35">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => setActiveTab('catalog')}>
-            <div className="text-[#a6fe00] font-sans text-2xl font-black tracking-tighter flex items-center gap-1 leading-none uppercase select-none">
-              HOSTKEYS
-              <span className="h-2 w-2 bg-brand rounded-full inline-block" />
-            </div>
+            <img src="/logo.png" alt="Hostkeys" className="h-7 md:h-8 object-contain" />
           </div>
 
           <nav className="hidden md:flex items-center gap-6">
@@ -798,9 +795,8 @@ export default function App() {
       {/* FOOTER */}
       <footer className="border-t border-neutral-900 bg-[#030303] py-8 px-4 text-center text-xs font-mono text-slate-450 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-brand font-extrabold uppercase text-sm">
-            HOSTKEYS
-            <span className="h-1.5 w-1.5 bg-brand rounded-full" />
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('catalog')}>
+            <img src="/logo.png" alt="Hostkeys" className="h-5 object-contain" />
           </div>
           <p>HOSTKEYS REAL ESTATE PORTAL © 2026 — VERCEL & NEON DB LIVE</p>
         </div>
@@ -834,9 +830,12 @@ export default function App() {
               className="bg-[#0c0c0c] border border-neutral-850 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl"
             >
               <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
-                <div>
-                  <h3 className="text-lg font-bold text-white font-sans">{t('regTitle', lang)}</h3>
-                  <p className="text-xs font-mono text-slate-400 mt-0.5">{t('regSubtitle', lang)}</p>
+                <div className="flex items-center gap-3">
+                  <img src="/miniLogo.png" alt="Hostkeys Icon" className="h-7 w-7 object-contain" />
+                  <div>
+                    <h3 className="text-lg font-bold text-white font-sans">{t('regTitle', lang)}</h3>
+                    <p className="text-xs font-mono text-slate-400 mt-0.5">{t('regSubtitle', lang)}</p>
+                  </div>
                 </div>
                 <button onClick={() => setShowRegisterDialog(false)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
                   <X className="h-5 w-5" />
