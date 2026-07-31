@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup, 
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged,
@@ -40,6 +42,7 @@ if (isFirebaseConfigured()) {
 export { auth };
 
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export async function loginWithEmail(email: string, pass: string): Promise<FirebaseUser> {
   if (!auth) {
@@ -57,12 +60,27 @@ export async function registerWithEmail(email: string, pass: string): Promise<Fi
   return userCred.user;
 }
 
-export async function loginWithGoogle(): Promise<FirebaseUser> {
+export async function loginWithGoogle(): Promise<FirebaseUser | null> {
   if (!auth) {
     throw new Error('Firebase authentication is not configured yet. Please check your VITE_FIREBASE_* environment variables.');
   }
-  const result = await signInWithPopup(auth, googleProvider);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (err: any) {
+    const errStr = String(err);
+    if (
+      err?.code === 'auth/popup-blocked' || 
+      err?.code === 'auth/cancelled-popup-request' || 
+      errStr.includes('Cross-Origin-Opener-Policy') ||
+      errStr.includes('popup')
+    ) {
+      console.warn('Popup blocked by browser COOP policy, falling back to redirect:', err);
+      await signInWithRedirect(auth, googleProvider);
+      return null;
+    }
+    throw err;
+  }
 }
 
 export async function logoutUser(): Promise<void> {
@@ -75,5 +93,15 @@ export function subscribeToAuthState(callback: (user: FirebaseUser | null) => vo
     callback(null);
     return () => {};
   }
+
+  // Handle redirect result if user was authenticated via redirect fallback
+  getRedirectResult(auth).then(result => {
+    if (result && result.user) {
+      callback(result.user);
+    }
+  }).catch(err => {
+    console.warn('Redirect result check:', err);
+  });
+
   return onAuthStateChanged(auth, callback);
 }
