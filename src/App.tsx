@@ -49,11 +49,10 @@ import {
 } from 'lucide-react';
 
 const HERO_CAROUSEL_IMAGES = [
-  "https://images.unsplash.com/photo-1548263591-19059f0f7761?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1539650116574-8efeb43e2750?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1596436889106-be35e843f974?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?auto=format&fit=crop&w=1600&q=80",
-  "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1600&q=80"
+  "/assets/gallery-images/agadir.jpg",
+  "/assets/gallery-images/ait-ben-haddou.jpg",
+  "/assets/gallery-images/chefchaouen.jpg",
+  "/assets/gallery-images/tangier.webp"
 ];
 
 export default function App() {
@@ -907,29 +906,29 @@ export default function App() {
                 <motion.img
                   key={heroImgIndex}
                   src={HERO_CAROUSEL_IMAGES[heroImgIndex]}
-                  alt="Hostkeys Real Estate"
-                  className="w-full h-full object-cover opacity-25"
+                  alt="Hostkeys Real Estate Morocco"
+                  className="w-full h-full object-cover opacity-60 brightness-110 saturate-125"
                   initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 0.25, scale: 1 }}
+                  animate={{ opacity: 0.6, scale: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 1 }}
                 />
               </AnimatePresence>
-              <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#030303] via-[#030303]/40 to-[#030303]/20" />
             </div>
 
             <div className="relative z-10 max-w-5xl mx-auto px-4 text-center space-y-4 py-12">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 border border-brand/20 text-brand text-xs font-mono">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand/15 border border-brand/30 text-brand text-xs font-mono backdrop-blur-md shadow-lg">
                 <Sparkles className="h-3.5 w-3.5" />
                 <span>{t('brokerRepresentativeText', lang)}</span>
               </div>
 
-              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase font-sans">
+              <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight uppercase font-sans drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
                 {t('heroHeadingMain', lang)}{' '}
-                <span className="text-brand block md:inline">{t('heroHeadingHighlight', lang)}</span>
+                <span className="text-brand block md:inline drop-shadow-[0_0_20px_rgba(166,254,0,0.4)]">{t('heroHeadingHighlight', lang)}</span>
               </h1>
 
-              <p className="max-w-2xl mx-auto text-xs md:text-sm text-slate-300 font-sans leading-relaxed">
+              <p className="max-w-2xl mx-auto text-xs md:text-sm text-slate-200 font-sans leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] bg-black/40 backdrop-blur-sm p-3.5 rounded-xl border border-white/10">
                 {t('heroSubheading', lang)}
               </p>
 
