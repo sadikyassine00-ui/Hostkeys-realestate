@@ -3,7 +3,7 @@ import { Listing, User } from '../types';
 import { ALL_AMENITIES, ALL_CITIES } from '../mockData';
 import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2, MapPin, Link as LinkIcon, Search, ChevronDown } from 'lucide-react';
 import { translateAmenity, translateLocation } from '../translations';
-import { Currency, formatCurrency } from '../utils';
+import { Currency, formatCurrency, EXCHANGE_RATES } from '../utils';
 import { uploadImageApi } from '../api';
 
 interface PropertyFormProps {
@@ -144,12 +144,19 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
     }
 
     const finalImages = getFinalImages();
+    const numPrice = Number(price);
+    let baseUsdPrice = numPrice;
+    if (currency === 'MAD') {
+      baseUsdPrice = numPrice / (EXCHANGE_RATES.MAD?.rate || 10.10);
+    } else if (currency === 'EUR') {
+      baseUsdPrice = numPrice / (eurRate || 0.92);
+    }
 
     onAddListing({
       title,
       description,
       type,
-      price: Number(price),
+      price: Math.round(baseUsdPrice),
       location,
       address: address.trim(),
       bedrooms: Number(bedrooms),

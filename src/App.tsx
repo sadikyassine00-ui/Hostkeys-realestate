@@ -253,7 +253,7 @@ export default function App() {
   const [bedroomsFilter, setBedroomsFilter] = useState<number | 'All'>('All');
   const [bathroomsFilter, setBathroomsFilter] = useState<number | 'All'>('All');
   const [maxPrice, setMaxPrice] = useState<number>(() => {
-    return activeSegment === 'buy' ? 20000000 : 80000;
+    return activeSegment === 'buy' ? 100000000 : 500000;
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
@@ -478,7 +478,7 @@ export default function App() {
     setListings(prev => {
       const updated = prev.map(listing => {
         if (listing && listing.id === listingId) {
-          approvedType = listing.type;
+          approvedType = (listing.type || 'buy').toLowerCase() === 'rent' ? 'rent' : 'buy';
           return { ...listing, status: 'approved' as const, approvedByAdminId: adminId };
         }
         return listing;
@@ -487,8 +487,12 @@ export default function App() {
       return updated;
     });
 
-    // Auto-switch active category segment (Buy/Rent) so user immediately sees approved property
+    // Auto-switch active category segment (Buy/Rent) & reset filters so property renders immediately
     setActiveSegment(approvedType);
+    setSearchTerm('');
+    setSelectedLocation('All');
+    setBedroomsFilter('All');
+    setBathroomsFilter('All');
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
