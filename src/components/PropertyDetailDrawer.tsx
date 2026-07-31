@@ -114,6 +114,32 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
   const isMyListing = currentUser && listing.ownerId === currentUser.id;
 
+  const handleSystemShare = async () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
+    const priceFormatted = formatCurrency(listing.price, currency, eurRate, true, listing.type);
+    const shareTitle = `${listing.title} - Hostkeys`;
+    const shareText = `Check out this property on Hostkeys: ${listing.title} (${listing.location}) - ${priceFormatted}`;
+
+    if (typeof navigator !== 'undefined' && typeof (navigator as any).share === 'function') {
+      try {
+        await (navigator as any).share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (e) {
+        // User closed native share menu
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (e) {}
+  };
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -371,17 +397,6 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
           </div>
         </div>
       </motion.div>
-
-      {/* Share Modal Pop-up */}
-      {showShareModal && (
-        <ShareModal
-          listing={listing}
-          currency={currency}
-          eurRate={eurRate}
-          lang={lang}
-          onClose={() => setShowShareModal(false)}
-        />
-      )}
     </div>
   );
 }
