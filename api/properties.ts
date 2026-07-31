@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // POST /api/properties — create new listing
     if (req.method === 'POST') {
-      const listing = req.body;
+      const listing = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       if (!listing || !listing.id || !listing.title) {
         return res.status(400).json({ success: false, error: 'Invalid listing payload.' });
       }
@@ -75,7 +75,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // PATCH /api/properties — update status (approve / reject)
     if (req.method === 'PATCH') {
-      const { id, status, adminId } = req.body;
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const { id, status, adminId } = body;
       if (!id || !status) {
         return res.status(400).json({ success: false, error: 'Invalid payload: missing id or status' });
       }

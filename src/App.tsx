@@ -447,35 +447,29 @@ export default function App() {
     try {
       const res = await createPropertyApi(newProperty);
       if (res && res.listing) {
-        setListings(prev => {
-          const updated = [res.listing, ...prev.filter(l => l && l.id !== res.listing.id)];
-          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
-          return updated;
-        });
+        setListings(prev => [res.listing, ...prev.filter(l => l && l.id !== res.listing.id)]);
       } else {
-        setListings(prev => {
-          const updated = [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)];
-          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
-          return updated;
-        });
+        setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
       }
       if (res && res.isLiveDb) setIsLiveDb(true);
     } catch (err: any) {
-      setListings(prev => {
-        const updated = [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)];
-        localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
-        return updated;
-      });
+      setListings(prev => [newProperty, ...prev.filter(l => l && l.id !== newProperty.id)]);
     }
 
+    // Auto-switch segment to 'buy' or 'rent' matching property type
+    setActiveSegment(newProperty.type);
     setShowNewListingForm(false);
-    setActiveTab('dashboard');
 
     if (isAdminOrSuper) {
+      setActiveTab('catalog');
       addToast('success', lang === 'fr' ? 'Propriété publiée et active sur le portail !' : 'Property published & live on portal!');
     } else {
+      setActiveTab('dashboard');
       addToast('success', lang === 'fr' ? 'Propriété soumise ! Suivez sa validation ici dans votre tableau de bord.' : 'Property submitted for verification! Track it here in your Dashboard.');
     }
+
+    // Refetch from database
+    loadPropertiesFromApi();
   };
 
   // Approve / Reject Property
