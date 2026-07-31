@@ -144,6 +144,20 @@ export default function App() {
   useEffect(() => {
     loadPropertiesFromApi();
 
+    // Fetch live assigned agents from DB backend for multi-browser consistency
+    fetchPublicAgentsApi().then(publicAgents => {
+      if (publicAgents && publicAgents.length > 0) {
+        setUsers(prev => {
+          const mergedMap = new Map<string, User>();
+          prev.forEach(u => mergedMap.set(u.email, u));
+          publicAgents.forEach(u => mergedMap.set(u.email, u));
+          const updated = Array.from(mergedMap.values());
+          localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    });
+
     checkApiHealth().then(health => {
       setIsLiveDb(health.dbConnected);
     });
@@ -154,35 +168,66 @@ export default function App() {
     const unsubscribe = subscribeToAuthState(async (fbUser) => {
       if (fbUser) {
         const userEmail = fbUser.email || '';
-        const autoRole = userEmail === SUPER_ADMIN_EMAIL ? 'superadmin' : 'owner';
-        const syncedUser: User = {
+        const defaultRole = userEmail === SUPER_ADMIN_EMAIL ? 'superadmin' : 'owner';
+        const rawUser: User = {
           id: fbUser.uid,
           name: fbUser.displayName || userEmail.split('@')[0] || 'User',
           email: userEmail,
           phone: fbUser.phoneNumber || '+212 600-000000',
           avatar: fbUser.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
-          role: autoRole
+          role: defaultRole,
+          isAgent: userEmail === SUPER_ADMIN_EMAIL,
+          languages: ['FR', 'EN', 'AR']
         };
 
-        setCurrentUser(syncedUser);
-        setIsLoggedIn(true);
-        localStorage.setItem('hostkeys_logged_in', 'true');
-        localStorage.setItem('hostkeys_current_user', JSON.stringify(syncedUser));
-
-        setUsers(prev => {
-          const exists = prev.some(u => u && u.email === syncedUser.email);
-          const updated = exists 
-            ? prev.map(u => u && u.email === syncedUser.email ? { ...u, ...syncedUser, role: u.role || syncedUser.role } : u)
-            : [...prev, syncedUser];
-          localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
-          return updated;
-        });
-
         try {
-          await syncUserApi(syncedUser);
+          const syncRes = await syncUserApi(rawUser);
+          if (syncRes && syncRes.user) {
+            const syncedUser = syncRes.user;
+            setCurrentUser(syncedUser);
+            setIsLoggedIn(true);
+            localStorage.setItem('hostkeys_logged_in', 'true');
+            localStorage.setItem('hostkeys_current_user', JSON.stringify(syncedUser));
+
+            setUsers(prev => {
+              const exists = prev.some(u => u && u.email === syncedUser.email);
+              const updated = exists 
+                ? prev.map(u => u && u.email === syncedUser.email ? { ...u, ...syncedUser } : u)
+                : [...prev, syncedUser];
+              localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
+              return updated;
+            });
+            return;
+          }
         } catch (e) {
           console.warn('Local user sync active');
         }
+
+        setUsers(prev => {
+          const localMatch = prev.find(u => u && u.email === userEmail);
+          const finalRole = localMatch ? localMatch.role : defaultRole;
+          const finalIsAgent = localMatch && localMatch.isAgent !== undefined ? localMatch.isAgent : (userEmail === SUPER_ADMIN_EMAIL);
+          const finalLangs = localMatch && localMatch.languages ? localMatch.languages : ['FR', 'EN'];
+
+          const finalUser: User = {
+            ...rawUser,
+            role: finalRole,
+            isAgent: finalIsAgent,
+            languages: finalLangs
+          };
+
+          setCurrentUser(finalUser);
+          setIsLoggedIn(true);
+          localStorage.setItem('hostkeys_logged_in', 'true');
+          localStorage.setItem('hostkeys_current_user', JSON.stringify(finalUser));
+
+          const exists = prev.some(u => u && u.email === userEmail);
+          const updated = exists 
+            ? prev.map(u => u && u.email === userEmail ? { ...u, ...finalUser } : u)
+            : [...prev, finalUser];
+          localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
+          return updated;
+        });
       }
     });
 

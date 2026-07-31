@@ -197,7 +197,7 @@ export async function getAllUsers(): Promise<User[]> {
   }
 }
 
-export async function updateUserRole(userId: string, newRole: 'owner' | 'admin', requestorEmail: string): Promise<{ success: boolean; message: string }> {
+export async function updateUserRole(userIdOrEmail: string, newRole: 'owner' | 'admin', requestorEmail: string): Promise<{ success: boolean; message: string }> {
   const sql = getDb();
   if (!sql) return { success: false, message: 'Database not connected' };
 
@@ -205,18 +205,20 @@ export async function updateUserRole(userId: string, newRole: 'owner' | 'admin',
     return { success: false, message: 'Unauthorized: only the super admin can change user roles.' };
   }
 
-  const targetUser = await getUserById(userId);
-  if (!targetUser) return { success: false, message: 'User not found' };
-  if (targetUser.email === SUPER_ADMIN_EMAIL) {
-    return { success: false, message: 'Cannot modify the super admin role.' };
+  try {
+    await sql`
+      UPDATE users 
+      SET role = ${newRole} 
+      WHERE (id = ${userIdOrEmail} OR email = ${userIdOrEmail}) AND email != ${SUPER_ADMIN_EMAIL};
+    `;
+    return { success: true, message: `User role updated to ${newRole}` };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Failed to update role' };
   }
-
-  await sql`UPDATE users SET role = ${newRole} WHERE id = ${userId};`;
-  return { success: true, message: `User role updated to ${newRole}` };
 }
 
 export async function updateUserAgentStatus(
-  userId: string, 
+  userIdOrEmail: string, 
   isAgent: boolean, 
   languages: string[], 
   requestorEmail: string
@@ -228,8 +230,16 @@ export async function updateUserAgentStatus(
     return { success: false, message: 'Unauthorized: only the super admin can assign agent status.' };
   }
 
-  await sql`UPDATE users SET is_agent = ${isAgent}, languages = ${languages} WHERE id = ${userId};`;
-  return { success: true, message: 'Agent details updated successfully.' };
+  try {
+    await sql`
+      UPDATE users 
+      SET is_agent = ${isAgent}, languages = ${languages} 
+      WHERE id = ${userIdOrEmail} OR email = ${userIdOrEmail};
+    `;
+    return { success: true, message: 'Agent details updated successfully.' };
+  } catch (err: any) {
+    return { success: false, message: err?.message || 'Failed to update agent details' };
+  }
 }
 
 // Listing CRUD
