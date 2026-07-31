@@ -497,8 +497,9 @@ export default function App() {
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
       addToast('success', lang === 'fr' ? 'Propriété approuvée et publiée dans le catalogue !' : 'Property approved & published live!');
-    } catch (err) {
-      addToast('info', lang === 'fr' ? 'Statut mis à jour localement.' : 'Status updated locally.');
+      loadPropertiesFromApi();
+    } catch (err: any) {
+      addToast('error', lang === 'fr' ? `Erreur de validation: ${err?.message || 'Erreur serveur'}` : `Approval error: ${err?.message || 'Server error'}`);
     }
   };
 
@@ -517,9 +518,10 @@ export default function App() {
 
     try {
       await deletePropertyApi(listingId);
-      addToast('success', lang === 'fr' ? 'Propriété supprimée avec succès.' : 'Property deleted successfully.');
-    } catch (err) {
-      addToast('info', lang === 'fr' ? 'Supprimée localement.' : 'Deleted locally.');
+      addToast('success', lang === 'fr' ? 'Propriété supprimée de la base de données !' : 'Property deleted from live database!');
+      loadPropertiesFromApi();
+    } catch (err: any) {
+      addToast('error', lang === 'fr' ? `Erreur de suppression: ${err?.message || 'Erreur serveur'}` : `Delete error: ${err?.message || 'Server error'}`);
     }
   };
 
@@ -538,9 +540,10 @@ export default function App() {
 
     try {
       await updatePropertyApi(updatedListing);
-      addToast('success', lang === 'fr' ? 'Propriété mise à jour avec succès !' : 'Property updated successfully!');
-    } catch (err) {
-      addToast('info', lang === 'fr' ? 'Propriété mise à jour localement.' : 'Updated locally.');
+      addToast('success', lang === 'fr' ? 'Propriété mise à jour dans la base de données !' : 'Property updated in live database!');
+      loadPropertiesFromApi();
+    } catch (err: any) {
+      addToast('error', lang === 'fr' ? `Erreur de mise à jour: ${err?.message || 'Erreur serveur'}` : `Update error: ${err?.message || 'Server error'}`);
     }
   };
 
@@ -554,9 +557,10 @@ export default function App() {
 
     try {
       await updatePropertyStatusApi(listingId, 'rejected');
-      addToast('info', lang === 'fr' ? 'Propriété refusée.' : 'Property submission rejected.');
-    } catch (err) {
-      addToast('info', lang === 'fr' ? 'Statut mis à jour localement.' : 'Status updated locally.');
+      addToast('info', lang === 'fr' ? 'Soumission de la propriété refusée.' : 'Property submission rejected.');
+      loadPropertiesFromApi();
+    } catch (err: any) {
+      addToast('error', lang === 'fr' ? `Erreur de mise à jour: ${err?.message || 'Erreur serveur'}` : `Update error: ${err?.message || 'Server error'}`);
     }
   };
 

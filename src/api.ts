@@ -82,12 +82,14 @@ export async function createPropertyApi(listing: Listing): Promise<{ success: bo
     });
 
     if (!res.ok) {
-      return { success: true, listing, isLiveDb: false };
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error ${res.status}`);
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, listing, isLiveDb: false };
+  } catch (err: any) {
+    console.error('createPropertyApi error:', err);
+    throw err;
   }
 }
 
@@ -100,12 +102,14 @@ export async function updatePropertyApi(listing: Listing): Promise<{ success: bo
     });
 
     if (!res.ok) {
-      return { success: true, listing, isLiveDb: false };
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error ${res.status}`);
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, listing, isLiveDb: false };
+  } catch (err: any) {
+    console.error('updatePropertyApi error:', err);
+    throw err;
   }
 }
 
@@ -113,7 +117,7 @@ export async function updatePropertyStatusApi(
   id: string, 
   status: 'approved' | 'rejected', 
   adminId?: string
-): Promise<{ success: boolean; isLiveDb: boolean }> {
+): Promise<{ success: boolean; isLiveDb?: boolean }> {
   try {
     const res = await fetch('/api/properties', {
       method: 'PATCH',
@@ -122,28 +126,32 @@ export async function updatePropertyStatusApi(
     });
 
     if (!res.ok) {
-      return { success: true, isLiveDb: false };
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error ${res.status}`);
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, isLiveDb: false };
+  } catch (err: any) {
+    console.error('updatePropertyStatusApi error:', err);
+    throw err;
   }
 }
 
-export async function deletePropertyApi(id: string): Promise<{ success: boolean; isLiveDb: boolean }> {
+export async function deletePropertyApi(id: string): Promise<{ success: boolean; isLiveDb?: boolean }> {
   try {
     const res = await fetch(`/api/properties?id=${id}`, {
       method: 'DELETE'
     });
 
     if (!res.ok) {
-      return { success: true, isLiveDb: false };
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `HTTP error ${res.status}`);
     }
 
     return await res.json();
-  } catch (err) {
-    return { success: true, isLiveDb: false };
+  } catch (err: any) {
+    console.error('deletePropertyApi error:', err);
+    throw err;
   }
 }
 
