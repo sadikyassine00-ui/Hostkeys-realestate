@@ -1,85 +1,143 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getAllUsers, updateUserRole, updateUserAgentStatus, getUserByEmail } from '../src/db';
+import { neon } from '@neondatabase/serverless';
 
 const SUPER_ADMIN_EMAIL = 'yassinesadik0@gmail.com';
 
+function getDb() {
+  const url = process.env.DATABASE_URL;
+  if (!url || url.trim() === '') return null;
+  const clean = url.trim().replace(/^["']|["']$/g, '');
+  if (!clean.startsWith('postgres://') && !clean.startsWith('postgresql://')) return null;
+  try { return neon(clean); } catch { return null; }
+}
+
+async function ensureSchema(sql: ReturnType<typeof neon>) {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(100) DEFAULT '',
+        avatar TEXT DEFAULT '',
+        role VARCHAR(50) DEFAULT 'owner',
+        is_agent BOOLEAN DEFAULT false,
+        languages TEXT[] DEFAULT '{}',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_agent BOOLEAN DEFAULT false;`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT '{}';`;
+  } catch (e) {
+    // Ignore schema errors — table may already exist
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // GET /api/users
+    const sql = getDb();
+
+    // ── GET ──────────────────────────────────────────────────────────────────
     if (req.method === 'GET') {
-      const isPublicRequest = req.query.public === 'true';
+      const isPublic = req.query.public === 'true';
 
-      if (isPublicRequest) {
-        try {
-          const allUsers = await getAllUsers();
-          const adminAgents = (allUsers || []).filter(u => u && (u.isAgent || u.role === 'superadmin'));
-          return res.status(200).json({ agents: adminAgents, isLiveDb: true });
-        } catch (dbErr) {
-          console.warn('DB error on public agents fetch, using empty agents array:', dbErr);
-          return res.status(200).json({ agents: [], isLiveDb: false });
-        }
-      }
-
-      const requestorEmail = (req.headers['x-user-email'] as string) || (req.query.requestorEmail as string);
-      if (!requestorEmail) {
-        return res.status(200).json({ users: [], isLiveDb: false, error: 'Unauthorized' });
-      }
-
-      if (requestorEmail.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase()) {
-        try {
-          const users = await getAllUsers();
-          return res.status(200).json({ users: users || [], isLiveDb: true });
-        } catch (err) {
-          return res.status(200).json({ users: [], isLiveDb: false });
-        }
+      if (!sql) {
+        if (isPublic) return res.status(200).json({ agents: [], isLiveDb: false });
+        return res.status(200).json({ users: [], isLiveDb: false });
       }
 
       try {
-        const requestor = await getUserByEmail(requestorEmail);
+        await ensureSchema(sql);
+        const rows = await sql`
+          SELECT id, name, email, phone, avatar, role,
+                 is_agent AS "isAgent", languages
+          FROM users ORDER BY created_at DESC;
+        `;
+
+        const users = rows.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          phone: r.phone || '',
+          avatar: r.avatar || '',
+          role: r.role,
+          isAgent: Boolean(r.isAgent) || r.email === SUPER_ADMIN_EMAIL,
+          languages: Array.isArray(r.languages) && r.languages.length > 0
+            ? r.languages
+            : (r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [])
+        }));
+
+        if (isPublic) {
+          const agents = users.filter((u: any) => u.isAgent || u.role === 'superadmin');
+          return res.status(200).json({ agents, isLiveDb: true });
+        }
+
+        const requestorEmail = req.headers['x-user-email'] as string;
+        if (!requestorEmail) {
+          return res.status(200).json({ users: [], isLiveDb: false, error: 'Unauthorized' });
+        }
+
+        const requestor = users.find((u: any) => u.email.toLowerCase() === requestorEmail.toLowerCase());
         if (!requestor || (requestor.role !== 'admin' && requestor.role !== 'superadmin')) {
           return res.status(200).json({ users: [], isLiveDb: false, error: 'Forbidden' });
         }
 
-        const users = await getAllUsers();
-        return res.status(200).json({ users: users || [], isLiveDb: true });
-      } catch (err) {
-        return res.status(200).json({ users: [], isLiveDb: false });
+        return res.status(200).json({ users, isLiveDb: true });
+      } catch (err: any) {
+        console.error('GET /api/users error:', err);
+        if (isPublic) return res.status(200).json({ agents: [], isLiveDb: false, error: err.message });
+        return res.status(200).json({ users: [], isLiveDb: false, error: err.message });
       }
     }
 
-    // PATCH /api/users — update user role, agent status, or languages
+    // ── PATCH ─────────────────────────────────────────────────────────────────
     if (req.method === 'PATCH') {
-      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
-      const { userId, newRole, isAgent, languages } = body;
-      const requestorEmail = (req.headers['x-user-email'] as string) || body.requestorEmail;
+      const requestorEmail = req.headers['x-user-email'] as string;
 
       if (!requestorEmail || requestorEmail.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
-        return res.status(200).json({ success: true, isLiveDb: false, message: 'Local role update active' });
+        return res.status(200).json({ success: false, isLiveDb: false, message: 'Forbidden: only super admin can update users' });
       }
 
+      const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      const { userId, newRole, isAgent, languages } = body;
+
       if (!userId) {
-        return res.status(200).json({ success: false, error: 'Invalid userId payload' });
+        return res.status(200).json({ success: false, error: 'Missing userId' });
+      }
+
+      if (!sql) {
+        return res.status(200).json({ success: false, isLiveDb: false, message: 'Database not connected' });
       }
 
       try {
+        await ensureSchema(sql);
+
         if (newRole && ['owner', 'admin'].includes(newRole)) {
-          await updateUserRole(userId, newRole, requestorEmail);
+          await sql`
+            UPDATE users SET role = ${newRole}
+            WHERE (id = ${userId} OR email = ${userId}) AND email != ${SUPER_ADMIN_EMAIL};
+          `;
         }
 
         if (typeof isAgent === 'boolean' || Array.isArray(languages)) {
-          await updateUserAgentStatus(userId, Boolean(isAgent), Array.isArray(languages) ? languages : ['FR', 'EN'], requestorEmail);
+          const agentVal = Boolean(isAgent);
+          const langsVal = Array.isArray(languages) ? languages : ['FR', 'EN'];
+          await sql`
+            UPDATE users SET is_agent = ${agentVal}, languages = ${langsVal}
+            WHERE id = ${userId} OR email = ${userId};
+          `;
         }
 
         return res.status(200).json({ success: true, message: 'User updated successfully', isLiveDb: true });
       } catch (err: any) {
-        console.warn('PATCH /api/users DB error:', err);
-        return res.status(200).json({ success: true, isLiveDb: false, message: err?.message || 'Updated locally' });
+        console.error('PATCH /api/users error:', err);
+        return res.status(200).json({ success: false, message: err.message || 'Database update failed', isLiveDb: false });
       }
     }
 
     return res.status(200).json({ error: 'Method not allowed' });
   } catch (err: any) {
-    console.error('Users API error:', err);
-    return res.status(200).json({ agents: [], users: [], isLiveDb: false, error: err?.message || String(err) });
+    console.error('Users handler crash:', err);
+    return res.status(200).json({ agents: [], users: [], isLiveDb: false, error: err?.message || 'Internal error' });
   }
 }
