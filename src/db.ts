@@ -52,6 +52,7 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
         location VARCHAR(255) NOT NULL,
         address TEXT DEFAULT '',
         bedrooms INT NOT NULL,
+        beds INT DEFAULT 0,
         bathrooms NUMERIC NOT NULL,
         square_meters INT NOT NULL,
         amenities TEXT[] DEFAULT '{}',
@@ -68,6 +69,7 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
     // Add new columns if they don't exist (migration for existing tables)
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '';`;
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';`;
+    await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS beds INT DEFAULT 0;`;
 
     // 3. Seed Users if empty
     const existingUsers = await sql`SELECT COUNT(*)::int as count FROM users;`;
@@ -195,7 +197,7 @@ export async function getDbListings(filters?: {
   const rows = await sql`
     SELECT 
       id, title, description, type, price::float, location, address,
-      bedrooms, bathrooms::float, square_meters as "squareMeters", 
+      bedrooms, beds, bathrooms::float, square_meters as "squareMeters", 
       amenities, status, owner_id as "ownerId", 
       approved_by_admin_id as "approvedByAdminId", image, images,
       personal_owner_info as "personalOwnerInfo", created_at as "createdAt"
@@ -212,6 +214,7 @@ export async function getDbListings(filters?: {
     location: r.location,
     address: r.address || '',
     bedrooms: Number(r.bedrooms),
+    beds: Number(r.beds || r.bedrooms || 0),
     bathrooms: Number(r.bathrooms),
     squareMeters: Number(r.squareMeters),
     amenities: Array.isArray(r.amenities) ? r.amenities : [],
@@ -251,12 +254,12 @@ export async function createListing(listing: Listing): Promise<Listing> {
   await sql`
     INSERT INTO listings (
       id, title, description, type, price, location, address,
-      bedrooms, bathrooms, square_meters, amenities, status, 
+      bedrooms, beds, bathrooms, square_meters, amenities, status, 
       owner_id, approved_by_admin_id, image, images, personal_owner_info, created_at
     ) VALUES (
       ${listing.id}, ${listing.title}, ${listing.description}, ${listing.type}, 
       ${listing.price}, ${listing.location}, ${listing.address || ''},
-      ${listing.bedrooms}, ${listing.bathrooms}, 
+      ${listing.bedrooms}, ${listing.beds || listing.bedrooms || 0}, ${listing.bathrooms}, 
       ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status}, 
       ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image}, 
       ${listing.images || []},

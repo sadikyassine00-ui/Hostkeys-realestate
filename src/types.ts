@@ -16,6 +16,7 @@ export interface Listing {
   location: string;
   address: string;
   bedrooms: number;
+  beds: number;
   bathrooms: number;
   squareMeters: number;
   amenities: string[];

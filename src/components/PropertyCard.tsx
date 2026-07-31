@@ -100,19 +100,23 @@ export default function PropertyCard({ listing, adminUser, currentUser, onSelect
           {listing.description}
         </p>
 
-        {/* Technical Specs */}
-        <div className="mt-4 grid grid-cols-3 gap-2 border-t border-b border-neutral-800/60 py-3 text-xs text-slate-300 font-mono">
-          <div className="flex items-center gap-1.5 justify-center bg-neutral-900 rounded-lg py-1">
-            <Bed className="h-3.5 w-3.5 text-brand" />
-            <span>{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</span>
+        {/* Technical Specs: Bedrooms, Beds, Bathrooms, SqM */}
+        <div className="mt-4 grid grid-cols-4 gap-1.5 border-t border-b border-neutral-800/60 py-3 text-[11px] text-slate-300 font-mono">
+          <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Bedrooms">
+            <Bed className="h-3 w-3 text-brand shrink-0" />
+            <span className="truncate">{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBedroom', lang) : t('cardBedrooms', lang)}</span>
           </div>
-          <div className="flex items-center gap-1.5 justify-center bg-neutral-900 rounded-lg py-1">
-            <Bath className="h-3.5 w-3.5 text-brand" />
-            <span>{listing.bathrooms} {listing.bathrooms === 1 ? t('cardBath', lang) : t('cardBaths', lang)}</span>
+          <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Physical Beds">
+            <Bed className="h-3 w-3 text-sky-400 shrink-0" />
+            <span className="truncate">{listing.beds || listing.bedrooms || 1} { (listing.beds || listing.bedrooms) === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</span>
           </div>
-          <div className="flex items-center gap-1.5 justify-center bg-neutral-900 rounded-lg py-1">
-            <Maximize className="h-3.5 w-3.5 text-brand" />
-            <span>{listing.squareMeters} m²</span>
+          <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Bathrooms">
+            <Bath className="h-3 w-3 text-brand shrink-0" />
+            <span className="truncate">{listing.bathrooms} {listing.bathrooms === 1 ? t('cardBath', lang) : t('cardBaths', lang)}</span>
+          </div>
+          <div className="flex items-center gap-1 justify-center bg-neutral-900 rounded-lg py-1 px-1" title="Area">
+            <Maximize className="h-3 w-3 text-brand shrink-0" />
+            <span className="truncate">{listing.squareMeters} m²</span>
           </div>
         </div>
 

@@ -211,31 +211,36 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
             </div>
           </div>
 
-          {/* Metric specs breakdown */}
+            {listing.address && (
+              <div className="flex items-center gap-2 text-slate-300 font-mono text-xs bg-[#030303] p-3 rounded-xl border border-neutral-900">
+                <MapPin className="h-4 w-4 text-brand shrink-0" />
+                <span className="leading-tight">{listing.address}</span>
+              </div>
+            )}
+
+          {/* Metric specs breakdown: Bedrooms, Beds, Bathrooms, Area */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Caractéristiques' : 'Property Specifications'}</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Bed className="h-5 w-5 text-brand mb-1.5" />
-                <span className="block text-sm font-semibold text-white">{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? "Chambres" : 'Bedrooms'}</span>
+                <Bed className="h-4 w-4 text-brand mb-1" />
+                <span className="block text-sm font-semibold text-white">{listing.bedrooms}</span>
+                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</span>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Bath className="h-5 w-5 text-brand mb-1.5" />
-                <span className="block text-sm font-semibold text-white">{listing.bathrooms} {listing.bathrooms === 1 ? t('cardBath', lang) : t('cardBaths', lang)}</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? "Salles de bain" : 'Bathrooms'}</span>
+                <Bed className="h-4 w-4 text-sky-400 mb-1" />
+                <span className="block text-sm font-semibold text-white">{listing.beds || listing.bedrooms || 1}</span>
+                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Lits' : 'Beds'}</span>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Maximize className="h-5 w-5 text-brand mb-1.5" />
+                <Bath className="h-4 w-4 text-brand mb-1" />
+                <span className="block text-sm font-semibold text-white">{listing.bathrooms}</span>
+                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</span>
+              </div>
+              <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
+                <Maximize className="h-4 w-4 text-brand mb-1" />
                 <span className="block text-sm font-semibold text-white">{listing.squareMeters} m²</span>
-                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Surface' : 'Interior Floor Space'}</span>
-              </div>
-              <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
-                <Compass className="h-5 w-5 text-brand mb-1.5" />
-                <span className="block text-sm font-semibold text-white">
-                  {pricePerSqMeter.toLocaleString()} {currency === 'MAD' ? 'DH' : (currency === 'EUR' ? '€' : '$')} / m²
-                </span>
-                <span className="text-[10px] text-neutral-400 font-mono">{t('drawerUnitCost', lang)}</span>
+                <span className="text-[10px] text-neutral-400 font-mono">{lang === 'fr' ? 'Surface' : 'Floor Space'}</span>
               </div>
             </div>
           </div>

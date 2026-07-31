@@ -42,6 +42,7 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
   const [location, setLocation] = useState(ALL_LOCATIONS[0]);
   const [address, setAddress] = useState('');
   const [bedrooms, setBedrooms] = useState<number>(3);
+  const [beds, setBeds] = useState<number>(4);
   const [bathrooms, setBathrooms] = useState<number>(2.5);
   const [squareMeters, setSquareMeters] = useState<number | ''>('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
@@ -150,6 +151,7 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
       location,
       address: address.trim(),
       bedrooms: Number(bedrooms),
+      beds: Number(beds),
       bathrooms: Number(bathrooms),
       squareMeters: Number(squareMeters),
       amenities: selectedAmenities,
@@ -226,16 +228,26 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
             </div>
           </div>
 
-          {/* Bedrooms & Bathrooms */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Bedrooms, Beds & Bathrooms */}
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</label>
               <select value={bedrooms} onChange={(e) => setBedrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                  <option key={num} value={num}>{num} {num === 1 ? 'Room' : 'Rooms'}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Lits' : 'Beds'}</label>
+              <select value={beds} onChange={(e) => setBeds(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(num => (
                   <option key={num} value={num}>{num} {num === 1 ? 'Bed' : 'Beds'}</option>
                 ))}
               </select>
             </div>
+
             <div>
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de Bain' : 'Bathrooms'}</label>
               <select value={bathrooms} onChange={(e) => setBathrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
