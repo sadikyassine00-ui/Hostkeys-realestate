@@ -1131,12 +1131,27 @@ export default function App() {
       )}
 
       {/* FOOTER */}
-      <footer className="border-t border-neutral-900 bg-[#030303] py-8 px-4 text-center text-xs font-mono text-slate-450 mt-auto">
+      <footer className="border-t border-neutral-900 bg-[#030303] py-6 px-4 text-xs text-slate-400 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('catalog')}>
-            <img src="/logo.png" alt="Hostkeys" className="h-5 object-contain" />
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('catalog')}>
+            <img src="/logo.png" alt="Hostkeys" className="h-6 object-contain" />
           </div>
-          <p>HOSTKEYS REAL ESTATE PORTAL © 2026 — VERCEL & NEON DB LIVE</p>
+
+          <div className="flex flex-wrap items-center justify-center gap-6 text-slate-400 text-xs font-sans">
+            <button onClick={() => { setActiveTab('catalog'); setFilterType('buy'); }} className="hover:text-brand transition-colors cursor-pointer">
+              {lang === 'fr' ? 'Acheter un Bien' : 'Buy Properties'}
+            </button>
+            <button onClick={() => { setActiveTab('catalog'); setFilterType('rent'); }} className="hover:text-brand transition-colors cursor-pointer">
+              {lang === 'fr' ? 'Louer un Bien' : 'Rent Properties'}
+            </button>
+            <button onClick={() => { if (!isLoggedIn) setShowRegisterDialog(true); else setShowNewListingForm(true); }} className="hover:text-brand transition-colors cursor-pointer">
+              {lang === 'fr' ? 'Publier un Bien' : 'Add Property'}
+            </button>
+          </div>
+
+          <p className="text-[11px] text-slate-500 font-mono">
+            © {new Date().getFullYear()} Hostkeys. {lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
+          </p>
         </div>
       </footer>
 
