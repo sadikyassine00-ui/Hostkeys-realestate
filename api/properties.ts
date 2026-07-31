@@ -46,15 +46,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('Schema auto-migration warning:', e);
     }
 
-    // POST & PUT /api/properties — create or update existing property (upsert)
+    // POST & PUT /api/properties — create or update property in DB
     if (req.method === 'POST' || req.method === 'PUT') {
       const listing = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
       if (!listing || !listing.id || !listing.title) {
-        return res.status(400).json({ success: false, error: 'Invalid listing payload.' });
+        return res.status(400).json({ success: false, error: 'Invalid listing payload: missing id or title.' });
       }
 
+      const ownerId = listing.ownerId || 'admin';
       const personalInfoJson = JSON.stringify(listing.personalOwnerInfo || {});
 
+      // 1. Try updating existing listing
+      const updateResult = await sql`
+        UPDATE listings 
+        SET 
+          title = ${listing.title},
+          description = ${listing.description},
+          type = ${listing.type},
+          price = ${listing.price},
+          location = ${listing.location},
+          address = ${listing.address || ''},
+          bedrooms = ${listing.bedrooms},
+          beds = ${listing.beds || listing.bedrooms || 0},
+          bathrooms = ${listing.bathrooms},
+          square_meters = ${listing.squareMeters},
+          amenities = ${listing.amenities || []},
+          image = ${listing.image || ''},
+          images = ${listing.images || []},
+          personal_owner_info = ${personalInfoJson}::jsonb
+        WHERE id = ${listing.id}
+        RETURNING id;
+      `;
+
+      if (updateResult && updateResult.length > 0) {
+        return res.status(200).json({ success: true, listing, isLiveDb: true, action: 'updated' });
+      }
+
+      // 2. If no record was updated, insert new listing
       await sql`
         INSERT INTO listings (
           id, title, description, type, price, location, address,
@@ -64,28 +92,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           ${listing.id}, ${listing.title}, ${listing.description}, ${listing.type}, 
           ${listing.price}, ${listing.location}, ${listing.address || ''},
           ${listing.bedrooms}, ${listing.beds || listing.bedrooms || 0}, ${listing.bathrooms}, 
-          ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status || 'pending'}, 
-          ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image || ''}, 
+          ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status || 'approved'}, 
+          ${ownerId}, ${listing.approvedByAdminId || null}, ${listing.image || ''}, 
           ${listing.images || []},
           ${personalInfoJson}::jsonb, ${listing.createdAt || new Date().toISOString()}
-        )
-        ON CONFLICT (id) DO UPDATE SET
-          title = EXCLUDED.title,
-          description = EXCLUDED.description,
-          type = EXCLUDED.type,
-          price = EXCLUDED.price,
-          location = EXCLUDED.location,
-          address = EXCLUDED.address,
-          bedrooms = EXCLUDED.bedrooms,
-          beds = EXCLUDED.beds,
-          bathrooms = EXCLUDED.bathrooms,
-          square_meters = EXCLUDED.square_meters,
-          amenities = EXCLUDED.amenities,
-          image = EXCLUDED.image,
-          images = EXCLUDED.images,
-          personal_owner_info = EXCLUDED.personal_owner_info;
+        );
       `;
-      return res.status(200).json({ success: true, listing, isLiveDb: true });
+
+      return res.status(200).json({ success: true, listing, isLiveDb: true, action: 'inserted' });
     }
 
     // PATCH /api/properties — update status (approve / reject)
@@ -152,9 +166,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ listings, isLiveDb: true });
   } catch (err: any) {
     console.error('Properties API error:', err);
-    if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE') {
-      return res.status(200).json({ success: true, isLiveDb: false, message: 'Processed locally' });
-    }
-    return res.status(200).json({ listings: [], isLiveDb: false, error: err?.message || String(err) });
+    return res.status(500).json({ 
+      success: false, 
+      isLiveDb: false, 
+      error: err?.message || String(err)
+    });
   }
 }

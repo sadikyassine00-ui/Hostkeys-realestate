@@ -12,6 +12,7 @@ import { t, translateListing, translateLocation, translateAmenity } from './tran
 import { 
   fetchProperties, 
   createPropertyApi, 
+  updatePropertyApi,
   updatePropertyStatusApi, 
   deletePropertyApi, 
   syncUserApi, 
@@ -1192,10 +1193,10 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-slate-400 text-xs font-sans">
-            <button onClick={() => { setActiveTab('catalog'); setFilterType('buy'); }} className="hover:text-brand transition-colors cursor-pointer">
+            <button onClick={() => { setActiveTab('catalog'); setActiveSegment('buy'); }} className="hover:text-brand transition-colors cursor-pointer">
               {lang === 'fr' ? 'Acheter un Bien' : 'Buy Properties'}
             </button>
-            <button onClick={() => { setActiveTab('catalog'); setFilterType('rent'); }} className="hover:text-brand transition-colors cursor-pointer">
+            <button onClick={() => { setActiveTab('catalog'); setActiveSegment('rent'); }} className="hover:text-brand transition-colors cursor-pointer">
               {lang === 'fr' ? 'Louer un Bien' : 'Rent Properties'}
             </button>
             <button onClick={() => { if (!isLoggedIn) setShowRegisterDialog(true); else setShowNewListingForm(true); }} className="hover:text-brand transition-colors cursor-pointer">
