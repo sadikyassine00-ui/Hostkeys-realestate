@@ -70,8 +70,21 @@ export default function App() {
     return localStorage.getItem('hostkeys_logged_in') === 'true' ? DEMO_ADMIN : null;
   });
 
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
+  const [listings, setListings] = useState<Listing[]>(() => {
+    try {
+      const cached = localStorage.getItem('hostkeys_cached_listings');
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return [];
+  });
+
+  const [users, setUsers] = useState<User[]>(() => {
+    try {
+      const cached = localStorage.getItem('hostkeys_all_users');
+      if (cached) return JSON.parse(cached);
+    } catch (e) {}
+    return [DEFAULT_SUPER_ADMIN, DEMO_OWNER];
+  });
 
   // Database & Firebase connection status flags
   const [isLiveDb, setIsLiveDb] = useState<boolean>(false);
@@ -98,8 +111,14 @@ export default function App() {
     setIsLoading(true);
     try {
       const data = await fetchProperties();
-      if (data.listings) {
-        setListings(data.listings);
+      if (data.listings && data.listings.length > 0) {
+        setListings(prev => {
+          const apiIds = new Set(data.listings.map(l => l.id));
+          const localApprovedOnlyInPrev = prev.filter(l => l && l.status === 'approved' && !apiIds.has(l.id));
+          const merged = [...data.listings, ...localApprovedOnlyInPrev];
+          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(merged));
+          return merged;
+        });
       }
       setIsLiveDb(data.isLiveDb);
     } catch (err) {
@@ -136,6 +155,15 @@ export default function App() {
         setIsLoggedIn(true);
         localStorage.setItem('hostkeys_logged_in', 'true');
         localStorage.setItem('hostkeys_current_user', JSON.stringify(syncedUser));
+
+        setUsers(prev => {
+          const exists = prev.some(u => u && u.email === syncedUser.email);
+          const updated = exists 
+            ? prev.map(u => u && u.email === syncedUser.email ? { ...u, ...syncedUser, role: u.role || syncedUser.role } : u)
+            : [...prev, syncedUser];
+          localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
+          return updated;
+        });
 
         try {
           await syncUserApi(syncedUser);
@@ -347,6 +375,15 @@ export default function App() {
       await syncUserApi(newUser);
     } catch (e) {}
 
+    setUsers(prev => {
+      const exists = prev.some(u => u && u.email === newUser.email);
+      const updated = exists 
+        ? prev.map(u => u && u.email === newUser.email ? { ...u, ...newUser } : u)
+        : [...prev, newUser];
+      localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
+      return updated;
+    });
+
     setCurrentUser(newUser);
     setIsLoggedIn(true);
     localStorage.setItem('hostkeys_logged_in', 'true');
@@ -410,16 +447,26 @@ export default function App() {
 
   // Approve / Reject Property
   const handleApproveListing = async (listingId: string, adminId: string) => {
-    setListings(prev => prev.map(listing => {
-      if (listing && listing.id === listingId) {
-        return { ...listing, status: 'approved', approvedByAdminId: adminId };
-      }
-      return listing;
-    }));
+    let approvedType: 'buy' | 'rent' = 'buy';
+
+    setListings(prev => {
+      const updated = prev.map(listing => {
+        if (listing && listing.id === listingId) {
+          approvedType = listing.type;
+          return { ...listing, status: 'approved' as const, approvedByAdminId: adminId };
+        }
+        return listing;
+      });
+      localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Auto-switch active category segment (Buy/Rent) so user immediately sees approved property
+    setActiveSegment(approvedType);
 
     try {
       await updatePropertyStatusApi(listingId, 'approved', adminId);
-      addToast('success', lang === 'fr' ? 'Propriété approuvée et publiée !' : 'Property approved and live on portal!');
+      addToast('success', lang === 'fr' ? 'Propriété approuvée et publiée dans le catalogue !' : 'Property approved & published live!');
     } catch (err) {
       addToast('info', lang === 'fr' ? 'Statut mis à jour localement.' : 'Status updated locally.');
     }

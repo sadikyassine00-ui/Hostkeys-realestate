@@ -98,20 +98,30 @@ export async function upsertUser(user: User): Promise<User> {
   const sql = getDb();
   if (!sql) throw new Error('Database not connected');
 
-  // Auto-detect superadmin by email
   const finalRole = user.email === SUPER_ADMIN_EMAIL ? 'superadmin' : user.role;
 
-  await sql`
-    INSERT INTO users (id, name, email, phone, avatar, role)
-    VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${finalRole})
-    ON CONFLICT (id) DO UPDATE SET
-      name = EXCLUDED.name,
-      email = EXCLUDED.email,
-      phone = EXCLUDED.phone,
-      avatar = EXCLUDED.avatar,
-      role = EXCLUDED.role;
-  `;
-  return { ...user, role: finalRole };
+  try {
+    const existing = await sql`SELECT id, role FROM users WHERE email = ${user.email} LIMIT 1;`;
+    if (existing.length > 0) {
+      // User exists by email — preserve role if already assigned!
+      const existingRole = existing[0].role || finalRole;
+      await sql`
+        UPDATE users 
+        SET name = ${user.name}, phone = ${user.phone || ''}, avatar = ${user.avatar || ''}, role = ${existingRole}
+        WHERE email = ${user.email};
+      `;
+      return { ...user, role: existingRole as any };
+    } else {
+      await sql`
+        INSERT INTO users (id, name, email, phone, avatar, role)
+        VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${finalRole});
+      `;
+      return { ...user, role: finalRole };
+    }
+  } catch (err) {
+    console.warn('Upsert user DB warning:', err);
+    return { ...user, role: finalRole };
+  }
 }
 
 export async function getUserById(id: string): Promise<User | null> {
@@ -167,12 +177,10 @@ export async function updateUserRole(userId: string, newRole: 'owner' | 'admin',
   const sql = getDb();
   if (!sql) return { success: false, message: 'Database not connected' };
 
-  // Only the super admin can change roles
   if (requestorEmail !== SUPER_ADMIN_EMAIL) {
     return { success: false, message: 'Unauthorized: only the super admin can change user roles.' };
   }
 
-  // Don't allow changing the super admin's own role
   const targetUser = await getUserById(userId);
   if (!targetUser) return { success: false, message: 'User not found' };
   if (targetUser.email === SUPER_ADMIN_EMAIL) {
