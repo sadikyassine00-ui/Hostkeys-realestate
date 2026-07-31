@@ -311,20 +311,20 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
                 <div className="space-y-2.5">
                   {agents.map((agent, idx) => (
-                    <div key={agent?.id || `agent-${idx}`} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                    <div key={agent?.id || `agent-${idx}`} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                         <div className="relative shrink-0">
                           {renderAgentAvatar(agent, "h-10 w-10", "text-sm")}
                           <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
                         </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-xs text-white">{agent?.name || agent?.email?.split('@')[0] || 'Agent'}</span>
-                            <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-semibold text-xs text-white truncate max-w-[150px] sm:max-w-none">{agent?.name || agent?.email?.split('@')[0] || 'Agent'}</span>
+                            <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold shrink-0">
                               {agent?.role === 'superadmin' ? 'Super Admin' : 'Admin Agent'}
                             </span>
                           </div>
-                          <span className="text-[10px] text-slate-400 block font-mono">{agent?.email || 'admin@hostkeys.ma'}</span>
+                          <span className="text-[10px] text-slate-400 block font-mono truncate max-w-[200px] sm:max-w-none">{agent?.email || 'admin@hostkeys.ma'}</span>
                           <div className="flex items-center gap-1 mt-1">
                             {(agent?.languages && agent.languages.length > 0 ? agent.languages : ['FR', 'EN']).map((lCode: string) => (
                               <span key={lCode} className="text-[8.5px] font-mono text-brand bg-brand/10 border border-brand/20 px-1.5 py-0.2 rounded font-bold uppercase">
@@ -335,17 +335,17 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-1 shrink-0">
+                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-900">
                         <a
                           href={`tel:${agent?.phone || '+212 600-000000'}`}
-                          className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1"
+                          className="px-2.5 py-1.5 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1.5"
                         >
-                          <Phone className="h-3 w-3" />
-                          <span>{agent?.phone || '+212 600-000000'}</span>
+                          <Phone className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{agent?.phone || '+212 600-000000'}</span>
                         </a>
                         <a
                           href={`mailto:${agent?.email || 'admin@hostkeys.ma'}`}
-                          className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline cursor-pointer"
+                          className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline cursor-pointer shrink-0"
                         >
                           {lang === 'fr' ? 'Email direct' : 'Direct Email'}
                         </a>

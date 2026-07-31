@@ -176,7 +176,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
             </button>
           </div>
 
-          <div className={`grid gap-2 pt-0.5 ${agents.length === 1 ? 'grid-cols-1' : agents.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <div className={`grid gap-2 pt-0.5 ${agents.length === 1 ? 'grid-cols-1' : agents.length === 2 ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1 sm:grid-cols-3'}`}>
             {agents.map((agent, idx) => {
               const firstName = (agent?.name || agent?.email?.split('@')[0] || 'Agent').split(' ')[0];
               return (

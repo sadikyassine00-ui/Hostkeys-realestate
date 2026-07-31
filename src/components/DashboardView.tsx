@@ -455,27 +455,27 @@ export default function DashboardView({
                     const isSA = user.email === SUPER_ADMIN_EMAIL;
                     
                     return (
-                      <div key={user.id} className={`bg-[#030303] border rounded-xl p-4 flex flex-col gap-3 ${isSA ? 'border-amber-500/30' : 'border-neutral-850'}`}>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <img src={user.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} alt={user.name} referrerPolicy="no-referrer" className="h-10 w-10 rounded-full border border-neutral-700 object-cover" />
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-white">{user.name}</span>
-                                {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full">{lang === 'fr' ? 'Vous' : 'You'}</span>}
+                      <div key={user.id} className={`bg-[#030303] border rounded-xl p-4 flex flex-col gap-3 min-w-0 ${isSA ? 'border-amber-500/30' : 'border-neutral-850'}`}>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 min-w-0">
+                          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                            <img src={user.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} alt={user.name} referrerPolicy="no-referrer" className="h-10 w-10 rounded-full border border-neutral-700 object-cover shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm font-semibold text-white truncate max-w-[160px] sm:max-w-none">{user.name}</span>
+                                {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full shrink-0">{lang === 'fr' ? 'Vous' : 'You'}</span>}
                               </div>
-                              <p className="text-[11px] font-mono text-slate-400">{user.email}</p>
+                              <p className="text-[11px] font-mono text-slate-400 truncate max-w-[220px] sm:max-w-none">{user.email}</p>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 self-end sm:self-center">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border flex items-center gap-1 ${badge.color}`}>
+                          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-neutral-900">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border flex items-center gap-1 shrink-0 ${badge.color}`}>
                               {badge.icon} {badge.label}
                             </span>
                             
                             {/* Role change buttons — not for super admin themselves */}
                             {!isSA && (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 shrink-0">
                                 {user.role !== 'admin' ? (
                                   <button
                                     onClick={() => handleRoleChange(user.id, 'admin', user.email, user.name)}
@@ -492,7 +492,7 @@ export default function DashboardView({
                                     className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >
                                     <ArrowDown className="h-3 w-3" />
-                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'R\u00e9trograder' : 'Demote to Owner')}
+                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Rétrograder' : 'Demote to Owner')}
                                   </button>
                                 )}
                               </div>
