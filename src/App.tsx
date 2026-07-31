@@ -174,60 +174,50 @@ export default function App() {
           name: fbUser.displayName || userEmail.split('@')[0] || 'User',
           email: userEmail,
           phone: fbUser.phoneNumber || '+212 600-000000',
-          avatar: fbUser.photoURL || `https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80`,
+          avatar: fbUser.photoURL || '',
           role: defaultRole,
           isAgent: userEmail === SUPER_ADMIN_EMAIL,
-          languages: ['FR', 'EN', 'AR']
+          languages: userEmail === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : []
         };
+
+        let resolvedUser: User = rawUser;
 
         try {
           const syncRes = await syncUserApi(rawUser);
-          if (syncRes && syncRes.user) {
-            const syncedUser = syncRes.user;
-            setCurrentUser(syncedUser);
-            setIsLoggedIn(true);
-            localStorage.setItem('hostkeys_logged_in', 'true');
-            localStorage.setItem('hostkeys_current_user', JSON.stringify(syncedUser));
-
-            setUsers(prev => {
-              const exists = prev.some(u => u && u.email === syncedUser.email);
-              const updated = exists 
-                ? prev.map(u => u && u.email === syncedUser.email ? { ...u, ...syncedUser } : u)
-                : [...prev, syncedUser];
-              localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
-              return updated;
-            });
-            return;
+          // Always use the DB-returned user if we got one — isLiveDb=false means DB is offline
+          // but the user object is still returned with local fallback. Use DB role if available.
+          if (syncRes && syncRes.user && syncRes.user.email) {
+            resolvedUser = {
+              ...rawUser,
+              ...syncRes.user,
+              // Always keep Firebase photo/name (DB may not store latest)
+              avatar: rawUser.avatar || syncRes.user.avatar || '',
+              name: rawUser.name || syncRes.user.name || 'User',
+            };
           }
         } catch (e) {
-          console.warn('Local user sync active');
+          console.warn('DB sync failed, using Firebase auth data only');
         }
 
+        setCurrentUser(resolvedUser);
+        setIsLoggedIn(true);
+        localStorage.setItem('hostkeys_logged_in', 'true');
+        localStorage.setItem('hostkeys_current_user', JSON.stringify(resolvedUser));
+
         setUsers(prev => {
-          const localMatch = prev.find(u => u && u.email === userEmail);
-          const finalRole = localMatch ? localMatch.role : defaultRole;
-          const finalIsAgent = localMatch && localMatch.isAgent !== undefined ? localMatch.isAgent : (userEmail === SUPER_ADMIN_EMAIL);
-          const finalLangs = localMatch && localMatch.languages ? localMatch.languages : ['FR', 'EN'];
-
-          const finalUser: User = {
-            ...rawUser,
-            role: finalRole,
-            isAgent: finalIsAgent,
-            languages: finalLangs
-          };
-
-          setCurrentUser(finalUser);
-          setIsLoggedIn(true);
-          localStorage.setItem('hostkeys_logged_in', 'true');
-          localStorage.setItem('hostkeys_current_user', JSON.stringify(finalUser));
-
-          const exists = prev.some(u => u && u.email === userEmail);
-          const updated = exists 
-            ? prev.map(u => u && u.email === userEmail ? { ...u, ...finalUser } : u)
-            : [...prev, finalUser];
+          const exists = prev.some(u => u && u.email === resolvedUser.email);
+          const updated = exists
+            ? prev.map(u => u && u.email === resolvedUser.email ? { ...u, ...resolvedUser } : u)
+            : [...prev, resolvedUser];
           localStorage.setItem('hostkeys_all_users', JSON.stringify(updated));
           return updated;
         });
+      } else {
+        // fbUser is null — user signed out
+        setCurrentUser(null);
+        setIsLoggedIn(false);
+        localStorage.removeItem('hostkeys_logged_in');
+        localStorage.removeItem('hostkeys_current_user');
       }
     });
 
@@ -766,14 +756,135 @@ export default function App() {
 
           {/* Mobile hamburger */}
           <div className="flex items-center gap-2 md:hidden">
+            {isLoggedIn && (
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="p-2 rounded-lg bg-neutral-900/80 text-slate-300 hover:text-brand border border-neutral-800"
+                title="Dashboard"
+              >
+                <UserIcon className="h-5 w-5" />
+              </button>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg bg-neutral-900 text-slate-300 hover:text-brand border border-neutral-800"
+              className="p-2 rounded-lg bg-neutral-900 text-slate-300 hover:text-brand border border-neutral-800 cursor-pointer"
+              aria-label="Toggle mobile menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu Panel */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden border-t border-neutral-900 overflow-hidden"
+            >
+              <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-2">
+                {/* Nav Links */}
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => { setActiveTab('catalog'); setActiveSegment('buy'); setMobileMenuOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-mono font-semibold transition-all ${
+                      activeTab === 'catalog' && activeSegment === 'buy'
+                        ? 'bg-brand text-[#030303]'
+                        : 'text-slate-300 hover:bg-neutral-900 hover:text-white'
+                    }`}
+                  >
+                    {t('navBuyCatalog', lang)}
+                  </button>
+                  <button
+                    onClick={() => { setActiveTab('catalog'); setActiveSegment('rent'); setMobileMenuOpen(false); }}
+                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-mono font-semibold transition-all ${
+                      activeTab === 'catalog' && activeSegment === 'rent'
+                        ? 'bg-brand text-[#030303]'
+                        : 'text-slate-300 hover:bg-neutral-900 hover:text-white'
+                    }`}
+                  >
+                    {t('navRentCatalog', lang)}
+                  </button>
+                  {isLoggedIn && (
+                    <button
+                      onClick={() => { setActiveTab('dashboard'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-mono font-semibold transition-all ${
+                        activeTab === 'dashboard'
+                          ? 'bg-brand text-[#030303]'
+                          : 'text-slate-300 hover:bg-neutral-900 hover:text-white'
+                      }`}
+                    >
+                      {t('navDashboard', lang)}
+                    </button>
+                  )}
+                </div>
+
+                {/* Currency & Language */}
+                <div className="flex gap-2 pt-1 border-t border-neutral-900">
+                  <div className="flex bg-neutral-900/60 p-1 rounded-xl border border-neutral-800 text-xs font-mono flex-1 justify-center">
+                    {(['MAD', 'USD', 'EUR'] as const).map(c => (
+                      <button key={c} onClick={() => setCurrency(c)}
+                        className={`px-3 py-1 rounded-lg transition-all font-semibold ${
+                          currency === c ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
+                        }`}>
+                        {c === 'MAD' ? 'MAD' : c === 'USD' ? 'USD' : 'EUR'}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex bg-neutral-900/60 p-1 rounded-xl border border-neutral-800 text-xs font-mono">
+                    <button onClick={() => setLang('en')}
+                      className={`px-3 py-1 rounded-lg transition-all font-semibold ${
+                        lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
+                      }`}>EN</button>
+                    <button onClick={() => setLang('fr')}
+                      className={`px-3 py-1 rounded-lg transition-all font-semibold ${
+                        lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
+                      }`}>FR</button>
+                  </div>
+                </div>
+
+                {/* Auth */}
+                <div className="pt-1 border-t border-neutral-900">
+                  {!isLoggedIn ? (
+                    <button
+                      onClick={() => { setShowRegisterDialog(true); setMobileMenuOpen(false); }}
+                      className="w-full px-4 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-sm transition-all"
+                    >
+                      {lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={currentUser?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80'}
+                          alt={currentUser?.name || 'User'}
+                          referrerPolicy="no-referrer"
+                          className="h-8 w-8 rounded-full border border-brand/30 object-cover"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-slate-100 leading-tight">{currentUser?.name}</p>
+                          <p className="text-[10px] font-mono uppercase text-slate-400">
+                            {currentUser?.role === 'superadmin' ? 'Super Admin' : currentUser?.role === 'admin' ? 'Admin' : 'Owner'}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                        className="p-2 rounded-full bg-neutral-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 border border-neutral-800 transition-all"
+                        title="Sign Out"
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {activeTab === 'dashboard' && currentUser ? (

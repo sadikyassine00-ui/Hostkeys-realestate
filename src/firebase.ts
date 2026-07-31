@@ -64,23 +64,9 @@ export async function loginWithGoogle(): Promise<FirebaseUser | null> {
   if (!auth) {
     throw new Error('Firebase authentication is not configured yet. Please check your VITE_FIREBASE_* environment variables.');
   }
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
-  } catch (err: any) {
-    const errStr = String(err);
-    if (
-      err?.code === 'auth/popup-blocked' || 
-      err?.code === 'auth/cancelled-popup-request' || 
-      errStr.includes('Cross-Origin-Opener-Policy') ||
-      errStr.includes('popup')
-    ) {
-      console.warn('Popup blocked by browser COOP policy, falling back to redirect:', err);
-      await signInWithRedirect(auth, googleProvider);
-      return null;
-    }
-    throw err;
-  }
+  // Always use redirect — avoids all Cross-Origin-Opener-Policy popup errors on Vercel
+  await signInWithRedirect(auth, googleProvider);
+  return null;
 }
 
 export async function logoutUser(): Promise<void> {
