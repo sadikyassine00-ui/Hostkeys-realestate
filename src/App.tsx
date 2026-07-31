@@ -70,21 +70,9 @@ export default function App() {
     return localStorage.getItem('hostkeys_logged_in') === 'true' ? DEFAULT_SUPER_ADMIN : null;
   });
 
-  const [listings, setListings] = useState<Listing[]>(() => {
-    try {
-      const cached = localStorage.getItem('hostkeys_cached_listings');
-      if (cached) return JSON.parse(cached);
-    } catch (e) {}
-    return [];
-  });
+  const [listings, setListings] = useState<Listing[]>([]);
 
-  const [users, setUsers] = useState<User[]>(() => {
-    try {
-      const cached = localStorage.getItem('hostkeys_all_users');
-      if (cached) return JSON.parse(cached);
-    } catch (e) {}
-    return [DEFAULT_SUPER_ADMIN];
-  });
+  const [users, setUsers] = useState<User[]>([DEFAULT_SUPER_ADMIN]);
 
   // Database & Firebase connection status flags
   const [isLiveDb, setIsLiveDb] = useState<boolean>(false);
@@ -111,31 +99,14 @@ export default function App() {
     setIsLoading(true);
     try {
       const data = await fetchProperties();
-      if (data.listings && data.listings.length > 0) {
-        setListings(prev => {
-          const apiIds = new Set(data.listings.map(l => l.id));
-          const localApprovedOnlyInPrev = prev.filter(l => l && (l.status === 'approved' || l.status === 'rejected') && !apiIds.has(l.id));
-          
-          const merged = data.listings.map(apiListing => {
-            const localMatch = prev.find(p => p && p.id === apiListing.id);
-            if (localMatch && (localMatch.status === 'approved' || localMatch.status === 'rejected')) {
-              return { 
-                ...apiListing, 
-                status: apiListing.status === 'approved' ? 'approved' : localMatch.status, 
-                approvedByAdminId: apiListing.approvedByAdminId || localMatch.approvedByAdminId 
-              };
-            }
-            return apiListing;
-          });
-
-          const finalCombined = [...merged, ...localApprovedOnlyInPrev];
-          localStorage.setItem('hostkeys_cached_listings', JSON.stringify(finalCombined));
-          return finalCombined;
-        });
+      const fetchedListings = Array.isArray(data?.listings) ? data.listings : [];
+      setListings(fetchedListings);
+      localStorage.setItem('hostkeys_cached_listings', JSON.stringify(fetchedListings));
+      if (typeof data?.isLiveDb === 'boolean') {
+        setIsLiveDb(data.isLiveDb);
       }
-      setIsLiveDb(data.isLiveDb);
     } catch (err) {
-      console.warn('Falling back to local listings:', err);
+      console.warn('Failed to load properties from API:', err);
     } finally {
       setIsLoading(false);
     }
