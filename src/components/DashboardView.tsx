@@ -47,8 +47,8 @@ interface DashboardViewProps {
   onReject: (listingId: string) => void;
   onSelectListing: (listing: Listing) => void;
   onAddListing: () => void;
-  onUpdateUserRole?: (userId: string, newRole: 'owner' | 'admin') => void;
-  onUpdateUserAgentStatus?: (userId: string, isAgent: boolean, languages: string[]) => void;
+  onUpdateUserRole?: (userId: string, newRole: 'owner' | 'admin', success: boolean, errorMsg?: string) => void;
+  onUpdateUserAgentStatus?: (userId: string, isAgent: boolean, languages: string[], success: boolean, errorMsg?: string) => void;
   currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
@@ -115,12 +115,15 @@ export default function DashboardView({
   const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin') => {
     setRoleUpdateLoading(userId);
     try {
-      await updateUserRoleApi(userId, newRole, currentUser.email);
-      setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      if (onUpdateUserRole) onUpdateUserRole(userId, newRole);
+      const res = await updateUserRoleApi(userId, newRole, currentUser.email);
+      if (res && res.success) {
+        setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        if (onUpdateUserRole) onUpdateUserRole(userId, newRole, true);
+      } else {
+        if (onUpdateUserRole) onUpdateUserRole(userId, newRole, false, res?.message || 'Server error updating role');
+      }
     } catch (err: any) {
-      setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-      if (onUpdateUserRole) onUpdateUserRole(userId, newRole);
+      if (onUpdateUserRole) onUpdateUserRole(userId, newRole, false, err?.message || 'Network error updating role');
     } finally {
       setRoleUpdateLoading(null);
     }
@@ -128,22 +131,34 @@ export default function DashboardView({
 
   const handleAgentToggle = async (user: User, newIsAgent: boolean) => {
     const defaultLangs = user.languages && user.languages.length > 0 ? user.languages : ['FR', 'EN'];
-    setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, isAgent: newIsAgent, languages: defaultLangs } : u));
     try {
-      await updateUserAgentApi(user.id, newIsAgent, defaultLangs, currentUser.email);
-      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs);
-    } catch (e) {}
+      const res = await updateUserAgentApi(user.id, newIsAgent, defaultLangs, currentUser.email);
+      if (res && res.success) {
+        setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, isAgent: newIsAgent, languages: defaultLangs } : u));
+        if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs, true);
+      } else {
+        if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs, false, res?.message);
+      }
+    } catch (e: any) {
+      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs, false, e?.message);
+    }
   };
 
   const handleLanguageToggle = async (user: User, langCode: string) => {
     const currentLangs = user.languages || ['FR', 'EN'];
     const hasLang = currentLangs.includes(langCode);
     const newLangs = hasLang ? currentLangs.filter(l => l !== langCode) : [...currentLangs, langCode];
-    setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, languages: newLangs } : u));
     try {
-      await updateUserAgentApi(user.id, Boolean(user.isAgent), newLangs, currentUser.email);
-      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs);
-    } catch (e) {}
+      const res = await updateUserAgentApi(user.id, Boolean(user.isAgent), newLangs, currentUser.email);
+      if (res && res.success) {
+        setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, languages: newLangs } : u));
+        if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs, true);
+      } else {
+        if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs, false, res?.message);
+      }
+    } catch (e: any) {
+      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs, false, e?.message);
+    }
   };
 
   // Stats

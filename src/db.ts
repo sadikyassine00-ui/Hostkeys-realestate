@@ -5,10 +5,13 @@ import { SUPER_ADMIN_EMAIL, DEFAULT_SUPER_ADMIN } from './mockData';
 // Helper to get active Neon SQL function if DATABASE_URL is present
 export function getDb() {
   let connectionString = process.env.DATABASE_URL;
-  if (!connectionString || connectionString.trim() === '') {
+  if (!connectionString || typeof connectionString !== 'string' || connectionString.trim() === '') {
     return null;
   }
   connectionString = connectionString.trim().replace(/^["']|["']$/g, '');
+  if (!connectionString.startsWith('postgres://') && !connectionString.startsWith('postgresql://')) {
+    return null;
+  }
   try {
     return neon(connectionString);
   } catch (err) {
@@ -91,25 +94,28 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
 // User CRUD
 export async function upsertUser(user: User): Promise<User> {
   const sql = getDb();
-  if (!sql) throw new Error('Database not connected');
+  if (!sql) return user;
 
   const finalRole = user.email === SUPER_ADMIN_EMAIL ? 'superadmin' : user.role;
 
   try {
-    const existing = await sql`SELECT id, role FROM users WHERE email = ${user.email} LIMIT 1;`;
+    const existing = await sql`SELECT id, role, is_agent as "isAgent", languages FROM users WHERE email = ${user.email} LIMIT 1;`;
     if (existing.length > 0) {
       // User exists by email — preserve role if already assigned!
       const existingRole = existing[0].role || finalRole;
+      const existingIsAgent = Boolean(existing[0].isAgent || user.email === SUPER_ADMIN_EMAIL);
+      const existingLangs = Array.isArray(existing[0].languages) && existing[0].languages.length > 0 ? existing[0].languages : (user.languages || ['FR', 'EN']);
+      
       await sql`
         UPDATE users 
-        SET name = ${user.name}, phone = ${user.phone || ''}, avatar = ${user.avatar || ''}, role = ${existingRole}
+        SET name = ${user.name}, phone = ${user.phone || ''}, avatar = ${user.avatar || ''}
         WHERE email = ${user.email};
       `;
-      return { ...user, role: existingRole as any };
+      return { ...user, role: existingRole as any, isAgent: existingIsAgent, languages: existingLangs };
     } else {
       await sql`
-        INSERT INTO users (id, name, email, phone, avatar, role)
-        VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${finalRole});
+        INSERT INTO users (id, name, email, phone, avatar, role, is_agent, languages)
+        VALUES (${user.id}, ${user.name}, ${user.email}, ${user.phone || ''}, ${user.avatar || ''}, ${finalRole}, ${user.isAgent || false}, ${user.languages || []});
       `;
       return { ...user, role: finalRole };
     }
@@ -123,34 +129,46 @@ export async function getUserById(id: string): Promise<User | null> {
   const sql = getDb();
   if (!sql) return null;
 
-  const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users WHERE id = ${id} LIMIT 1;`;
-  if (rows.length === 0) return null;
+  try {
+    const rows = await sql`SELECT id, name, email, phone, avatar, role, is_agent as "isAgent", languages FROM users WHERE id = ${id} OR email = ${id} LIMIT 1;`;
+    if (rows.length === 0) return null;
 
-  return {
-    id: rows[0].id,
-    name: rows[0].name,
-    email: rows[0].email,
-    phone: rows[0].phone || '',
-    avatar: rows[0].avatar || '',
-    role: rows[0].role as 'owner' | 'admin' | 'superadmin'
-  };
+    return {
+      id: rows[0].id,
+      name: rows[0].name,
+      email: rows[0].email,
+      phone: rows[0].phone || '',
+      avatar: rows[0].avatar || '',
+      role: rows[0].role as 'owner' | 'admin' | 'superadmin',
+      isAgent: Boolean(rows[0].isAgent || rows[0].email === SUPER_ADMIN_EMAIL),
+      languages: Array.isArray(rows[0].languages) ? rows[0].languages : []
+    };
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   const sql = getDb();
   if (!sql) return null;
 
-  const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users WHERE email = ${email} LIMIT 1;`;
-  if (rows.length === 0) return null;
+  try {
+    const rows = await sql`SELECT id, name, email, phone, avatar, role, is_agent as "isAgent", languages FROM users WHERE email = ${email} LIMIT 1;`;
+    if (rows.length === 0) return null;
 
-  return {
-    id: rows[0].id,
-    name: rows[0].name,
-    email: rows[0].email,
-    phone: rows[0].phone || '',
-    avatar: rows[0].avatar || '',
-    role: rows[0].role as 'owner' | 'admin' | 'superadmin'
-  };
+    return {
+      id: rows[0].id,
+      name: rows[0].name,
+      email: rows[0].email,
+      phone: rows[0].phone || '',
+      avatar: rows[0].avatar || '',
+      role: rows[0].role as 'owner' | 'admin' | 'superadmin',
+      isAgent: Boolean(rows[0].isAgent || rows[0].email === SUPER_ADMIN_EMAIL),
+      languages: Array.isArray(rows[0].languages) ? rows[0].languages : []
+    };
+  } catch (e) {
+    return null;
+  }
 }
 
 export async function getAllUsers(): Promise<User[]> {
@@ -201,7 +219,7 @@ export async function updateUserRole(userIdOrEmail: string, newRole: 'owner' | '
   const sql = getDb();
   if (!sql) return { success: false, message: 'Database not connected' };
 
-  if (requestorEmail !== SUPER_ADMIN_EMAIL) {
+  if (requestorEmail.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
     return { success: false, message: 'Unauthorized: only the super admin can change user roles.' };
   }
 
@@ -226,7 +244,7 @@ export async function updateUserAgentStatus(
   const sql = getDb();
   if (!sql) return { success: false, message: 'Database not connected' };
 
-  if (requestorEmail !== SUPER_ADMIN_EMAIL) {
+  if (requestorEmail.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase()) {
     return { success: false, message: 'Unauthorized: only the super admin can assign agent status.' };
   }
 
@@ -253,99 +271,115 @@ export async function getDbListings(filters?: {
   const sql = getDb();
   if (!sql) return [];
 
-  const rows = await sql`
-    SELECT 
-      id, title, description, type, price::float, location, address,
-      bedrooms, beds, bathrooms::float, square_meters as "squareMeters", 
-      amenities, status, owner_id as "ownerId", 
-      approved_by_admin_id as "approvedByAdminId", image, images,
-      personal_owner_info as "personalOwnerInfo", created_at as "createdAt"
-    FROM listings
-    ORDER BY created_at DESC;
-  `;
+  try {
+    const rows = await sql`
+      SELECT 
+        id, title, description, type, price::float, location, address,
+        bedrooms, beds, bathrooms::float, square_meters as "squareMeters", 
+        amenities, status, owner_id as "ownerId", 
+        approved_by_admin_id as "approvedByAdminId", image, images,
+        personal_owner_info as "personalOwnerInfo", created_at as "createdAt"
+      FROM listings
+      ORDER BY created_at DESC;
+    `;
 
-  let listings: Listing[] = rows.map((r: any) => ({
-    id: r.id,
-    title: r.title,
-    description: r.description,
-    type: r.type,
-    price: Number(r.price),
-    location: r.location,
-    address: r.address || '',
-    bedrooms: Number(r.bedrooms),
-    beds: Number(r.beds || r.bedrooms || 0),
-    bathrooms: Number(r.bathrooms),
-    squareMeters: Number(r.squareMeters),
-    amenities: Array.isArray(r.amenities) ? r.amenities : [],
-    status: r.status,
-    ownerId: r.ownerId,
-    approvedByAdminId: r.approvedByAdminId || undefined,
-    image: r.image || '',
-    images: Array.isArray(r.images) ? r.images : [],
-    personalOwnerInfo: typeof r.personalOwnerInfo === 'string' ? JSON.parse(r.personalOwnerInfo) : r.personalOwnerInfo,
-    createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString()
-  }));
+    let listings: Listing[] = rows.map((r: any) => ({
+      id: r.id,
+      title: r.title,
+      description: r.description,
+      type: r.type,
+      price: Number(r.price),
+      location: r.location,
+      address: r.address || '',
+      bedrooms: Number(r.bedrooms),
+      beds: Number(r.beds || r.bedrooms || 0),
+      bathrooms: Number(r.bathrooms),
+      squareMeters: Number(r.squareMeters),
+      amenities: Array.isArray(r.amenities) ? r.amenities : [],
+      status: r.status,
+      ownerId: r.ownerId,
+      approvedByAdminId: r.approvedByAdminId || undefined,
+      image: r.image || '',
+      images: Array.isArray(r.images) ? r.images : [],
+      personalOwnerInfo: typeof r.personalOwnerInfo === 'string' ? JSON.parse(r.personalOwnerInfo) : r.personalOwnerInfo,
+      createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : new Date().toISOString()
+    }));
 
-  if (filters) {
-    if (filters.status) listings = listings.filter(l => l.status === filters.status);
-    if (filters.type) listings = listings.filter(l => l.type === filters.type);
-    if (filters.location && filters.location !== 'All') listings = listings.filter(l => l.location === filters.location);
-    if (filters.ownerId) listings = listings.filter(l => l.ownerId === filters.ownerId);
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      listings = listings.filter(l => 
-        l.title.toLowerCase().includes(q) || 
-        l.description.toLowerCase().includes(q) || 
-        l.location.toLowerCase().includes(q)
-      );
+    if (filters) {
+      if (filters.status) listings = listings.filter(l => l.status === filters.status);
+      if (filters.type) listings = listings.filter(l => l.type === filters.type);
+      if (filters.location && filters.location !== 'All') listings = listings.filter(l => l.location === filters.location);
+      if (filters.ownerId) listings = listings.filter(l => l.ownerId === filters.ownerId);
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
+        listings = listings.filter(l => 
+          l.title.toLowerCase().includes(q) || 
+          l.description.toLowerCase().includes(q) || 
+          l.location.toLowerCase().includes(q)
+        );
+      }
     }
-  }
 
-  return listings;
+    return listings;
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function createListing(listing: Listing): Promise<Listing> {
   const sql = getDb();
-  if (!sql) throw new Error('Database not connected');
+  if (!sql) return listing;
 
-  const personalInfoJson = JSON.stringify(listing.personalOwnerInfo || {});
+  try {
+    const personalInfoJson = JSON.stringify(listing.personalOwnerInfo || {});
 
-  await sql`
-    INSERT INTO listings (
-      id, title, description, type, price, location, address,
-      bedrooms, beds, bathrooms, square_meters, amenities, status, 
-      owner_id, approved_by_admin_id, image, images, personal_owner_info, created_at
-    ) VALUES (
-      ${listing.id}, ${listing.title}, ${listing.description}, ${listing.type}, 
-      ${listing.price}, ${listing.location}, ${listing.address || ''},
-      ${listing.bedrooms}, ${listing.beds || listing.bedrooms || 0}, ${listing.bathrooms}, 
-      ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status}, 
-      ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image}, 
-      ${listing.images || []},
-      ${personalInfoJson}::jsonb, ${listing.createdAt || new Date().toISOString()}
-    );
-  `;
+    await sql`
+      INSERT INTO listings (
+        id, title, description, type, price, location, address,
+        bedrooms, beds, bathrooms, square_meters, amenities, status, 
+        owner_id, approved_by_admin_id, image, images, personal_owner_info, created_at
+      ) VALUES (
+        ${listing.id}, ${listing.title}, ${listing.description}, ${listing.type}, 
+        ${listing.price}, ${listing.location}, ${listing.address || ''},
+        ${listing.bedrooms}, ${listing.beds || listing.bedrooms || 0}, ${listing.bathrooms}, 
+        ${listing.squareMeters}, ${listing.amenities || []}, ${listing.status}, 
+        ${listing.ownerId}, ${listing.approvedByAdminId || null}, ${listing.image}, 
+        ${listing.images || []},
+        ${personalInfoJson}::jsonb, ${listing.createdAt || new Date().toISOString()}
+      );
+    `;
 
-  return listing;
+    return listing;
+  } catch (e) {
+    return listing;
+  }
 }
 
 export async function updateListingStatus(listingId: string, status: 'approved' | 'rejected', adminId?: string): Promise<boolean> {
   const sql = getDb();
   if (!sql) return false;
 
-  await sql`
-    UPDATE listings 
-    SET status = ${status}, approved_by_admin_id = ${adminId || null}
-    WHERE id = ${listingId};
-  `;
+  try {
+    await sql`
+      UPDATE listings 
+      SET status = ${status}, approved_by_admin_id = ${adminId || null}
+      WHERE id = ${listingId};
+    `;
 
-  return true;
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 export async function deleteListing(listingId: string): Promise<boolean> {
   const sql = getDb();
   if (!sql) return false;
 
-  await sql`DELETE FROM listings WHERE id = ${listingId};`;
-  return true;
+  try {
+    await sql`DELETE FROM listings WHERE id = ${listingId};`;
+    return true;
+  } catch (e) {
+    return false;
+  }
 }

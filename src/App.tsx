@@ -558,14 +558,22 @@ export default function App() {
     }
   };
 
-  const handleUpdateUserRole = (userId: string, newRole: 'owner' | 'admin') => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    addToast('success', lang === 'fr' ? 'Rôle utilisateur mis à jour !' : 'User role updated successfully!');
+  const handleUpdateUserRole = (userId: string, newRole: 'owner' | 'admin', success: boolean, errorMsg?: string) => {
+    if (success) {
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      addToast('success', lang === 'fr' ? 'Rôle utilisateur mis à jour avec succès !' : 'User role updated successfully!');
+    } else {
+      addToast('error', lang === 'fr' ? `Échec de mise à jour du rôle: ${errorMsg || 'Erreur serveur'}` : `Role update failed: ${errorMsg || 'Server error'}`);
+    }
   };
 
-  const handleUpdateUserAgentStatus = (userId: string, isAgent: boolean, languages: string[]) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, isAgent, languages } : u));
-    addToast('success', lang === 'fr' ? 'Statut agent et langues mis à jour !' : 'Agent status & languages updated!');
+  const handleUpdateUserAgentStatus = (userId: string, isAgent: boolean, languages: string[], success: boolean, errorMsg?: string) => {
+    if (success) {
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, isAgent, languages } : u));
+      addToast('success', lang === 'fr' ? 'Statut agent et langues mis à jour !' : 'Agent status & languages updated!');
+    } else {
+      addToast('error', lang === 'fr' ? `Échec de mise à jour agent: ${errorMsg || 'Erreur serveur'}` : `Agent update failed: ${errorMsg || 'Server error'}`);
+    }
   };
 
   const handleResetFilters = () => {
