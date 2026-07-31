@@ -17,7 +17,9 @@ import {
   Compass,
   ChevronLeft,
   ChevronRight,
-  Share2
+  Share2,
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
@@ -40,17 +42,25 @@ interface PropertyDetailDrawerProps {
   currentUser?: User | null;
   agents?: User[];
   onClose: () => void;
+  onEditListing?: (listing: Listing) => void;
+  onDeleteListing?: (listingId: string) => void;
   adminUser?: User;
   currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
 }
 
-export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
+export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, onEditListing, onDeleteListing, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
   const [copied, setCopied] = useState(false);
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+
+  const isSuperAdmin = currentUser && currentUser.email === 'yassinesadik0@gmail.com';
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || isSuperAdmin);
+  const isOwner = currentUser && listing.ownerId === currentUser.id;
+  const canEdit = isAdmin;
+  const canDelete = isAdmin || isOwner;
 
   const renderAgentAvatar = (agent: User, size = "h-10 w-10", textSize = "text-sm") => {
     const nameToUse = agent?.name || agent?.email || 'Agent';
@@ -381,17 +391,42 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             <span>Ref: {listing.id.toUpperCase()}</span>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={handleSystemShare}
-              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg border border-neutral-850 text-neutral-300 hover:text-brand hover:bg-[#0b0b0b] transition-all cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg border border-neutral-850 text-neutral-300 hover:text-brand hover:bg-[#0b0b0b] transition-all cursor-pointer min-w-[120px]"
             >
               {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4 text-brand" />}
               <span>{copied ? (lang === 'fr' ? 'Lien Copié !' : 'Link Copied!') : (lang === 'fr' ? 'Partager' : 'Share')}</span>
             </button>
+
+            {canEdit && onEditListing && (
+              <button
+                onClick={() => onEditListing(listing)}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 font-bold transition-all cursor-pointer"
+              >
+                <Pencil className="h-4 w-4" />
+                <span>{lang === 'fr' ? 'Éditer' : 'Edit'}</span>
+              </button>
+            )}
+
+            {canDelete && onDeleteListing && (
+              <button
+                onClick={() => {
+                  if (confirm(lang === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette propriété ?' : 'Are you sure you want to delete this property?')) {
+                    onDeleteListing(listing.id);
+                  }
+                }}
+                className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 font-bold transition-all cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{lang === 'fr' ? 'Supprimer' : 'Delete'}</span>
+              </button>
+            )}
+
             <button
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-850 text-neutral-200 border border-neutral-800 transition-all cursor-pointer text-center font-bold"
+              className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-850 text-neutral-200 border border-neutral-800 transition-all cursor-pointer text-center font-bold min-w-[120px]"
             >
               {lang === 'fr' ? 'Fermer le panneau' : 'Close Drawer'}
             </button>

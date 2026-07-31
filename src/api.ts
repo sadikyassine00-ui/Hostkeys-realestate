@@ -91,6 +91,24 @@ export async function createPropertyApi(listing: Listing): Promise<{ success: bo
   }
 }
 
+export async function updatePropertyApi(listing: Listing): Promise<{ success: boolean; listing?: Listing; isLiveDb?: boolean }> {
+  try {
+    const res = await fetch('/api/properties', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(listing)
+    });
+
+    if (!res.ok) {
+      return { success: true, listing, isLiveDb: false };
+    }
+
+    return await res.json();
+  } catch (err) {
+    return { success: true, listing, isLiveDb: false };
+  }
+}
+
 export async function updatePropertyStatusApi(
   id: string, 
   status: 'approved' | 'rejected', 

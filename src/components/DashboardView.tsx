@@ -33,7 +33,8 @@ import {
   ArrowDown,
   ChevronDown,
   ChevronUp,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
@@ -48,6 +49,8 @@ interface DashboardViewProps {
   onReject: (listingId: string) => void;
   onSelectListing: (listing: Listing) => void;
   onAddListing: () => void;
+  onEditListing?: (listing: Listing) => void;
+  onDeleteListing?: (listingId: string) => void;
   onUpdateUserRole?: (userId: string, newRole: 'owner' | 'admin', success: boolean, errorMsg?: string) => void;
   onUpdateUserAgentStatus?: (userId: string, isAgent: boolean, languages: string[], success: boolean, errorMsg?: string) => void;
   currency: Currency;
@@ -64,6 +67,8 @@ export default function DashboardView({
   onReject,
   onSelectListing,
   onAddListing,
+  onEditListing,
+  onDeleteListing,
   onUpdateUserRole,
   onUpdateUserAgentStatus,
   currency,
@@ -408,10 +413,39 @@ export default function DashboardView({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {totalApprovedListings.map(listing => (
-                    <div key={listing.id} onClick={() => onSelectListing(listing)} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 cursor-pointer hover:border-brand/30 transition-all">
-                      <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
-                      <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
-                      <p className="text-xs font-mono text-brand mt-1">{formatCurrency(listing.price, currency, eurRate)}</p>
+                    <div key={listing.id} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 hover:border-brand/30 transition-all flex flex-col justify-between">
+                      <div onClick={() => onSelectListing(listing)} className="cursor-pointer">
+                        <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
+                        <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
+                        <p className="text-xs font-mono text-brand mt-1">{formatCurrency(listing.price, currency, eurRate)}</p>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-900 mt-2">
+                        {isAdmin && onEditListing && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditListing(listing);
+                            }}
+                            className="px-2.5 py-1 rounded bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white font-mono text-[10px] font-bold border border-sky-500/20 cursor-pointer flex items-center gap-1"
+                          >
+                            <Pencil className="h-3 w-3" /> {lang === 'fr' ? 'Éditer' : 'Edit'}
+                          </button>
+                        )}
+                        {onDeleteListing && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                                onDeleteListing(listing.id);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-mono text-[10px] font-bold border border-rose-500/20 cursor-pointer flex items-center gap-1"
+                          >
+                            <Trash2 className="h-3 w-3" /> {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -602,15 +636,44 @@ export default function DashboardView({
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {mySubmissions.map(listing => (
-                    <div key={listing.id} onClick={() => onSelectListing(listing)} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 cursor-pointer hover:border-brand/30 transition-all">
-                      <div className="relative">
-                        <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
-                        <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase ${listing.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (listing.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30')}`}>
-                          {listing.status}
-                        </span>
+                    <div key={listing.id} className="bg-[#030303] border border-neutral-850 rounded-xl p-3 hover:border-brand/30 transition-all flex flex-col justify-between">
+                      <div onClick={() => onSelectListing(listing)} className="cursor-pointer">
+                        <div className="relative">
+                          <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
+                          <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase ${listing.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (listing.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30')}`}>
+                            {listing.status}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
+                        <p className="text-xs font-mono text-brand mt-1">{formatCurrency(listing.price, currency, eurRate)}</p>
                       </div>
-                      <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
-                      <p className="text-xs font-mono text-brand mt-1">{formatCurrency(listing.price, currency, eurRate)}</p>
+
+                      <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-900 mt-2">
+                        {isAdmin && onEditListing && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditListing(listing);
+                            }}
+                            className="px-2.5 py-1 rounded bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white font-mono text-[10px] font-bold border border-sky-500/20 cursor-pointer flex items-center gap-1"
+                          >
+                            <Pencil className="h-3 w-3" /> {lang === 'fr' ? 'Éditer' : 'Edit'}
+                          </button>
+                        )}
+                        {onDeleteListing && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                                onDeleteListing(listing.id);
+                              }
+                            }}
+                            className="px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-mono text-[10px] font-bold border border-rose-500/20 cursor-pointer flex items-center gap-1"
+                          >
+                            <Trash2 className="h-3 w-3" /> {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

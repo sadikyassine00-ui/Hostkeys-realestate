@@ -8,7 +8,9 @@ import { uploadImageApi } from '../api';
 
 interface PropertyFormProps {
   currentUser: User;
+  initialListing?: Listing;
   onAddListing: (listing: Omit<Listing, 'id' | 'status' | 'ownerId' | 'createdAt' | 'approvedByAdminId'>) => void;
+  onUpdateListing?: (listing: Listing) => void;
   onClose: () => void;
   currency: Currency;
   eurRate: number;
@@ -34,34 +36,34 @@ const HOUSING_PRESETS = [
   }
 ];
 
-export default function PropertyForm({ currentUser, onAddListing, onClose, currency, eurRate, lang }: PropertyFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState<'buy' | 'rent'>('buy');
-  const [price, setPrice] = useState<number | ''>('');
-  const [location, setLocation] = useState(ALL_CITIES[0]);
-  const [address, setAddress] = useState('');
+export default function PropertyForm({ currentUser, initialListing, onAddListing, onUpdateListing, onClose, currency, eurRate, lang }: PropertyFormProps) {
+  const [title, setTitle] = useState(initialListing?.title || '');
+  const [description, setDescription] = useState(initialListing?.description || '');
+  const [type, setType] = useState<'buy' | 'rent'>(initialListing?.type || 'buy');
+  const [price, setPrice] = useState<number | ''>(initialListing ? Math.round(initialListing.price) : '');
+  const [location, setLocation] = useState(initialListing?.location || ALL_CITIES[0]);
+  const [address, setAddress] = useState(initialListing?.address || '');
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState('');
-  const [bedrooms, setBedrooms] = useState<number>(3);
-  const [beds, setBeds] = useState<number>(4);
-  const [bathrooms, setBathrooms] = useState<number>(2.5);
-  const [squareMeters, setSquareMeters] = useState<number | ''>('');
-  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [bedrooms, setBedrooms] = useState<number>(initialListing?.bedrooms || 3);
+  const [beds, setBeds] = useState<number>(initialListing?.beds || 4);
+  const [bathrooms, setBathrooms] = useState<number>(initialListing?.bathrooms || 2.5);
+  const [squareMeters, setSquareMeters] = useState<number | ''>(initialListing?.squareMeters || '');
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(initialListing?.amenities || []);
   
   // Image state — supports multiple images
-  const [imageSource, setImageSource] = useState<'upload' | 'preset' | 'url'>('upload');
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [imageSource, setImageSource] = useState<'upload' | 'preset' | 'url'>(initialListing ? 'url' : 'upload');
+  const [uploadedImages, setUploadedImages] = useState<string[]>(initialListing?.images || (initialListing?.image ? [initialListing.image] : []));
   const [selectedPreset, setSelectedPreset] = useState(HOUSING_PRESETS[0].url);
-  const [customImageUrl, setCustomImageUrl] = useState('');
+  const [customImageUrl, setCustomImageUrl] = useState(initialListing?.image || '');
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [personalName, setPersonalName] = useState(currentUser.name);
-  const [personalEmail, setPersonalEmail] = useState(currentUser.email);
-  const [personalPhone, setPersonalPhone] = useState(currentUser.phone);
+  const [personalName, setPersonalName] = useState(initialListing?.personalOwnerInfo?.name || currentUser.name);
+  const [personalEmail, setPersonalEmail] = useState(initialListing?.personalOwnerInfo?.email || currentUser.email);
+  const [personalPhone, setPersonalPhone] = useState(initialListing?.personalOwnerInfo?.phone || currentUser.phone);
 
   const handleFileUpload = async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
@@ -152,26 +154,50 @@ export default function PropertyForm({ currentUser, onAddListing, onClose, curre
       baseUsdPrice = numPrice / (eurRate || 0.92);
     }
 
-    onAddListing({
-      title,
-      description,
-      type,
-      price: Math.round(baseUsdPrice),
-      location,
-      address: address.trim(),
-      bedrooms: Number(bedrooms),
-      beds: Number(beds),
-      bathrooms: Number(bathrooms),
-      squareMeters: Number(squareMeters),
-      amenities: selectedAmenities,
-      image: finalImages[0] || '',
-      images: finalImages,
-      personalOwnerInfo: {
-        name: personalName,
-        email: personalEmail,
-        phone: personalPhone
-      }
-    });
+    if (initialListing && onUpdateListing) {
+      onUpdateListing({
+        ...initialListing,
+        title,
+        description,
+        type,
+        price: Math.round(baseUsdPrice),
+        location,
+        address: address.trim(),
+        bedrooms: Number(bedrooms),
+        beds: Number(beds),
+        bathrooms: Number(bathrooms),
+        squareMeters: Number(squareMeters),
+        amenities: selectedAmenities,
+        image: finalImages[0] || initialListing.image || '',
+        images: finalImages.length > 0 ? finalImages : (initialListing.images || []),
+        personalOwnerInfo: {
+          name: personalName,
+          email: personalEmail,
+          phone: personalPhone
+        }
+      });
+    } else {
+      onAddListing({
+        title,
+        description,
+        type,
+        price: Math.round(baseUsdPrice),
+        location,
+        address: address.trim(),
+        bedrooms: Number(bedrooms),
+        beds: Number(beds),
+        bathrooms: Number(bathrooms),
+        squareMeters: Number(squareMeters),
+        amenities: selectedAmenities,
+        image: finalImages[0] || '',
+        images: finalImages,
+        personalOwnerInfo: {
+          name: personalName,
+          email: personalEmail,
+          phone: personalPhone
+        }
+      });
+    }
 
     onClose();
   };

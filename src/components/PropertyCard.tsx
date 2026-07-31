@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Listing, User } from '../types';
-import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2, Check } from 'lucide-react';
+import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2, Check, Pencil, Trash2 } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
 import { t } from '../translations';
 import ShareModal from './ShareModal';
@@ -13,12 +13,14 @@ interface PropertyCardProps {
   currentUser?: User | null;
   agents?: User[];
   onSelect?: (listing: Listing) => void;
+  onEditListing?: (listing: Listing) => void;
+  onDeleteListing?: (listingId: string) => void;
   currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
 }
 
-export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, currency, eurRate, lang }: PropertyCardProps) {
+export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, onEditListing, onDeleteListing, currency, eurRate, lang }: PropertyCardProps) {
   const [copied, setCopied] = useState(false);
 
   const handleSystemShare = async (e: React.MouseEvent) => {
@@ -89,6 +91,10 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
     : (adminUser?.avatar || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&h=120&q=80");
 
   const isMyListing = currentUser && listing.ownerId === currentUser.id;
+  const isSuperAdmin = currentUser && currentUser.email === 'yassinesadik0@gmail.com';
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || isSuperAdmin);
+  const canEdit = isAdmin;
+  const canDelete = isAdmin || isMyListing;
 
   return (
     <motion.div 
@@ -121,8 +127,36 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
           )}
         </div>
 
-        {/* Protection / Masked Badge & Share Button */}
+        {/* Protection / Masked Badge, Edit, Delete & Share Buttons */}
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          {canEdit && onEditListing && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onEditListing(listing);
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-sky-400 hover:text-white border border-sky-500/30 backdrop-blur-md cursor-pointer hover:scale-110 transition-all"
+              title="Edit Property"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+
+          {canDelete && onDeleteListing && (
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                  onDeleteListing(listing.id);
+                }
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-rose-400 hover:text-white border border-rose-500/30 backdrop-blur-md cursor-pointer hover:scale-110 transition-all"
+              title="Delete Property"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+
           <button 
             onClick={handleSystemShare}
             className="relative flex h-8 w-8 items-center justify-center rounded-full bg-[#030303]/90 text-slate-300 hover:text-brand border border-neutral-800 backdrop-blur-md cursor-pointer hover:scale-110 transition-all" 

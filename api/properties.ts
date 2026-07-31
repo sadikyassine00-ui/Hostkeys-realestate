@@ -73,6 +73,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ success: true, listing, isLiveDb: true });
     }
 
+    // PUT /api/properties — full edit update listing
+    if (req.method === 'PUT') {
+      const listing = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});
+      if (!listing || !listing.id || !listing.title) {
+        return res.status(400).json({ success: false, error: 'Invalid listing payload.' });
+      }
+
+      const personalInfoJson = JSON.stringify(listing.personalOwnerInfo || {});
+
+      await sql`
+        UPDATE listings 
+        SET 
+          title = ${listing.title},
+          description = ${listing.description},
+          type = ${listing.type},
+          price = ${listing.price},
+          location = ${listing.location},
+          address = ${listing.address || ''},
+          bedrooms = ${listing.bedrooms},
+          beds = ${listing.beds || listing.bedrooms || 0},
+          bathrooms = ${listing.bathrooms},
+          square_meters = ${listing.squareMeters},
+          amenities = ${listing.amenities || []},
+          image = ${listing.image || ''},
+          images = ${listing.images || []},
+          personal_owner_info = ${personalInfoJson}::jsonb
+        WHERE id = ${listing.id};
+      `;
+      return res.status(200).json({ success: true, listing, isLiveDb: true });
+    }
+
     // PATCH /api/properties — update status (approve / reject)
     if (req.method === 'PATCH') {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body || {});

@@ -502,6 +502,48 @@ export default function App() {
     }
   };
 
+  const [editingListing, setEditingListing] = useState<Listing | null>(null);
+
+  const handleDeleteListing = async (listingId: string) => {
+    setListings(prev => {
+      const updated = prev.filter(l => l && l.id !== listingId);
+      localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+      return updated;
+    });
+
+    if (expandedListing && expandedListing.id === listingId) {
+      setExpandedListing(null);
+    }
+
+    try {
+      await deletePropertyApi(listingId);
+      addToast('success', lang === 'fr' ? 'Propriété supprimée avec succès.' : 'Property deleted successfully.');
+    } catch (err) {
+      addToast('info', lang === 'fr' ? 'Supprimée localement.' : 'Deleted locally.');
+    }
+  };
+
+  const handleUpdateListing = async (updatedListing: Listing) => {
+    setListings(prev => {
+      const updated = prev.map(l => l && l.id === updatedListing.id ? updatedListing : l);
+      localStorage.setItem('hostkeys_cached_listings', JSON.stringify(updated));
+      return updated;
+    });
+
+    if (expandedListing && expandedListing.id === updatedListing.id) {
+      setExpandedListing(updatedListing);
+    }
+
+    setEditingListing(null);
+
+    try {
+      await updatePropertyApi(updatedListing);
+      addToast('success', lang === 'fr' ? 'Propriété mise à jour avec succès !' : 'Property updated successfully!');
+    } catch (err) {
+      addToast('info', lang === 'fr' ? 'Propriété mise à jour localement.' : 'Updated locally.');
+    }
+  };
+
   const handleRejectListing = async (listingId: string) => {
     setListings(prev => prev.map(listing => {
       if (listing && listing.id === listingId) {
@@ -887,6 +929,8 @@ export default function App() {
             onReject={handleRejectListing}
             onSelectListing={(listing) => handleOpenListing(listing)}
             onAddListing={() => setShowNewListingForm(true)}
+            onEditListing={(listing) => setEditingListing(listing)}
+            onDeleteListing={handleDeleteListing}
             onUpdateUserRole={handleUpdateUserRole}
             onUpdateUserAgentStatus={handleUpdateUserAgentStatus}
             currency={currency}
@@ -1123,6 +1167,8 @@ export default function App() {
                     currentUser={currentUser}
                     agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
                     onSelect={(l) => handleOpenListing(l)}
+                    onEditListing={(l) => setEditingListing(l)}
+                    onDeleteListing={handleDeleteListing}
                     currency={currency}
                     eurRate={eurRate}
                     lang={lang}
@@ -1165,6 +1211,20 @@ export default function App() {
           currentUser={currentUser}
           onAddListing={handleAddProperty}
           onClose={() => setShowNewListingForm(false)}
+          currency={currency}
+          eurRate={eurRate}
+          lang={lang}
+        />
+      )}
+
+      {/* EDIT PROPERTY FORM MODAL */}
+      {editingListing && currentUser && (
+        <PropertyForm
+          currentUser={currentUser}
+          initialListing={editingListing}
+          onAddListing={() => {}}
+          onUpdateListing={handleUpdateListing}
+          onClose={() => setEditingListing(null)}
           currency={currency}
           eurRate={eurRate}
           lang={lang}
@@ -1301,6 +1361,8 @@ export default function App() {
             agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
             adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
             onClose={handleCloseListing}
+            onEditListing={(listing) => setEditingListing(listing)}
+            onDeleteListing={handleDeleteListing}
             currency={currency}
             eurRate={eurRate}
             lang={lang}
