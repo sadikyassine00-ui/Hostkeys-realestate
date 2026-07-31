@@ -37,6 +37,8 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
         phone VARCHAR(100),
         avatar TEXT,
         role VARCHAR(50) DEFAULT 'owner',
+        is_agent BOOLEAN DEFAULT false,
+        languages TEXT[] DEFAULT '{}',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
@@ -70,6 +72,8 @@ export async function initDatabase(): Promise<{ success: boolean; message: strin
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '';`;
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS images TEXT[] DEFAULT '{}';`;
     await sql`ALTER TABLE listings ADD COLUMN IF NOT EXISTS beds INT DEFAULT 0;`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_agent BOOLEAN DEFAULT false;`;
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS languages TEXT[] DEFAULT '{}';`;
 
     // 3. Seed Super Admin if users table is empty
     const existingUsers = await sql`SELECT COUNT(*)::int as count FROM users;`;
@@ -153,14 +157,18 @@ export async function getAllUsers(): Promise<User[]> {
   const sql = getDb();
   if (!sql) return [];
 
-  const rows = await sql`SELECT id, name, email, phone, avatar, role FROM users ORDER BY created_at DESC;`;
+  const rows = await sql`SELECT id, name, email, phone, avatar, role, is_agent as "isAgent", languages FROM users ORDER BY created_at DESC;`;
   return rows.map((r: any) => ({
     id: r.id,
     name: r.name,
     email: r.email,
     phone: r.phone || '',
     avatar: r.avatar || '',
-    role: r.role as 'owner' | 'admin' | 'superadmin'
+    role: r.role as 'owner' | 'admin' | 'superadmin',
+    isAgent: Boolean(r.isAgent || r.email === SUPER_ADMIN_EMAIL),
+    languages: Array.isArray(r.languages) && r.languages.length > 0 
+      ? r.languages 
+      : (r.email === SUPER_ADMIN_EMAIL ? ['FR', 'EN', 'AR'] : [])
   }));
 }
 
@@ -180,6 +188,23 @@ export async function updateUserRole(userId: string, newRole: 'owner' | 'admin',
 
   await sql`UPDATE users SET role = ${newRole} WHERE id = ${userId};`;
   return { success: true, message: `User role updated to ${newRole}` };
+}
+
+export async function updateUserAgentStatus(
+  userId: string, 
+  isAgent: boolean, 
+  languages: string[], 
+  requestorEmail: string
+): Promise<{ success: boolean; message: string }> {
+  const sql = getDb();
+  if (!sql) return { success: false, message: 'Database not connected' };
+
+  if (requestorEmail !== SUPER_ADMIN_EMAIL) {
+    return { success: false, message: 'Unauthorized: only the super admin can assign agent status.' };
+  }
+
+  await sql`UPDATE users SET is_agent = ${isAgent}, languages = ${languages} WHERE id = ${userId};`;
+  return { success: true, message: 'Agent details updated successfully.' };
 }
 
 // Listing CRUD

@@ -325,6 +325,13 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                             </span>
                           </div>
                           <span className="text-[10px] text-slate-400 block font-mono">{agent?.email || 'admin@hostkeys.ma'}</span>
+                          <div className="flex items-center gap-1 mt-1">
+                            {(agent?.languages && agent.languages.length > 0 ? agent.languages : ['FR', 'EN']).map((lCode: string) => (
+                              <span key={lCode} className="text-[8.5px] font-mono text-brand bg-brand/10 border border-brand/20 px-1.5 py-0.2 rounded font-bold uppercase">
+                                {lCode}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
 

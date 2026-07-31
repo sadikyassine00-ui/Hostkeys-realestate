@@ -493,6 +493,11 @@ export default function App() {
     addToast('success', lang === 'fr' ? 'Rôle utilisateur mis à jour !' : 'User role updated successfully!');
   };
 
+  const handleUpdateUserAgentStatus = (userId: string, isAgent: boolean, languages: string[]) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, isAgent, languages } : u));
+    addToast('success', lang === 'fr' ? 'Statut agent et langues mis à jour !' : 'Agent status & languages updated!');
+  };
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedLocation('All');
@@ -711,6 +716,7 @@ export default function App() {
             onSelectListing={(listing) => handleOpenListing(listing)}
             onAddListing={() => setShowNewListingForm(true)}
             onUpdateUserRole={handleUpdateUserRole}
+            onUpdateUserAgentStatus={handleUpdateUserAgentStatus}
             currency={currency}
             eurRate={eurRate}
             lang={lang}
@@ -943,7 +949,7 @@ export default function App() {
                     listing={translateListing(listing, lang)}
                     adminUser={users.find(u => u.id === listing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
                     currentUser={currentUser}
-                    agents={activeAgents}
+                    agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
                     onSelect={(l) => handleOpenListing(l)}
                     currency={currency}
                     eurRate={eurRate}
@@ -1105,7 +1111,7 @@ export default function App() {
           <PropertyDetailDrawer
             listing={translateListing(expandedListing, lang)}
             currentUser={currentUser}
-            agents={activeAgents}
+            agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
             adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
             onClose={handleCloseListing}
             currency={currency}

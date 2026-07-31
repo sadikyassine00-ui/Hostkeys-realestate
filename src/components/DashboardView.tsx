@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
-import { fetchUsersApi, updateUserRoleApi } from '../api';
+import { fetchUsersApi, updateUserRoleApi, updateUserAgentApi } from '../api';
 
 interface DashboardViewProps {
   currentUser: User;
@@ -48,6 +48,7 @@ interface DashboardViewProps {
   onSelectListing: (listing: Listing) => void;
   onAddListing: () => void;
   onUpdateUserRole?: (userId: string, newRole: 'owner' | 'admin') => void;
+  onUpdateUserAgentStatus?: (userId: string, isAgent: boolean, languages: string[]) => void;
   currency: Currency;
   eurRate: number;
   lang: 'en' | 'fr';
@@ -63,6 +64,7 @@ export default function DashboardView({
   onSelectListing,
   onAddListing,
   onUpdateUserRole,
+  onUpdateUserAgentStatus,
   currency,
   eurRate,
   lang
@@ -122,6 +124,26 @@ export default function DashboardView({
     } finally {
       setRoleUpdateLoading(null);
     }
+  };
+
+  const handleAgentToggle = async (user: User, newIsAgent: boolean) => {
+    const defaultLangs = user.languages && user.languages.length > 0 ? user.languages : ['FR', 'EN'];
+    setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, isAgent: newIsAgent, languages: defaultLangs } : u));
+    try {
+      await updateUserAgentApi(user.id, newIsAgent, defaultLangs, currentUser.email);
+      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, newIsAgent, defaultLangs);
+    } catch (e) {}
+  };
+
+  const handleLanguageToggle = async (user: User, langCode: string) => {
+    const currentLangs = user.languages || ['FR', 'EN'];
+    const hasLang = currentLangs.includes(langCode);
+    const newLangs = hasLang ? currentLangs.filter(l => l !== langCode) : [...currentLangs, langCode];
+    setTeamUsers(prev => prev.map(u => u.id === user.id ? { ...u, languages: newLangs } : u));
+    try {
+      await updateUserAgentApi(user.id, Boolean(user.isAgent), newLangs, currentUser.email);
+      if (onUpdateUserAgentStatus) onUpdateUserAgentStatus(user.id, Boolean(user.isAgent), newLangs);
+    } catch (e) {}
   };
 
   // Stats
@@ -395,48 +417,92 @@ export default function DashboardView({
                     const isSA = user.email === SUPER_ADMIN_EMAIL;
                     
                     return (
-                      <div key={user.id} className={`bg-[#030303] border rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${isSA ? 'border-amber-500/30' : 'border-neutral-850'}`}>
-                        <div className="flex items-center gap-3">
-                          <img src={user.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} alt={user.name} referrerPolicy="no-referrer" className="h-10 w-10 rounded-full border border-neutral-700 object-cover" />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-white">{user.name}</span>
-                              {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full">{lang === 'fr' ? 'Vous' : 'You'}</span>}
+                      <div key={user.id} className={`bg-[#030303] border rounded-xl p-4 flex flex-col gap-3 ${isSA ? 'border-amber-500/30' : 'border-neutral-850'}`}>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <img src={user.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} alt={user.name} referrerPolicy="no-referrer" className="h-10 w-10 rounded-full border border-neutral-700 object-cover" />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-white">{user.name}</span>
+                                {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full">{lang === 'fr' ? 'Vous' : 'You'}</span>}
+                              </div>
+                              <p className="text-[11px] font-mono text-slate-400">{user.email}</p>
                             </div>
-                            <p className="text-[11px] font-mono text-slate-400">{user.email}</p>
+                          </div>
+
+                          <div className="flex items-center gap-2 self-end sm:self-center">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border flex items-center gap-1 ${badge.color}`}>
+                              {badge.icon} {badge.label}
+                            </span>
+                            
+                            {/* Role change buttons — not for super admin themselves */}
+                            {!isSA && (
+                              <div className="flex items-center gap-1.5">
+                                {user.role !== 'admin' ? (
+                                  <button
+                                    onClick={() => handleRoleChange(user.id, 'admin')}
+                                    disabled={roleUpdateLoading === user.id}
+                                    className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    <ArrowUp className="h-3 w-3" />
+                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Promouvoir Admin' : 'Promote to Admin')}
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleRoleChange(user.id, 'owner')}
+                                    disabled={roleUpdateLoading === user.id}
+                                    className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                  >
+                                    <ArrowDown className="h-3 w-3" />
+                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'R\u00e9trograder' : 'Demote to Owner')}
+                                  </button>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 self-end sm:self-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold font-mono uppercase border flex items-center gap-1 ${badge.color}`}>
-                            {badge.icon} {badge.label}
-                          </span>
-                          
-                          {/* Role change buttons — not for super admin themselves */}
-                          {!isSA && (
-                            <div className="flex items-center gap-1.5">
-                              {user.role !== 'admin' ? (
-                                <button
-                                  onClick={() => handleRoleChange(user.id, 'admin')}
-                                  disabled={roleUpdateLoading === user.id}
-                                  className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
-                                >
-                                  <ArrowUp className="h-3 w-3" />
-                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Promouvoir Admin' : 'Promote to Admin')}
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleRoleChange(user.id, 'owner')}
-                                  disabled={roleUpdateLoading === user.id}
-                                  className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
-                                >
-                                  <ArrowDown className="h-3 w-3" />
-                                  {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'R\u00e9trograder' : 'Demote to Owner')}
-                                </button>
-                              )}
+                        {/* Admin Agent Status & Spoken Languages Selector */}
+                        {user.role === 'admin' && !isSA && (
+                          <div className="pt-3 border-t border-neutral-900 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-mono text-slate-400">{lang === 'fr' ? 'Statut Agent:' : 'Hostkeys Agent Status:'}</span>
+                              <button
+                                onClick={() => handleAgentToggle(user, !user.isAgent)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border cursor-pointer transition-all flex items-center gap-1.5 ${
+                                  user.isAgent 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500 hover:text-white' 
+                                    : 'bg-neutral-900 text-slate-400 border-neutral-800 hover:border-neutral-700 hover:text-white'
+                                }`}
+                              >
+                                <Check className={`h-3 w-3 ${user.isAgent ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                {user.isAgent ? (lang === 'fr' ? 'Agent Actif' : 'Assigned Agent') : (lang === 'fr' ? 'Non Assigné' : 'Unassigned')}
+                              </button>
                             </div>
-                          )}
-                        </div>
+
+                            {user.isAgent && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[11px] font-mono text-slate-400 mr-1">{lang === 'fr' ? 'Langues:' : 'Languages:'}</span>
+                                {['FR', 'EN', 'AR', 'ES'].map(lCode => {
+                                  const active = (user.languages || ['FR', 'EN']).includes(lCode);
+                                  return (
+                                    <button
+                                      key={lCode}
+                                      onClick={() => handleLanguageToggle(user, lCode)}
+                                      className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition-all border cursor-pointer ${
+                                        active 
+                                          ? 'bg-brand/20 text-brand border-brand/40 font-extrabold' 
+                                          : 'bg-neutral-900 text-slate-600 border-neutral-850 hover:text-slate-400'
+                                      }`}
+                                    >
+                                      {lCode}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

@@ -5,6 +5,8 @@ export interface User {
   phone: string;
   avatar: string;
   role: 'owner' | 'admin' | 'superadmin';
+  isAgent?: boolean;
+  languages?: string[];
 }
 
 export interface AdvisoryAgent {

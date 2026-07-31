@@ -9,7 +9,9 @@ export const DEFAULT_SUPER_ADMIN: User = {
   email: 'yassinesadik0@gmail.com',
   phone: '+212 661-987654',
   avatar: '',
-  role: 'superadmin'
+  role: 'superadmin',
+  isAgent: true,
+  languages: ['FR', 'EN', 'AR']
 };
 
 export const ALL_CITIES = [

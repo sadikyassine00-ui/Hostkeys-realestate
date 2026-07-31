@@ -163,7 +163,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1">
               <ShieldCheck className="h-3 w-3 text-brand" />
-              {lang === 'fr' ? 'Conseiller Hostkeys' : 'Hostkeys Agent'}
+              {lang === 'fr' ? 'Conseillers Hostkeys' : 'Hostkeys Agents'}
             </span>
             <button 
               onClick={(e) => {
@@ -194,6 +194,13 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
                         </span>
                       </div>
                       <span className="text-[9px] font-mono text-slate-450 block truncate">{agent?.phone || agent?.email || '+212 600-000000'}</span>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {(agent?.languages && agent.languages.length > 0 ? agent.languages : ['FR', 'EN']).map((lCode: string) => (
+                          <span key={lCode} className="text-[7.5px] font-mono text-brand bg-brand/10 border border-brand/20 px-1 py-0.2 rounded uppercase font-bold">
+                            {lCode}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
