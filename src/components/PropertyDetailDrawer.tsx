@@ -37,6 +37,7 @@ const MOROCCO_VILLA_IMAGES = [
 interface PropertyDetailDrawerProps {
   listing: Listing;
   currentUser?: User | null;
+  agents?: User[];
   onClose: () => void;
   adminUser?: User;
   currency: Currency;
@@ -44,7 +45,8 @@ interface PropertyDetailDrawerProps {
   lang: 'en' | 'fr';
 }
 
-export default function PropertyDetailDrawer({ listing, currentUser, onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
+export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
+  const activeAgentsList = (agents && agents.length > 0) ? agents : HOSTKEYS_AGENTS;
   const [copied, setCopied] = useState(false);
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
@@ -92,9 +94,10 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
   const isMyListing = currentUser && listing.ownerId === currentUser.id;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const shareUrl = `${window.location.origin}${window.location.pathname}?property=${listing.id}`;
+    navigator.clipboard.writeText(shareUrl);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   useEffect(() => {
@@ -280,62 +283,56 @@ export default function PropertyDetailDrawer({ listing, currentUser, onClose, ad
                 : "This listing is verified under Hostkeys Morocco. Owner privacy is protected. Our dedicated advisors manage buyer vetting, viewings, and transaction compliance."}
             </p>
             
-            <div className="border-t border-neutral-900 pt-3.5 space-y-3">
-              <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
-                {lang === 'fr' ? 'Conseillers Immobiliers Dédiés (3)' : 'Assigned Advisory Partners (3)'}
-              </span>
+            {activeAgentsList.length > 0 && (
+              <div className="border-t border-neutral-900 pt-3.5 space-y-3">
+                <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
+                  {lang === 'fr' ? 'Conseillers Immobiliers Dédiés' : 'Assigned Advisory Partners'} ({activeAgentsList.length})
+                </span>
 
-              <div className="space-y-2.5">
-                {HOSTKEYS_AGENTS.map(agent => (
-                  <div key={agent.id} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <img 
-                          src={agent.avatar} 
-                          alt={agent.fullName}
-                          referrerPolicy="no-referrer"
-                          className="h-10 w-10 rounded-full border border-brand/30 object-cover" 
-                        />
-                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-xs text-white">{agent.fullName}</span>
-                          <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
-                            {agent.role}
-                          </span>
+                <div className="space-y-2.5">
+                  {activeAgentsList.map(agent => (
+                    <div key={agent.id} className="bg-[#030303] border border-neutral-850 p-3 rounded-xl flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative shrink-0">
+                          <img 
+                            src={agent.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80'} 
+                            alt={agent.name}
+                            referrerPolicy="no-referrer"
+                            className="h-10 w-10 rounded-full border border-brand/30 object-cover" 
+                          />
+                          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-brand border border-[#030303]" />
                         </div>
-                        <span className="text-[10px] text-slate-400 block font-sans">{agent.title}</span>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[9px] text-slate-500 font-mono">{lang === 'fr' ? 'Langues:' : 'Languages:'}</span>
-                          {agent.languages.map(l => (
-                            <span key={l} className="text-[8px] font-mono bg-neutral-850 text-slate-300 px-1.5 py-0.2 rounded">
-                              {l}
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-xs text-white">{agent.name}</span>
+                            <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.2 rounded-full uppercase font-bold">
+                              {agent.role}
                             </span>
-                          ))}
+                          </div>
+                          <span className="text-[10px] text-slate-400 block font-mono">{agent.email}</span>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col items-end gap-1 shrink-0">
-                      <a
-                        href={`tel:${agent.phone}`}
-                        className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1"
-                      >
-                        <Phone className="h-3 w-3" />
-                        <span>{agent.phone}</span>
-                      </a>
-                      <a
-                        href={`mailto:${agent.email}`}
-                        className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline"
-                      >
-                        {lang === 'fr' ? 'Email direct' : 'Direct Email'}
-                      </a>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <a
+                          href={`tel:${agent.phone || '+212 600-000000'}`}
+                          className="px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand text-brand hover:text-[#030303] text-[10px] font-bold font-mono transition-all border border-brand/20 cursor-pointer flex items-center gap-1"
+                        >
+                          <Phone className="h-3 w-3" />
+                          <span>{agent.phone || '+212 600-000000'}</span>
+                        </a>
+                        <a
+                          href={`mailto:${agent.email}`}
+                          className="text-[10px] text-slate-400 hover:text-brand transition-colors font-mono underline cursor-pointer"
+                        >
+                          {lang === 'fr' ? 'Email direct' : 'Direct Email'}
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

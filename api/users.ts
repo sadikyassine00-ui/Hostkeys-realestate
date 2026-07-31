@@ -5,11 +5,18 @@ const SUPER_ADMIN_EMAIL = 'yassinesadik0@gmail.com';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    // GET /api/users — return all registered users
+    // GET /api/users
     if (req.method === 'GET') {
+      const isPublicRequest = req.query.public === 'true';
+
+      if (isPublicRequest) {
+        // Return only admin and superadmin agents for public display
+        const allUsers = await getAllUsers();
+        const adminAgents = allUsers.filter(u => u.role === 'admin' || u.role === 'superadmin');
+        return res.status(200).json({ agents: adminAgents, isLiveDb: true });
+      }
+
       const requestorEmail = req.headers['x-user-email'] as string;
-      
-      // Only admins and superadmins can list users
       if (!requestorEmail) {
         return res.status(401).json({ error: 'Unauthorized' });
       }

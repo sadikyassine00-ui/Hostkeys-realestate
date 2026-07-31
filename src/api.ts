@@ -130,7 +130,17 @@ export async function uploadImageApi(file: File): Promise<{ url: string; success
   return await res.json();
 }
 
-// --- User Management (Super Admin) ---
+export async function fetchPublicAgentsApi(): Promise<User[]> {
+  try {
+    const res = await fetch('/api/users?public=true');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.agents || [];
+  } catch (err) {
+    return [];
+  }
+}
+
 export async function fetchUsersApi(requestorEmail: string): Promise<{ users: User[]; isLiveDb: boolean }> {
   try {
     const res = await fetch('/api/users', {

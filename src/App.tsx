@@ -15,7 +15,8 @@ import {
   updatePropertyStatusApi, 
   deletePropertyApi, 
   syncUserApi, 
-  checkApiHealth 
+  checkApiHealth,
+  fetchPublicAgentsApi 
 } from './api';
 import { 
   subscribeToAuthState, 
@@ -204,16 +205,50 @@ export default function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('All');
   const [bedroomsFilter, setBedroomsFilter] = useState<number | 'All'>('All');
+  const [bathroomsFilter, setBathroomsFilter] = useState<number | 'All'>('All');
   const [maxPrice, setMaxPrice] = useState<number>(() => {
     return activeSegment === 'buy' ? 20000000 : 80000;
   });
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
   
+  // Registered website admin agents
+  const [activeAgents, setActiveAgents] = useState<User[]>([]);
+
+  useEffect(() => {
+    fetchPublicAgentsApi().then(agents => {
+      if (agents && agents.length > 0) {
+        setActiveAgents(agents);
+      }
+    });
+  }, []);
+
   // Responsive view states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showNewListingForm, setShowNewListingForm] = useState(false);
   const [expandedListing, setExpandedListing] = useState<Listing | null>(null);
+
+  // Deep Link URL parameter auto-open (?property=prop-id)
+  useEffect(() => {
+    if (listings.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const propertyId = params.get('property') || window.location.hash.replace('#property-', '').replace('#', '');
+      if (propertyId) {
+        const found = listings.find(l => l && l.id === propertyId);
+        if (found) setExpandedListing(found);
+      }
+    }
+  }, [listings]);
+
+  const handleOpenListing = (listing: Listing) => {
+    setExpandedListing(listing);
+    window.history.pushState(null, '', `?property=${listing.id}`);
+  };
+
+  const handleCloseListing = () => {
+    setExpandedListing(null);
+    window.history.pushState(null, '', window.location.pathname);
+  };
 
   // Auth Dialog Form State
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -391,10 +426,10 @@ export default function App() {
     setSearchTerm('');
     setSelectedLocation('All');
     setBedroomsFilter('All');
+    setBathroomsFilter('All');
     setSelectedAmenities([]);
-    const baseValue = activeSegment === 'buy' ? 2000000 : 8000;
-    if (currency === 'MAD') setMaxPrice(baseValue * 10.10);
-    else setMaxPrice(baseValue);
+    const baseValue = activeSegment === 'buy' ? 20000000 : 80000;
+    setMaxPrice(baseValue);
   };
 
   const handleUpdateProfile = async (updatedUser: User) => {
@@ -424,7 +459,15 @@ export default function App() {
       if (bedroomsFilter === 4) {
         if (item.bedrooms < 4) return false;
       } else {
-        if (item.bedrooms !== bedroomsFilter) return false;
+        if (item.bedrooms < Number(bedroomsFilter)) return false;
+      }
+    }
+
+    if (bathroomsFilter !== 'All') {
+      if (bathroomsFilter === 3) {
+        if (item.bathrooms < 3) return false;
+      } else {
+        if (item.bathrooms < Number(bathroomsFilter)) return false;
       }
     }
 
@@ -432,7 +475,7 @@ export default function App() {
     if (valuationInActiveCurrency > maxPrice) return false;
 
     if (selectedAmenities.length > 0) {
-      const hasAll = selectedAmenities.every(amenity => item.amenities.includes(amenity));
+      const hasAll = selectedAmenities.every(amenity => item.amenities && item.amenities.includes(amenity));
       if (!hasAll) return false;
     }
 
@@ -690,15 +733,15 @@ export default function App() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="mt-3 bg-[#0c0c0c] border border-neutral-850 rounded-2xl p-4 text-left space-y-4 overflow-hidden font-mono text-xs"
+                      className="mt-3 bg-[#0c0c0c] border border-neutral-850 rounded-2xl p-5 text-left space-y-5 overflow-hidden font-mono text-xs shadow-2xl"
                     >
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                           <label className="block text-slate-400 mb-1">{t('filterNeighborhood', lang)}</label>
                           <select
                             value={selectedLocation}
                             onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
+                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
                             {ALL_LOCATIONS.map(loc => (
@@ -712,13 +755,27 @@ export default function App() {
                           <select
                             value={bedroomsFilter}
                             onChange={(e) => setBedroomsFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
-                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none"
+                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
-                            <option value={1}>1 Bed</option>
-                            <option value={2}>2 Beds</option>
-                            <option value={3}>3 Beds</option>
+                            <option value={1}>1+ Bed</option>
+                            <option value={2}>2+ Beds</option>
+                            <option value={3}>3+ Beds</option>
                             <option value={4}>4+ Beds</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</label>
+                          <select
+                            value={bathroomsFilter}
+                            onChange={(e) => setBathroomsFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
+                            className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
+                          >
+                            <option value="All">{t('allFilters', lang)}</option>
+                            <option value={1}>1+ Bath</option>
+                            <option value={2}>2+ Baths</option>
+                            <option value={3}>3+ Baths</option>
                           </select>
                         </div>
 
@@ -733,13 +790,45 @@ export default function App() {
                             step={activeSegment === 'buy' ? 50000 : 500}
                             value={maxPrice}
                             onChange={(e) => setMaxPrice(Number(e.target.value))}
-                            className="w-full accent-brand cursor-pointer"
+                            className="w-full accent-brand cursor-pointer mt-2"
                           />
                         </div>
                       </div>
 
-                      <div className="flex justify-end gap-2 pt-2 border-t border-neutral-900">
-                        <button onClick={handleResetFilters} className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white">
+                      {/* AMENITIES FILTER CHIPS */}
+                      <div className="pt-2 border-t border-neutral-900 space-y-2">
+                        <label className="block text-slate-400 font-bold uppercase text-[10px] tracking-wider">
+                          {lang === 'fr' ? 'Équipements & Prestations' : 'Amenities & Specifications'}
+                        </label>
+                        <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                          {ALL_AMENITIES.map(amenity => {
+                            const isSelected = selectedAmenities.includes(amenity);
+                            return (
+                              <button
+                                key={amenity}
+                                type="button"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedAmenities(selectedAmenities.filter(a => a !== amenity));
+                                  } else {
+                                    setSelectedAmenities([...selectedAmenities, amenity]);
+                                  }
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] transition-all border cursor-pointer flex items-center gap-1 ${isSelected ? 'bg-brand/10 border-brand text-brand font-bold' : 'bg-[#030303] border-neutral-850 text-slate-400 hover:text-white'}`}
+                              >
+                                {isSelected && <Check className="h-2.5 w-2.5 shrink-0" />}
+                                {amenity}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2 border-t border-neutral-900">
+                        <span className="text-[11px] text-slate-500">
+                          {selectedAmenities.length > 0 ? `${selectedAmenities.length} ${lang === 'fr' ? 'équipement(s) sélectionné(s)' : 'amenity filter(s) active'}` : ''}
+                        </span>
+                        <button onClick={handleResetFilters} className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white cursor-pointer font-bold">
                           {t('resetFilters', lang)}
                         </button>
                       </div>
@@ -775,12 +864,14 @@ export default function App() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredListings.map(listing => (
+                {filteredListings.map((listing) => (
                   <PropertyCard
                     key={listing.id}
                     listing={translateListing(listing, lang)}
+                    adminUser={users.find(u => u.id === listing.approvedByAdminId) || DEMO_ADMIN}
                     currentUser={currentUser}
-                    onSelect={(l) => setExpandedListing(l)}
+                    agents={activeAgents}
+                    onSelect={(l) => handleOpenListing(l)}
                     currency={currency}
                     eurRate={eurRate}
                     lang={lang}
@@ -941,8 +1032,9 @@ export default function App() {
           <PropertyDetailDrawer
             listing={translateListing(expandedListing, lang)}
             currentUser={currentUser}
+            agents={activeAgents}
             adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEMO_ADMIN}
-            onClose={() => setExpandedListing(null)}
+            onClose={handleCloseListing}
             currency={currency}
             eurRate={eurRate}
             lang={lang}
