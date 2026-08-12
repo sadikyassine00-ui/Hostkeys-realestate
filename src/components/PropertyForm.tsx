@@ -487,7 +487,7 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
                   className={`p-2 rounded-lg text-[10px] text-left transition-all border cursor-pointer flex items-center gap-1 ${selectedAmenities.includes(amenity) ? 'bg-brand/10 border-brand text-brand font-bold' : 'border-neutral-850 text-slate-400 hover:text-white'}`}
                 >
                   {selectedAmenities.includes(amenity) && <Check className="h-2.5 w-2.5 shrink-0" />}
-                  {amenity}
+                  {translateAmenity(amenity, lang)}
                 </button>
               ))}
             </div>

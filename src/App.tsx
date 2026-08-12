@@ -1123,7 +1123,7 @@ export default function App() {
                                 className={`px-2.5 py-1 rounded-lg text-[10px] transition-all border cursor-pointer flex items-center gap-1 ${isSelected ? 'bg-brand/10 border-brand text-brand font-bold' : 'bg-[#030303] border-neutral-850 text-slate-400 hover:text-white'}`}
                               >
                                 {isSelected && <Check className="h-2.5 w-2.5 shrink-0" />}
-                                {amenity}
+                                {translateAmenity(amenity, lang)}
                               </button>
                             );
                           })}

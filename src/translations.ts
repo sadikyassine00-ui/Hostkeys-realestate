@@ -386,6 +386,25 @@ export const LOCATION_TRANSLATIONS: Record<string, string> = {
 
 // Map of standard amenities to French equivalents
 export const AMENITY_TRANSLATIONS: Record<string, string> = {
+  // Authentic Moroccan Amenities
+  'Traditional Hammam': 'Hammam Traditionnel',
+  'Central Courtyard Patio': 'Patio Central Arboré',
+  'Zellige Tile Work': 'Revêtement en Zellige',
+  'Rooftop Terrace': 'Terrasse Panoramique Sur Le Toit',
+  'Swimming Pool': 'Piscine Privative',
+  'Beldi Fireplace': 'Cheminée Beldi',
+  'Sculpted Cedar Ceilings': 'Plafond en Bois de Cèdre Sculpté',
+  'Atlas Mountain View': 'Vue Panoramique sur l\'Atlas',
+  'Olive & Citrus Garden': 'Jardin d\'Oliviers & Agrumes',
+  'Tadelakt Bathrooms': 'Salles de Bain en Tadelakt',
+  'Traditional Salon (Bhou)': 'Salon Marocain Traditionnel (Bhou)',
+  'Air Conditioning': 'Climatisation Réversible',
+  'High-Speed Fiber Wifi': 'Fibre Optique Haut Débit',
+  '24/7 Security & Concierge': 'Sécurité 24/7 & Conciergerie',
+  'Private Garage & Parking': 'Garage Privé & Parking',
+  'Solar Water Heater': 'Chauffe-eau Solaire',
+
+  // Fallbacks for existing database listings
   'Pool': 'Piscine',
   'Gym': 'Salle de sport',
   'Smart Home': 'Maison intelligente',
@@ -395,7 +414,7 @@ export const AMENITY_TRANSLATIONS: Record<string, string> = {
   'High Speed Wifi': 'Fibre haut débit',
   'Wooden Sauna': 'Sauna en bois',
   'Hot Tub': 'Bain à remous',
-  'Fireplace': 'Cheminée',
+  'Fireplace': 'Cheminée Beldi',
   'Concierge Service': 'Service de conciergerie',
   'Rainwater Harvesting': 'Récupérateur d\'eau',
   'Minimalist Patio': 'Patio minimaliste',

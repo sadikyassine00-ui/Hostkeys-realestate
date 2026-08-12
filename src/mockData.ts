@@ -59,20 +59,22 @@ export const ALL_CITIES = [
 export const ALL_LOCATIONS = ALL_CITIES;
 
 export const ALL_AMENITIES = [
-  'Pool',
-  'Gym',
-  'Smart Home',
-  'Solar Grid',
-  'Security System',
-  'Wine Cellar',
-  'High Speed Wifi',
-  'Wooden Sauna',
-  'Hot Tub',
-  'Fireplace',
-  'Concierge Service',
-  'Rainwater Harvesting',
-  'Minimalist Patio',
-  'Covered Parking'
+  'Traditional Hammam',
+  'Central Courtyard Patio',
+  'Zellige Tile Work',
+  'Rooftop Terrace',
+  'Swimming Pool',
+  'Beldi Fireplace',
+  'Sculpted Cedar Ceilings',
+  'Atlas Mountain View',
+  'Olive & Citrus Garden',
+  'Tadelakt Bathrooms',
+  'Traditional Salon (Bhou)',
+  'Air Conditioning',
+  'High-Speed Fiber Wifi',
+  '24/7 Security & Concierge',
+  'Private Garage & Parking',
+  'Solar Water Heater'
 ];
 
 export const INITIAL_LISTINGS: Listing[] = [];
