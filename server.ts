@@ -180,30 +180,28 @@ app.get("/api/exchange-rate", (req, res) => {
 });
 
 // Vite / Static Files Production Handler
-const isProd = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 3000;
 
-async function startServer() {
-  if (isProd) {
-    const distPath = path.join(__dirname, "dist");
-    app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
-    });
-  } else {
-    const { createServer: createViteServer } = await import("vite");
+if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  import("vite").then(async ({ createServer: createViteServer }) => {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
-  }
+  });
+} else if (!process.env.VERCEL) {
+  const distPath = path.join(__dirname, "dist");
+  app.use(express.static(distPath));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
+if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
   app.listen(PORT, () => {
     console.log(`\n  ➜  Local:   http://localhost:${PORT}/\n`);
   });
 }
-
-startServer();
 
 export default app;
