@@ -1064,10 +1064,10 @@ export default function App() {
                             className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
-                            <option value={1}>1+ Bed</option>
-                            <option value={2}>2+ Beds</option>
-                            <option value={3}>3+ Beds</option>
-                            <option value={4}>4+ Beds</option>
+                            <option value={1}>1+ {lang === 'fr' ? 'Chambre' : 'Bedroom'}</option>
+                            <option value={2}>2+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
+                            <option value={3}>3+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
+                            <option value={4}>4+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
                           </select>
                         </div>
 
@@ -1079,9 +1079,9 @@ export default function App() {
                             className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
-                            <option value={1}>1+ Bath</option>
-                            <option value={2}>2+ Baths</option>
-                            <option value={3}>3+ Baths</option>
+                            <option value={1}>1+ {lang === 'fr' ? 'Salle de bain' : 'Bathroom'}</option>
+                            <option value={2}>2+ {lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
+                            <option value={3}>3+ {lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
                           </select>
                         </div>
 

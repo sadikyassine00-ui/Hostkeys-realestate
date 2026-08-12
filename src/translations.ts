@@ -255,7 +255,7 @@ export const DICTIONARY = {
     cardBed: "Lit",
     cardBeds: "Lits",
     cardBath: "SdB",
-    cardBaths: "SdB",
+    cardBaths: "SdBs",
     cardContactBroker: "Contacter Hostkeys Admin",
     cardContactOwner: "Contacter le Propriétaire",
     cardForSale: "En Vente",

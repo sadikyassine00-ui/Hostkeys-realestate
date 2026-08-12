@@ -294,18 +294,18 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <DoorOpen className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBedrooms', lang)}</p>
-                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bedrooms}</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBedroom', lang) : t('cardBedrooms', lang)}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Bed className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBeds', lang)}</p>
-                <p className="text-sm font-bold text-slate-200 font-mono">{listing.beds || listing.bedrooms}</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Lits' : 'Beds'}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.beds || listing.bedrooms} {(listing.beds || listing.bedrooms) === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Bath className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{t('cardBaths', lang)}</p>
-                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bathrooms}</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.bathrooms} {listing.bathrooms === 1 ? t('cardBath', lang) : t('cardBaths', lang)}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Maximize className="h-4 w-4 text-brand mb-1" />

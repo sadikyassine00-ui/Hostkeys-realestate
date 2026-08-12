@@ -269,7 +269,9 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</label>
               <select value={bedrooms} onChange={(e) => setBedrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'Room' : 'Rooms'}</option>
+                  <option key={num} value={num}>
+                    {num} {lang === 'fr' ? (num === 1 ? 'Chambre' : 'Chambres') : (num === 1 ? 'Bedroom' : 'Bedrooms')}
+                  </option>
                 ))}
               </select>
             </div>
@@ -278,7 +280,9 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Lits' : 'Beds'}</label>
               <select value={beds} onChange={(e) => setBeds(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'Bed' : 'Beds'}</option>
+                  <option key={num} value={num}>
+                    {num} {lang === 'fr' ? (num === 1 ? 'Lit' : 'Lits') : (num === 1 ? 'Bed' : 'Beds')}
+                  </option>
                 ))}
               </select>
             </div>
@@ -287,7 +291,9 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de Bain' : 'Bathrooms'}</label>
               <select value={bathrooms} onChange={(e) => setBathrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 1.5, 2, 2.5, 3, 3.5, 4, 5].map(num => (
-                  <option key={num} value={num}>{num} {num === 1 ? 'Bath' : 'Baths'}</option>
+                  <option key={num} value={num}>
+                    {num} {lang === 'fr' ? (num <= 1 ? 'SdB' : 'SdBs') : (num === 1 ? 'Bath' : 'Baths')}
+                  </option>
                 ))}
               </select>
             </div>
