@@ -268,7 +268,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
                       <div className="flex items-center justify-between gap-1">
                         <span className="text-[11px] font-bold text-slate-200 truncate">{firstName}</span>
                         <span className="text-[8px] font-mono text-brand bg-brand/10 px-1 rounded uppercase font-semibold shrink-0">
-                          {agent?.role === 'superadmin' ? 'SA' : 'Admin'}
+                          {agent?.role === 'superadmin' ? 'SA' : agent?.role === 'admin' ? 'Admin' : 'Owner'}
                         </span>
                       </div>
                       <span className="text-[9px] font-mono text-slate-450 block truncate">{agent?.phone || agent?.email || '+212 600-000000'}</span>

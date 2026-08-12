@@ -269,8 +269,8 @@ export default function App() {
 
   // Dynamically compute real active site agents (promoted Admins strictly, excluding Super Admin)
   const getActiveSiteAgents = (): User[] => {
-    const promotedAdmins = users.filter(u => u && u.role === 'admin' && u.role !== 'superadmin' && u.email !== SUPER_ADMIN_EMAIL && u.isAgent !== false);
-    const apiAdmins = fetchedAgents.filter(u => u && u.role !== 'superadmin' && u.email !== SUPER_ADMIN_EMAIL && u.isAgent !== false);
+    const promotedAdmins = users.filter(u => u && u.role === 'admin' && u.email !== SUPER_ADMIN_EMAIL && Boolean(u.isAgent));
+    const apiAdmins = fetchedAgents.filter(u => u && u.role === 'admin' && u.email !== SUPER_ADMIN_EMAIL && Boolean(u.isAgent));
 
     const allAdmins = [...promotedAdmins, ...apiAdmins];
     const uniqueAdminsMap = new Map<string, User>();
@@ -564,7 +564,7 @@ export default function App() {
 
   const handleUpdateUserRole = (userId: string, newRole: 'owner' | 'admin', success: boolean, errorMsg?: string) => {
     if (success) {
-      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole, isAgent: newRole === 'owner' ? false : u.isAgent } : u));
       addToast('success', lang === 'fr' ? 'Rôle utilisateur mis à jour avec succès !' : 'User role updated successfully!');
     } else {
       addToast('error', lang === 'fr' ? `Échec de mise à jour du rôle: ${errorMsg || 'Erreur serveur'}` : `Role update failed: ${errorMsg || 'Server error'}`);

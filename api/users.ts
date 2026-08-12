@@ -89,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         if (isPublic) {
-          const agents = users.filter((u: any) => (u.isAgent || u.role === 'admin') && u.role !== 'superadmin' && u.email?.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase());
+          const agents = users.filter((u: any) => u.role === 'admin' && Boolean(u.isAgent) && u.email?.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase());
           return res.status(200).json({ agents, isLiveDb: true });
         }
 
@@ -169,8 +169,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // User exists — update role and agent status
         if (newRole && ['owner', 'admin'].includes(newRole)) {
+          const isOwnerRole = newRole === 'owner';
           await sql`
-            UPDATE users SET role = ${newRole}
+            UPDATE users SET role = ${newRole}, is_agent = CASE WHEN ${isOwnerRole} THEN false ELSE is_agent END
             WHERE LOWER(email) = ${targetEmail} AND LOWER(email) != ${SUPER_ADMIN_EMAIL.toLowerCase()};
           `;
         }

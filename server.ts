@@ -144,7 +144,7 @@ app.delete("/api/properties", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   const isPublicRequest = req.query.public === "true";
   if (isPublicRequest) {
-    return res.json({ agents: memoryUsers.filter(u => (u.role === "admin" || u.isAgent) && u.role !== "superadmin" && u.email?.toLowerCase() !== "yassinesadik0@gmail.com"), isLiveDb: false });
+    return res.json({ agents: memoryUsers.filter(u => u.role === "admin" && Boolean(u.isAgent) && u.email?.toLowerCase() !== "yassinesadik0@gmail.com"), isLiveDb: false });
   }
 
   return res.json({ users: memoryUsers, isLiveDb: false });

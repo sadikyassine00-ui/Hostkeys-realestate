@@ -224,9 +224,10 @@ export async function updateUserRole(userIdOrEmail: string, newRole: 'owner' | '
   }
 
   try {
+    const isOwnerRole = newRole === 'owner';
     await sql`
       UPDATE users 
-      SET role = ${newRole} 
+      SET role = ${newRole}, is_agent = CASE WHEN ${isOwnerRole} THEN false ELSE is_agent END
       WHERE (id = ${userIdOrEmail} OR email = ${userIdOrEmail}) AND email != ${SUPER_ADMIN_EMAIL};
     `;
     return { success: true, message: `User role updated to ${newRole}` };
