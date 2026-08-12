@@ -5,6 +5,8 @@ import {
   DoorOpen,
   Bath, 
   Maximize, 
+  Maximize2,
+  ZoomIn,
   ShieldCheck, 
   Mail, 
   Phone, 
@@ -55,6 +57,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
   const [showBrokerDirect, setShowBrokerDirect] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const isSuperAdmin = currentUser && currentUser.email === 'yassinesadik0@gmail.com';
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin' || isSuperAdmin);
@@ -104,6 +107,18 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
     e?.stopPropagation();
     setCurrentImgIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
   };
+
+  // Keyboard navigation for full-screen Lightbox
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') setCurrentImgIndex((prev) => (prev + 1) % propertyImages.length);
+      else if (e.key === 'ArrowLeft') setCurrentImgIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
+      else if (e.key === 'Escape') setIsLightboxOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, propertyImages.length]);
 
   const isDirectAdminListing = listing.ownerId.startsWith('admin');
   const contactName = isDirectAdminListing
@@ -198,8 +213,8 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Cover image slider / carousel */}
           <div 
-            className="relative h-56 md:h-64 rounded-xl overflow-hidden bg-neutral-950/45 border border-neutral-900 group cursor-pointer select-none"
-            onClick={() => handleNextPhoto()}
+            className="relative h-60 md:h-72 rounded-xl overflow-hidden bg-neutral-950/45 border border-neutral-900 group cursor-pointer select-none"
+            onClick={() => setIsLightboxOpen(true)}
           >
             <AnimatePresence mode="wait">
               <motion.img 
@@ -214,30 +229,41 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                 transition={{ duration: 0.3 }}
               />
             </AnimatePresence>
+
+            {/* Click to expand overlay hint */}
+            <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-10">
+              <div className="bg-black/80 text-white px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-mono flex items-center gap-1.5 backdrop-blur-md shadow-2xl">
+                <ZoomIn className="h-4 w-4 text-brand" />
+                <span>{lang === 'fr' ? 'Agrandir la photo' : 'Click to Expand'}</span>
+              </div>
+            </div>
             
             {/* Slider controls */}
             {propertyImages.length > 1 && (
               <>
                 <button
                   onClick={(e) => handlePrevPhoto(e)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/65 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-10 cursor-pointer"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/75 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-20 cursor-pointer"
+                  title="Previous Photo"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={(e) => handleNextPhoto(e)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/65 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-10 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/75 border border-neutral-900 text-slate-300 hover:text-brand hover:scale-110 flex items-center justify-center transition-all z-20 cursor-pointer"
+                  title="Next Photo"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
-                <div className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-black/75 border border-neutral-800 text-[10px] font-mono text-slate-300 backdrop-blur-md">
-                  {currentImgIndex + 1} / {propertyImages.length}
+                <div className="absolute bottom-3 right-3 z-20 px-2.5 py-1 rounded-full bg-black/80 border border-neutral-800 text-[10px] font-mono text-slate-300 backdrop-blur-md flex items-center gap-1.5">
+                  <Maximize2 className="h-3 w-3 text-brand" />
+                  <span>{currentImgIndex + 1} / {propertyImages.length}</span>
                 </div>
               </>
             )}
             
             {isMyListing && (
-              <span className="absolute top-4 left-4 z-10 rounded-full bg-[#030303]/90 px-3 py-1 text-xs font-medium text-brand border border-brand/20 backdrop-blur-md">
+              <span className="absolute top-4 left-4 z-20 rounded-full bg-[#030303]/90 px-3 py-1 text-xs font-medium text-brand border border-brand/20 backdrop-blur-md">
                 {t('cardYourSubmission', lang)}
               </span>
             )}
@@ -433,6 +459,106 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
           </div>
         </div>
       </motion.div>
+
+      {/* FULLSCREEN EXPANDED IMAGE LIGHTBOX MODAL */}
+      <AnimatePresence>
+        {isLightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-60 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-6"
+            onClick={() => setIsLightboxOpen(false)}
+          >
+            {/* Top Bar */}
+            <div 
+              className="flex items-center justify-between w-full max-w-7xl mx-auto z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-sm md:text-base font-bold text-white font-sans truncate max-w-md">{listing.title}</span>
+                <span className="px-3 py-1 rounded-full bg-neutral-900 border border-neutral-800 text-xs font-mono text-brand font-semibold">
+                  {currentImgIndex + 1} / {propertyImages.length}
+                </span>
+              </div>
+              <button
+                onClick={() => setIsLightboxOpen(false)}
+                className="p-2 rounded-full bg-neutral-900 hover:bg-neutral-800 text-slate-300 hover:text-white border border-neutral-800 transition-all cursor-pointer"
+                title="Close Lightbox (Esc)"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Main Stage Image & Navigation Arrows */}
+            <div 
+              className="relative flex-1 flex items-center justify-center my-3 overflow-hidden w-full max-w-7xl mx-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {propertyImages.length > 1 && (
+                <button
+                  onClick={(e) => handlePrevPhoto(e)}
+                  className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/80 hover:bg-brand text-slate-200 hover:text-[#030303] border border-neutral-800 hover:border-brand flex items-center justify-center transition-all z-20 cursor-pointer shadow-2xl hover:scale-110"
+                  title="Previous Photo (Left Arrow)"
+                >
+                  <ChevronLeft className="h-7 w-7" />
+                </button>
+              )}
+
+              <AnimatePresence mode="wait">
+                <motion.img
+                  key={currentImgIndex}
+                  src={propertyImages[currentImgIndex]}
+                  referrerPolicy="no-referrer"
+                  alt={`${listing.title} - photo ${currentImgIndex + 1}`}
+                  className="max-h-[75vh] md:max-h-[82vh] max-w-full object-contain rounded-2xl shadow-2xl border border-neutral-900 select-none"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  transition={{ duration: 0.2 }}
+                />
+              </AnimatePresence>
+
+              {propertyImages.length > 1 && (
+                <button
+                  onClick={(e) => handleNextPhoto(e)}
+                  className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-black/80 hover:bg-brand text-slate-200 hover:text-[#030303] border border-neutral-800 hover:border-brand flex items-center justify-center transition-all z-20 cursor-pointer shadow-2xl hover:scale-110"
+                  title="Next Photo (Right Arrow)"
+                >
+                  <ChevronRight className="h-7 w-7" />
+                </button>
+              )}
+            </div>
+
+            {/* Bottom Thumbnails Strip */}
+            {propertyImages.length > 1 && (
+              <div 
+                className="w-full max-w-4xl mx-auto flex items-center justify-center gap-2.5 overflow-x-auto py-2 px-4 z-10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {propertyImages.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImgIndex(idx)}
+                    className={`relative h-14 w-20 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
+                      idx === currentImgIndex
+                        ? 'border-brand scale-105 shadow-[0_0_20px_rgba(0,240,255,0.5)]'
+                        : 'border-neutral-850 opacity-50 hover:opacity-100 hover:border-neutral-600'
+                    }`}
+                  >
+                    <img
+                      src={imgUrl}
+                      referrerPolicy="no-referrer"
+                      alt={`thumbnail-${idx}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
