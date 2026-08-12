@@ -200,7 +200,10 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             <span className="rounded-full bg-brand/10 text-brand border border-brand/20 px-2.5 py-0.5 text-[10px] font-bold font-mono uppercase tracking-wider">
               {listing.type === 'buy' ? t('cardForSale', lang) : t('cardForRent', lang)}
             </span>
-            <span className="text-[10px] font-mono text-neutral-450 uppercase">{lang === 'fr' ? 'PROPRIÉTÉ HOSTKEYS CERTIFIÉE' : 'HOSTKEYS VERIFIED PROPERTY'}</span>
+            <span className="rounded-full bg-brand/10 text-brand border border-brand/20 px-2.5 py-0.5 text-[10px] font-bold font-mono uppercase tracking-wider">
+              {listing.type === 'buy' ? t('cardForSale', lang) : t('cardForRent', lang)}
+            </span>
+            <span className="text-[10px] font-mono text-neutral-450 uppercase">{lang === 'ar' ? 'عقار معتمد لدى هوستكيز' : lang === 'fr' ? 'PROPRIÉTÉ HOSTKEYS CERTIFIÉE' : 'HOSTKEYS VERIFIED PROPERTY'}</span>
           </div>
           <button 
             onClick={onClose}
@@ -235,7 +238,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none z-10">
               <div className="bg-black/80 text-white px-3.5 py-1.5 rounded-full border border-white/20 text-xs font-mono flex items-center gap-1.5 backdrop-blur-md shadow-2xl">
                 <ZoomIn className="h-4 w-4 text-brand" />
-                <span>{lang === 'fr' ? 'Agrandir la photo' : 'Click to Expand'}</span>
+                <span>{lang === 'ar' ? 'انقر لتكبير الصورة' : lang === 'fr' ? 'Agrandir la photo' : 'Click to Expand'}</span>
               </div>
             </div>
             
@@ -291,36 +294,36 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
           {/* Metric specs breakdown */}
           <div className="space-y-2.5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Caractéristiques' : 'Property Specifications'}</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'ar' ? 'المواصفات الفنية' : lang === 'fr' ? 'Caractéristiques' : 'Property Specifications'}</h3>
             <div className={`grid gap-2.5 ${listing.type === 'rent' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <DoorOpen className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'ar' ? 'عدد الغرف' : lang === 'fr' ? 'Chambres' : 'Bedrooms'}</p>
                 <p className="text-sm font-bold text-slate-200 font-mono">{listing.bedrooms} {listing.bedrooms === 1 ? t('cardBedroom', lang) : t('cardBedrooms', lang)}</p>
               </div>
               {listing.type === 'rent' && (
                 <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                   <Bed className="h-4 w-4 text-brand mb-1" />
-                  <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Lits' : 'Beds'}</p>
+                  <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'ar' ? 'عدد الأسرة' : lang === 'fr' ? 'Lits' : 'Beds'}</p>
                   <p className="text-sm font-bold text-slate-200 font-mono">{listing.beds || listing.bedrooms} {(listing.beds || listing.bedrooms) === 1 ? t('cardBed', lang) : t('cardBeds', lang)}</p>
                 </div>
               )}
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Bath className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'ar' ? 'عدد الحمامات' : lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</p>
                 <p className="text-sm font-bold text-slate-200 font-mono">{listing.bathrooms} {listing.bathrooms === 1 ? t('cardBath', lang) : t('cardBaths', lang)}</p>
               </div>
               <div className="bg-[#030303] rounded-xl p-3 border border-neutral-900">
                 <Maximize className="h-4 w-4 text-brand mb-1" />
-                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'fr' ? 'Surface' : 'Area'}</p>
-                <p className="text-sm font-bold text-slate-200 font-mono">{listing.squareMeters} m²</p>
+                <p className="text-[10px] text-neutral-500 font-mono uppercase">{lang === 'ar' ? 'المساحة' : lang === 'fr' ? 'Surface' : 'Area'}</p>
+                <p className="text-sm font-bold text-slate-200 font-mono">{listing.squareMeters} {lang === 'ar' ? 'م²' : 'm²'}</p>
               </div>
             </div>
           </div>
 
           {/* Description */}
           <div className="space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'fr' ? 'Description' : 'Property Overview'}</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 font-mono">{lang === 'ar' ? 'الوصف التفصيلي' : lang === 'fr' ? 'Description' : 'Property Overview'}</h3>
             <div className="bg-[#030303] p-4 rounded-xl border border-neutral-900 text-xs text-slate-300 leading-relaxed font-sans whitespace-pre-line">
               {listing.description}
             </div>
@@ -370,7 +373,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                   className="px-3 py-1.5 rounded-lg bg-brand text-[#030303] font-bold text-xs flex items-center gap-1.5 hover:bg-brand/90 transition-colors"
                 >
                   <Phone className="h-3.5 w-3.5" />
-                  <span>{lang === 'fr' ? 'Appeler' : 'Call'}</span>
+                  <span>{lang === 'ar' ? 'اتصال' : lang === 'fr' ? 'Appeler' : 'Call'}</span>
                 </a>
               </div>
             )}
@@ -379,7 +382,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
             {agents && agents.length > 0 && (
               <div className="border-t border-neutral-900 pt-3.5 space-y-3">
                 <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
-                  {lang === 'fr' ? 'Conseiller(s) Dédié(s)' : 'Assigned Agent(s)'} ({agents.length})
+                  {lang === 'ar' ? 'الوكلاء المعتمدون' : lang === 'fr' ? 'Conseiller(s) Dédié(s)' : 'Assigned Agent(s)'} ({agents.length})
                 </span>
                 <div className="space-y-2.5">
                   {agents.map((agent, idx) => (
@@ -415,7 +418,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
         <div className="bg-[#030303] border-t border-neutral-900 px-6 py-4 flex flex-col gap-3 font-mono text-xs">
           <div className="flex items-center justify-between text-neutral-500">
             <span className="flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5 text-brand" /> Hostkeys Certified
+              <Calendar className="h-3.5 w-3.5 text-brand" /> {lang === 'ar' ? 'معتمد لدى هوستكيز' : 'Hostkeys Certified'}
             </span>
             <span>Ref: {listing.id.toUpperCase()}</span>
           </div>
@@ -426,7 +429,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
               className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg border border-neutral-850 text-neutral-300 hover:text-brand hover:bg-[#0b0b0b] transition-all cursor-pointer min-w-[120px]"
             >
               {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Share2 className="h-4 w-4 text-brand" />}
-              <span>{copied ? (lang === 'fr' ? 'Lien Copié !' : 'Link Copied!') : (lang === 'fr' ? 'Partager' : 'Share')}</span>
+              <span>{copied ? (lang === 'ar' ? 'تم نسخ الرابط!' : lang === 'fr' ? 'Lien Copié !' : 'Link Copied!') : (lang === 'ar' ? 'مشاركة' : lang === 'fr' ? 'Partager' : 'Share')}</span>
             </button>
 
             {canEdit && onEditListing && (
@@ -435,14 +438,14 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white border border-sky-500/20 font-bold transition-all cursor-pointer"
               >
                 <Pencil className="h-4 w-4" />
-                <span>{lang === 'fr' ? 'Éditer' : 'Edit'}</span>
+                <span>{lang === 'ar' ? 'تعديل' : lang === 'fr' ? 'Éditer' : 'Edit'}</span>
               </button>
             )}
 
             {canDelete && onDeleteListing && (
               <button
                 onClick={() => {
-                  if (confirm(lang === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette propriété ?' : 'Are you sure you want to delete this property?')) {
+                  if (confirm(lang === 'ar' ? 'هل أنت تأكد من رغبتك في حذف هذا العقار؟' : lang === 'fr' ? 'Êtes-vous sûr de vouloir supprimer cette propriété ?' : 'Are you sure you want to delete this property?')) {
                     onDeleteListing(listing.id);
                   }
                 }}

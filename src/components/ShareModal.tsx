@@ -111,7 +111,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
             <div className="flex items-center gap-2">
               <Share2 className="h-5 w-5 text-brand" />
               <h3 className="text-base font-bold text-white font-sans">
-                {lang === 'fr' ? 'Partager cette Propriété' : 'Share Property'}
+                {lang === 'ar' ? 'مشاركة هذا العقار' : lang === 'fr' ? 'Partager cette Propriété' : 'Share Property'}
               </h3>
             </div>
             <button
@@ -131,7 +131,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
             />
             <div className="min-w-0 flex-1">
               <h4 className="text-xs font-bold text-white truncate leading-tight">{listing.title}</h4>
-              <p className="text-[10px] font-mono text-slate-400 truncate mt-0.5">{listing.location}, Morocco</p>
+              <p className="text-[10px] font-mono text-slate-400 truncate mt-0.5">{listing.location}, {lang === 'ar' ? 'المغرب' : 'Morocco'}</p>
               <p className="text-xs font-mono font-bold text-brand mt-1">{priceFormatted}</p>
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
           {/* Share Channels Grid */}
           <div className="space-y-2">
             <span className="text-[11px] font-mono uppercase text-slate-400 font-bold block tracking-wider">
-              {lang === 'fr' ? 'Choisir une plateforme' : 'Choose Platform'}
+              {lang === 'ar' ? 'اختر منصة المشاركة' : lang === 'fr' ? 'Choisir une plateforme' : 'Choose Platform'}
             </span>
 
             <div className="grid grid-cols-2 gap-2.5">
@@ -194,7 +194,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
                 className="flex items-center gap-2.5 p-3 rounded-xl bg-neutral-900 hover:bg-neutral-850 border border-neutral-800 text-slate-200 hover:text-white transition-all font-mono text-xs font-semibold cursor-pointer"
               >
                 <Mail className="h-4 w-4 shrink-0 text-slate-400" />
-                <span>{lang === 'fr' ? 'Email' : 'Direct Email'}</span>
+                <span>{lang === 'ar' ? 'بريد إلكتروني' : lang === 'fr' ? 'Email' : 'Direct Email'}</span>
               </button>
             </div>
           </div>
@@ -202,7 +202,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
           {/* Copy Direct Link Section */}
           <div className="pt-2 border-t border-neutral-900 space-y-2">
             <span className="text-[11px] font-mono text-slate-400 font-bold uppercase tracking-wider block">
-              {lang === 'fr' ? 'Lien direct' : 'Direct Link'}
+              {lang === 'ar' ? 'الرابط المباشر' : lang === 'fr' ? 'Lien direct' : 'Direct Link'}
             </span>
 
             <div className="flex items-center gap-2">
@@ -221,7 +221,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
                 }`}
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                <span>{copied ? (lang === 'fr' ? 'Copié !' : 'Copied!') : (lang === 'fr' ? 'Copier' : 'Copy Link')}</span>
+                <span>{copied ? (lang === 'ar' ? 'تم النسخ!' : lang === 'fr' ? 'Copié !' : 'Copied!') : (lang === 'ar' ? 'نسخ الرابط' : lang === 'fr' ? 'Copier' : 'Copy Link')}</span>
               </button>
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function ShareModal({ listing, currency, eurRate, lang, onClose }
               className="w-full py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-850 text-slate-200 hover:text-white font-mono text-xs font-bold border border-neutral-800 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <ExternalLink className="h-4 w-4 text-brand" />
-              <span>{lang === 'fr' ? 'Menu de partage système' : 'System Share Menu'}</span>
+              <span>{lang === 'ar' ? 'قائمة المشاركة في النظام' : lang === 'fr' ? 'Menu de partage système' : 'System Share Menu'}</span>
             </button>
           )}
         </motion.div>

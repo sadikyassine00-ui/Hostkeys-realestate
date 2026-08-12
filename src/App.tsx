@@ -1298,7 +1298,7 @@ export default function App() {
 
               <div className="relative flex items-center justify-center text-xs font-mono text-slate-500">
                 <div className="border-t border-neutral-850 w-full" />
-                <span className="bg-[#0c0c0c] px-3 absolute">OR</span>
+                <span className="bg-[#0c0c0c] px-3 absolute">{lang === 'ar' ? 'أو' : lang === 'fr' ? 'OU' : 'OR'}</span>
               </div>
 
               <form onSubmit={handleRegisterAccount} className="space-y-3 font-mono text-xs">
@@ -1329,7 +1329,7 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-400 mb-1">Password</label>
+                  <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'كلمة السر' : lang === 'fr' ? 'Mot de passe' : 'Password'}</label>
                   <input
                     type="password"
                     required
@@ -1340,15 +1340,15 @@ export default function App() {
                   />
                 </div>
 
-
-
                 <div className="flex items-center justify-between pt-2">
                   <button
                     type="button"
                     onClick={() => setAuthMode(authMode === 'register' ? 'login' : 'register')}
-                    className="text-[11px] text-brand hover:underline"
+                    className="text-[11px] text-brand hover:underline cursor-pointer"
                   >
-                    {authMode === 'register' ? 'Already have an account? Login' : 'Need an account? Register'}
+                    {authMode === 'register' 
+                      ? (lang === 'ar' ? 'لديك حساب بالفعل؟ تسجيل الدخول' : lang === 'fr' ? 'Déjà un compte ? Se connecter' : 'Already have an account? Login') 
+                      : (lang === 'ar' ? 'ليس لديك حساب؟ إنشاء حساب جديد' : lang === 'fr' ? 'Pas encore de compte ? S\'inscrire' : 'Need an account? Register')}
                   </button>
                 </div>
 
@@ -1356,15 +1356,17 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => setShowRegisterDialog(false)}
-                    className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white"
+                    className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white cursor-pointer"
                   >
                     {t('cancel', lang)}
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 rounded-lg bg-brand text-[#030303] font-bold"
+                    className="px-4 py-1.5 rounded-lg bg-brand text-[#030303] font-bold cursor-pointer"
                   >
-                    {authMode === 'register' ? 'Submit' : 'Login'}
+                    {authMode === 'register' 
+                      ? (lang === 'ar' ? 'تسجيل جديد' : lang === 'fr' ? 'S\'inscrire' : 'Submit') 
+                      : (lang === 'ar' ? 'دخول' : lang === 'fr' ? 'Se connecter' : 'Login')}
                   </button>
                 </div>
               </form>

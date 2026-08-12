@@ -239,14 +239,14 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
 
           {/* Title */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Titre de l\'Annonce *' : 'Property Title *'}</label>
-            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder={lang === 'fr' ? 'ex: Villa Moderne avec Piscine a Marrakech' : 'e.g., Luxury Villa with Private Pool'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
+            <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'عنوان الإعلان *' : lang === 'fr' ? 'Titre de l\'Annonce *' : 'Property Title *'}</label>
+            <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} placeholder={lang === 'ar' ? 'مثال: فيلا فاخرة بمسبح خاص في مراكش' : lang === 'fr' ? 'ex: Villa Moderne avec Piscine a Marrakech' : 'e.g., Luxury Villa with Private Pool'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Description Detaillee *' : 'Description *'}</label>
-            <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={lang === 'fr' ? 'Decrivez les atouts, equipements et pieces...' : 'Describe the architectural layout, amenities, and unique features...'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
+            <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'وصف تفصيلي للعقار *' : lang === 'fr' ? 'Description Detaillee *' : 'Description *'}</label>
+            <textarea required rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder={lang === 'ar' ? 'وصف التقسيم المعماري، والمرافق، والمميزات الخاصة...' : lang === 'fr' ? 'Decrivez les atouts, equipements et pieces...' : 'Describe the architectural layout, amenities, and unique features...'} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
           </div>
 
           {/* Price & Area */}
@@ -306,13 +306,13 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
 
           {/* City Selection — Searchable */}
           <div className="relative">
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Ville au Maroc *' : 'City in Morocco *'}</label>
+            <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'المدينة في المغرب *' : lang === 'fr' ? 'Ville au Maroc *' : 'City in Morocco *'}</label>
             <button
               type="button"
               onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
               className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white flex items-center justify-between focus:border-brand focus:outline-none cursor-pointer"
             >
-              <span className="font-semibold text-brand">{location}</span>
+              <span className="font-semibold text-brand">{translateLocation(location, lang)}</span>
               <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${cityDropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
@@ -324,13 +324,13 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
                     type="text"
                     value={citySearchQuery}
                     onChange={(e) => setCitySearchQuery(e.target.value)}
-                    placeholder={lang === 'fr' ? 'Rechercher une ville...' : 'Search city...'}
+                    placeholder={lang === 'ar' ? 'ابحث عن مدينة...' : lang === 'fr' ? 'Rechercher une ville...' : 'Search city...'}
                     className="w-full bg-[#030303] border border-neutral-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:border-brand focus:outline-none"
                     autoFocus
                   />
                 </div>
                 <div className="overflow-y-auto space-y-0.5 max-h-44 pr-1">
-                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase())).map(city => (
+                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase()) || translateLocation(c, 'ar').includes(citySearchQuery)).map(city => (
                     <button
                       key={city}
                       type="button"
@@ -341,12 +341,12 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
                       }}
                       className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center justify-between ${location === city ? 'bg-brand/10 text-brand font-bold' : 'text-slate-300 hover:bg-neutral-900 hover:text-white'}`}
                     >
-                      <span>{city}</span>
+                      <span>{translateLocation(city, lang)}</span>
                       {location === city && <Check className="h-3 w-3 text-brand shrink-0" />}
                     </button>
                   ))}
-                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase())).length === 0 && (
-                    <p className="text-[11px] text-slate-500 p-2 text-center">{lang === 'fr' ? 'Aucune ville trouvée' : 'No city found'}</p>
+                  {ALL_CITIES.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase()) || translateLocation(c, 'ar').includes(citySearchQuery)).length === 0 && (
+                    <p className="text-[11px] text-slate-500 p-2 text-center">{lang === 'ar' ? 'لم يتم العثور على أي مدينة' : lang === 'fr' ? 'Aucune ville trouvée' : 'No city found'}</p>
                   )}
                 </div>
               </div>
@@ -357,28 +357,28 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
           <div>
             <label className="block text-slate-400 mb-1 flex items-center gap-1.5">
               <MapPin className="h-3 w-3" />
-              {lang === 'fr' ? 'Adresse Exacte' : 'Property Address'}
+              {lang === 'ar' ? 'العنوان الدقيق' : lang === 'fr' ? 'Adresse Exacte' : 'Property Address'}
             </label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder={lang === 'fr' ? 'ex: 24 Rue des Jasmins, Gueliz, Marrakech 40000' : 'e.g., 24 Jasmine Street, Gueliz, Marrakech 40000'}
+              placeholder={lang === 'ar' ? 'مثال: 24 شارع الياسمين، جيليز، مراكش 40000' : lang === 'fr' ? 'ex: 24 Rue des Jasmins, Gueliz, Marrakech 40000' : 'e.g., 24 Jasmine Street, Gueliz, Marrakech 40000'}
               className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none"
             />
           </div>
 
           {/* IMAGE UPLOAD SECTION */}
           <div>
-            <label className="block text-slate-400 mb-2">{lang === 'fr' ? 'Photos de la Propriete' : 'Property Photos'}</label>
+            <label className="block text-slate-400 mb-2">{lang === 'ar' ? 'صور العقار' : lang === 'fr' ? 'Photos de la Propriete' : 'Property Photos'}</label>
             
             {/* Image source tabs */}
             <div className="flex gap-1 bg-[#030303] p-1 rounded-xl border border-neutral-850 mb-3">
               <button type="button" onClick={() => setImageSource('upload')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'upload' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
-                <UploadCloud className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Televerser' : 'Upload'}
+                <UploadCloud className="h-3.5 w-3.5" /> {lang === 'ar' ? 'رفع الصور' : lang === 'fr' ? 'Televerser' : 'Upload'}
               </button>
               <button type="button" onClick={() => setImageSource('preset')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'preset' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
-                <ImageIcon className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Galerie' : 'Gallery'}
+                <ImageIcon className="h-3.5 w-3.5" /> {lang === 'ar' ? 'المعرض' : lang === 'fr' ? 'Galerie' : 'Gallery'}
               </button>
               <button type="button" onClick={() => setImageSource('url')} className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${imageSource === 'url' ? 'bg-brand text-[#030303] font-bold' : 'text-slate-400'}`}>
                 <LinkIcon className="h-3.5 w-3.5" /> URL
@@ -403,7 +403,7 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
                         </button>
                         {idx === 0 && (
                           <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-full bg-brand/90 text-[8px] font-bold text-[#030303]">
-                            {lang === 'fr' ? 'Principale' : 'Primary'}
+                            {lang === 'ar' ? 'الرئيسية' : lang === 'fr' ? 'Principale' : 'Primary'}
                           </span>
                         )}
                       </div>
@@ -418,18 +418,18 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
                   onDragOver={handleDrag}
                   onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${dragActive ? 'border-brand bg-brand/5' : 'border-neutral-800 hover:border-brand/40 bg-[#030303]'}`}
+                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all ${dragActive ? 'border-brand bg-brand/5' : 'border-neutral-850 hover:border-brand/40 bg-[#030303]'}`}
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center gap-2">
                       <Loader2 className="h-7 w-7 text-brand animate-spin" />
-                      <span className="text-slate-300">{lang === 'fr' ? 'Televersement en cours...' : 'Uploading...'}</span>
+                      <span className="text-slate-300">{lang === 'ar' ? 'جاري رفع الصور...' : lang === 'fr' ? 'Televersement en cours...' : 'Uploading...'}</span>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
                       <UploadCloud className="h-7 w-7 text-slate-500" />
-                      <span className="text-slate-300">{lang === 'fr' ? 'Glissez-deposez ou cliquez pour selectionner' : 'Drag & drop or click to select'}</span>
-                      <span className="text-[10px] text-slate-500">{lang === 'fr' ? 'JPG, PNG, WebP — Max 4.5 MB par image — Plusieurs fichiers acceptes' : 'JPG, PNG, WebP — Max 4.5 MB each — Multiple files accepted'}</span>
+                      <span className="text-slate-300">{lang === 'ar' ? 'اسحب الصور وأسقطها هنا أو انقر للاختيار' : lang === 'fr' ? 'Glissez-deposez ou cliquez pour selectionner' : 'Drag & drop or click to select'}</span>
+                      <span className="text-[10px] text-slate-500">{lang === 'ar' ? 'JPG, PNG, WebP — 4.5 ميغابايت كحد أقصى لكل صورة — يقبل صور متعددة' : lang === 'fr' ? 'JPG, PNG, WebP — Max 4.5 MB par image — Plusieurs fichiers acceptes' : 'JPG, PNG, WebP — Max 4.5 MB each — Multiple files accepted'}</span>
                     </div>
                   )}
                   <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
@@ -482,7 +482,7 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
 
           {/* Amenities */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Equipements' : 'Amenities & Features'}</label>
+            <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'المرافق والتجهيزات' : lang === 'fr' ? 'Equipements' : 'Amenities & Features'}</label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-[#030303] p-3 rounded-xl border border-neutral-850 max-h-36 overflow-y-auto">
               {ALL_AMENITIES.map(amenity => (
                 <button
