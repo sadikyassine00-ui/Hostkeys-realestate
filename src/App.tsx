@@ -1061,7 +1061,7 @@ export default function App() {
                           >
                             <option value="All">{t('allFilters', lang)}</option>
                             {ALL_LOCATIONS.map(loc => (
-                              <option key={loc} value={loc}>{loc}</option>
+                              <option key={loc} value={loc}>{translateLocation(loc, lang)}</option>
                             ))}
                           </select>
                         </div>
@@ -1074,24 +1074,24 @@ export default function App() {
                             className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
-                            <option value={1}>1+ {lang === 'fr' ? 'Chambre' : 'Bedroom'}</option>
-                            <option value={2}>2+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
-                            <option value={3}>3+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
-                            <option value={4}>4+ {lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
+                            <option value={1}>1+ {lang === 'ar' ? 'غرفة' : lang === 'fr' ? 'Chambre' : 'Bedroom'}</option>
+                            <option value={2}>2+ {lang === 'ar' ? 'غرف' : lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
+                            <option value={3}>3+ {lang === 'ar' ? 'غرف' : lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
+                            <option value={4}>4+ {lang === 'ar' ? 'غرف' : lang === 'fr' ? 'Chambres' : 'Bedrooms'}</option>
                           </select>
                         </div>
 
                         <div>
-                          <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</label>
+                          <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'عدد الحمامات' : lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</label>
                           <select
                             value={bathroomsFilter}
                             onChange={(e) => setBathroomsFilter(e.target.value === 'All' ? 'All' : Number(e.target.value))}
                             className="w-full bg-[#030303] border border-neutral-850 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none cursor-pointer"
                           >
                             <option value="All">{t('allFilters', lang)}</option>
-                            <option value={1}>1+ {lang === 'fr' ? 'Salle de bain' : 'Bathroom'}</option>
-                            <option value={2}>2+ {lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
-                            <option value={3}>3+ {lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
+                            <option value={1}>1+ {lang === 'ar' ? 'حمام' : lang === 'fr' ? 'Salle de bain' : 'Bathroom'}</option>
+                            <option value={2}>2+ {lang === 'ar' ? 'حمامات' : lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
+                            <option value={3}>3+ {lang === 'ar' ? 'حمامات' : lang === 'fr' ? 'Salles de bain' : 'Bathrooms'}</option>
                           </select>
                         </div>
 
@@ -1210,18 +1210,18 @@ export default function App() {
 
           <div className="flex flex-wrap items-center justify-center gap-6 text-slate-400 text-xs font-sans">
             <button onClick={() => { setActiveTab('catalog'); setActiveSegment('buy'); }} className="hover:text-brand transition-colors cursor-pointer">
-              {lang === 'fr' ? 'Acheter un Bien' : 'Buy Properties'}
+              {t('navBuyCatalog', lang)}
             </button>
             <button onClick={() => { setActiveTab('catalog'); setActiveSegment('rent'); }} className="hover:text-brand transition-colors cursor-pointer">
-              {lang === 'fr' ? 'Louer un Bien' : 'Rent Properties'}
+              {t('navRentCatalog', lang)}
             </button>
             <button onClick={() => { if (!isLoggedIn) setShowRegisterDialog(true); else setShowNewListingForm(true); }} className="hover:text-brand transition-colors cursor-pointer">
-              {lang === 'fr' ? 'Publier un Bien' : 'Add Property'}
+              {t('addListingBtn', lang)}
             </button>
           </div>
 
           <p className="text-[11px] text-slate-500 font-mono">
-            © {new Date().getFullYear()} Hostkeys. {lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
+            © {new Date().getFullYear()} Hostkeys. {lang === 'ar' ? 'جميع الحقوق محفوظة.' : lang === 'fr' ? 'Tous droits réservés.' : 'All rights reserved.'}
           </p>
         </div>
       </footer>
