@@ -89,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
 
         if (isPublic) {
-          const agents = users.filter((u: any) => u.isAgent || u.role === 'superadmin');
+          const agents = users.filter((u: any) => (u.isAgent || u.role === 'admin') && u.role !== 'superadmin' && u.email?.toLowerCase() !== SUPER_ADMIN_EMAIL.toLowerCase());
           return res.status(200).json({ agents, isLiveDb: true });
         }
 

@@ -267,21 +267,16 @@ export default function App() {
     });
   }, []);
 
-  // Dynamically compute real active site agents (Super Admin + any promoted Admins strictly)
+  // Dynamically compute real active site agents (promoted Admins strictly, excluding Super Admin)
   const getActiveSiteAgents = (): User[] => {
-    const superAdminInUsers = users.find(u => u && u.email === SUPER_ADMIN_EMAIL);
-    const currentSuperAdmin: User = (currentUser && currentUser.email === SUPER_ADMIN_EMAIL)
-      ? currentUser
-      : (superAdminInUsers || DEFAULT_SUPER_ADMIN);
-
-    const promotedAdmins = users.filter(u => u && u.role === 'admin' && u.email !== SUPER_ADMIN_EMAIL);
-    const apiAdmins = fetchedAgents.filter(u => u && u.email !== SUPER_ADMIN_EMAIL);
+    const promotedAdmins = users.filter(u => u && u.role === 'admin' && u.role !== 'superadmin' && u.email !== SUPER_ADMIN_EMAIL && u.isAgent !== false);
+    const apiAdmins = fetchedAgents.filter(u => u && u.role !== 'superadmin' && u.email !== SUPER_ADMIN_EMAIL && u.isAgent !== false);
 
     const allAdmins = [...promotedAdmins, ...apiAdmins];
     const uniqueAdminsMap = new Map<string, User>();
     allAdmins.forEach(u => uniqueAdminsMap.set(u.email, u));
 
-    return [currentSuperAdmin, ...Array.from(uniqueAdminsMap.values())];
+    return Array.from(uniqueAdminsMap.values());
   };
 
   const activeAgents = getActiveSiteAgents();
@@ -1181,7 +1176,7 @@ export default function App() {
                     listing={translateListing(listing, lang)}
                     adminUser={users.find(u => u.id === listing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
                     currentUser={currentUser}
-                    agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
+                    agents={activeAgents}
                     onSelect={(l) => handleOpenListing(l)}
                     onEditListing={(l) => setEditingListing(l)}
                     onDeleteListing={handleDeleteListing}
@@ -1374,7 +1369,7 @@ export default function App() {
           <PropertyDetailDrawer
             listing={translateListing(expandedListing, lang)}
             currentUser={currentUser}
-            agents={users.filter(u => u && (u.email === SUPER_ADMIN_EMAIL || u.role === 'superadmin' || (u.role === 'admin' && u.isAgent)))}
+            agents={activeAgents}
             adminUser={users.find(u => u.id === expandedListing.approvedByAdminId) || DEFAULT_SUPER_ADMIN}
             onClose={handleCloseListing}
             onEditListing={(listing) => setEditingListing(listing)}

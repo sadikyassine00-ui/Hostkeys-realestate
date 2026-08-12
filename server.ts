@@ -144,7 +144,7 @@ app.delete("/api/properties", async (req, res) => {
 app.get("/api/users", async (req, res) => {
   const isPublicRequest = req.query.public === "true";
   if (isPublicRequest) {
-    return res.json({ agents: memoryUsers.filter(u => u.role === "admin" || u.role === "superadmin"), isLiveDb: false });
+    return res.json({ agents: memoryUsers.filter(u => (u.role === "admin" || u.isAgent) && u.role !== "superadmin" && u.email?.toLowerCase() !== "yassinesadik0@gmail.com"), isLiveDb: false });
   }
 
   return res.json({ users: memoryUsers, isLiveDb: false });
@@ -189,10 +189,17 @@ if (isProd) {
   app.get("*", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
+} else {
+  const { createServer: createViteServer } = await import("vite");
+  const vite = await createViteServer({
+    server: { middlewareMode: true },
+    appType: "spa",
+  });
+  app.use(vite.middlewares);
 }
 
 app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+  console.log(`\n  ➜  Local:   http://localhost:${PORT}/\n`);
 });
 
 export default app;
