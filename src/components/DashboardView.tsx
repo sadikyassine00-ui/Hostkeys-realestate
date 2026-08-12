@@ -248,7 +248,7 @@ export default function DashboardView({
             {isSuperAdmin && (
               <button
                 onClick={async () => {
-                  if (confirm(lang === 'fr' ? 'Êtes-vous sûr de vouloir réinitialiser la base de données ? Tous les biens et utilisateurs (sauf Super Admin) seront supprimés.' : 'Are you sure you want to reset the database? All listings and users (except Super Admin) will be permanently cleared.')) {
+                  if (confirm(lang === 'ar' ? 'هل أنت تأكد من إعادة ضبط قاعدة البيانات؟ سيتم مسح جميع العقارات والمستخدمين (باستثناء المشرف الرئيسي).' : lang === 'fr' ? 'Êtes-vous sûr de vouloir réinitialiser la base de données ? Tous les biens et utilisateurs (sauf Super Admin) seront supprimés.' : 'Are you sure you want to reset the database? All listings and users (except Super Admin) will be permanently cleared.')) {
                     try {
                       const res = await fetch('/api/reset', { method: 'POST' });
                       const data = await res.json();
@@ -264,12 +264,12 @@ export default function DashboardView({
                 title="Wipe DB & Start Clean"
               >
                 <Trash2 className="h-4 w-4" />
-                <span>{lang === 'fr' ? 'Réinitialiser la Base' : 'Reset Database'}</span>
+                <span>{lang === 'ar' ? 'إعادة ضبط القاعدة' : lang === 'fr' ? 'Réinitialiser la Base' : 'Reset Database'}</span>
               </button>
             )}
             <button onClick={onAddListing} className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-xs flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer">
               <Plus className="h-4 w-4" />
-              <span>{lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
+              <span>{lang === 'ar' ? 'إضافة عقار' : lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
             </button>
           </div>
         </div>
@@ -280,47 +280,47 @@ export default function DashboardView({
         {isAdmin ? (
           <>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Volume Global Approuv\u00e9' : 'Total Brokered Volume'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'القيمة الإجمالية للعقارات' : lang === 'fr' ? 'Volume Global Approuvé' : 'Total Brokered Volume'}</span>
               <div className="text-2xl font-bold font-mono text-brand mt-1">{formatCurrency(baseBrokeredVolume, currency, eurRate)}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{totalApprovedListings.length} {lang === 'fr' ? 'propri\u00e9t\u00e9s en ligne' : 'active listings'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{totalApprovedListings.length} {lang === 'ar' ? 'عقارات معتمدة' : lang === 'fr' ? 'propriétés en ligne' : 'active listings'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Audits en Attente' : 'Pending Queue'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'طلبات قيد المراجعة' : lang === 'fr' ? 'Audits en Attente' : 'Pending Queue'}</span>
               <div className="text-2xl font-bold font-mono text-amber-400 mt-1">{totalPendingListings.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'N\u00e9cessite votre validation' : 'Requires admin review'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'تتطلب مراجعة المشرف' : lang === 'fr' ? 'Nécessite votre validation' : 'Requires admin review'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Propri\u00e9t\u00e9s Actives' : 'Live Properties'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'العقارات المنشورة' : lang === 'fr' ? 'Propriétés Actives' : 'Live Properties'}</span>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">{totalApprovedListings.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Publi\u00e9es sur le portail' : 'Published on portal'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'منشورة على المنصة' : lang === 'fr' ? 'Publiées sur le portail' : 'Published on portal'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Partenaires Actifs' : 'Active Owners'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'المالكون المعتمدون' : lang === 'fr' ? 'Partenaires Actifs' : 'Active Owners'}</span>
               <div className="text-2xl font-bold font-mono text-sky-400 mt-1">{totalContributorsCount}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Propri\u00e9taires uniques' : 'Unique property owners'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'مالكون مستقلون' : lang === 'fr' ? 'Propriétaires uniques' : 'Unique property owners'}</span>
             </div>
           </>
         ) : (
           <>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Valeur de mon Portefeuille' : 'My Portfolio Value'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'قيمة محفظتي العقارية' : lang === 'fr' ? 'Valeur de mon Portefeuille' : 'My Portfolio Value'}</span>
               <div className="text-2xl font-bold font-mono text-brand mt-1">{formatCurrency(basePortfolioValue, currency, eurRate)}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{myApprovedCount} {lang === 'fr' ? 'biens certifi\u00e9s' : 'approved listings'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{myApprovedCount} {lang === 'ar' ? 'عقارات موثقة' : lang === 'fr' ? 'biens certifiés' : 'approved listings'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'En Cours de Validation' : 'Pending Verification'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'قيد التدقيق والتحقق' : lang === 'fr' ? 'En Cours de Validation' : 'Pending Verification'}</span>
               <div className="text-2xl font-bold font-mono text-amber-400 mt-1">{myPendingCount}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Audit Hostkeys en cours' : 'Hostkeys review in progress'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'جاري التدقيق من هوستكيز' : lang === 'fr' ? 'Audit Hostkeys en cours' : 'Hostkeys review in progress'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Biens Publi\u00e9s' : 'Live Listings'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'العقارات المعروضة' : lang === 'fr' ? 'Biens Publiés' : 'Live Listings'}</span>
               <div className="text-2xl font-bold font-mono text-emerald-400 mt-1">{myApprovedCount}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Visibles sur le march\u00e9' : 'Visible to public'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'معروضة للعموم' : lang === 'fr' ? 'Visibles sur le marché' : 'Visible to public'}</span>
             </div>
             <div className="bg-[#0c0c0c] border border-neutral-850 p-5 rounded-2xl">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'fr' ? 'Total des Soumissions' : 'Total Submissions'}</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">{lang === 'ar' ? 'إجمالي الطلبات' : lang === 'fr' ? 'Total des Soumissions' : 'Total Submissions'}</span>
               <div className="text-2xl font-bold font-mono text-slate-200 mt-1">{mySubmissions.length}</div>
-              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'fr' ? 'Soumissions immobili\u00e8res' : 'Property submissions'}</span>
+              <span className="text-[10px] font-mono text-slate-500 mt-1 block">{lang === 'ar' ? 'إعلانات عقارية' : lang === 'fr' ? 'Soumissions immobilières' : 'Property submissions'}</span>
             </div>
           </>
         )}
@@ -331,27 +331,27 @@ export default function DashboardView({
         {isAdmin ? (
           <>
             <button onClick={() => setAdminTab('pending')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'pending' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              <ClipboardList className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Validation' : 'Pending Queue'} ({totalPendingListings.length})
+              <ClipboardList className="h-3.5 w-3.5" /> {lang === 'ar' ? 'التدقيق والتحقق' : lang === 'fr' ? 'Validation' : 'Pending Queue'} ({totalPendingListings.length})
             </button>
             <button onClick={() => setAdminTab('approved')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'approved' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              <CheckCircle className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Actives' : 'Live Properties'} ({totalApprovedListings.length})
+              <CheckCircle className="h-3.5 w-3.5" /> {lang === 'ar' ? 'العقارات النشطة' : lang === 'fr' ? 'Actives' : 'Live Properties'} ({totalApprovedListings.length})
             </button>
             {isSuperAdmin && (
               <button onClick={() => setAdminTab('team')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'team' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-                <Crown className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Gestion \u00c9quipe' : 'Team Management'}
+                <Crown className="h-3.5 w-3.5" /> {lang === 'ar' ? 'إدارة الفريق' : lang === 'fr' ? 'Gestion Équipe' : 'Team Management'}
               </button>
             )}
             <button onClick={() => setAdminTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${adminTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              <Settings className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Profil' : 'Profile'}
+              <Settings className="h-3.5 w-3.5" /> {lang === 'ar' ? 'الملف الشخصي' : lang === 'fr' ? 'Profil' : 'Profile'}
             </button>
           </>
         ) : (
           <>
             <button onClick={() => setOwnerTab('listings')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${ownerTab === 'listings' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              <Home className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Mes Biens' : 'My Properties'} ({mySubmissions.length})
+              <Home className="h-3.5 w-3.5" /> {lang === 'ar' ? 'عقاراتي' : lang === 'fr' ? 'Mes Biens' : 'My Properties'} ({mySubmissions.length})
             </button>
             <button onClick={() => setOwnerTab('profile')} className={`pb-3 font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${ownerTab === 'profile' ? 'border-brand text-brand' : 'border-transparent text-slate-400 hover:text-white'}`}>
-              <Settings className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Profil' : 'Profile'}
+              <Settings className="h-3.5 w-3.5" /> {lang === 'ar' ? 'الملف الشخصي' : lang === 'fr' ? 'Profil' : 'Profile'}
             </button>
           </>
         )}
@@ -365,14 +365,14 @@ export default function DashboardView({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <ClipboardList className="h-5 w-5 text-brand" />
-                {lang === 'fr' ? 'File des Audits de Validation' : 'Pending Property Verification Queue'}
+                {lang === 'ar' ? 'قائمة العقارات المعلقة للمراجعة والتدقيق' : lang === 'fr' ? 'File des Audits de Validation' : 'Pending Property Verification Queue'}
               </h3>
 
               {totalPendingListings.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <CheckCircle className="h-12 w-12 text-brand mx-auto opacity-70 mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 en attente' : 'No Pending Properties'}</h4>
-                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Toutes les soumissions ont \u00e9t\u00e9 v\u00e9rifi\u00e9es.' : 'All submitted properties have been reviewed.'}</p>
+                  <h4 className="text-white font-semibold">{lang === 'ar' ? 'لا يوجد أي عقار في الانتظار' : lang === 'fr' ? 'Aucune propriété en attente' : 'No Pending Properties'}</h4>
+                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'ar' ? 'تمت مراجعة والتحقق من جميع الطلبات.' : lang === 'fr' ? 'Toutes les soumissions ont été vérifiées.' : 'All submitted properties have been reviewed.'}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -383,15 +383,15 @@ export default function DashboardView({
                         <div>
                           <h4 className="text-sm font-semibold text-white">{listing.title}</h4>
                           <p className="text-xs font-mono text-brand mt-0.5">{formatCurrency(listing.price, currency, eurRate)} · {listing.location}</p>
-                          <p className="text-[11px] font-mono text-slate-400 mt-1">Owner: {listing.personalOwnerInfo?.name || listing.ownerId}</p>
+                          <p className="text-[11px] font-mono text-slate-400 mt-1">{lang === 'ar' ? 'المالك:' : 'Owner:'} {listing.personalOwnerInfo?.name || listing.ownerId}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 self-end md:self-center">
                         <button onClick={() => onApprove(listing.id, currentUser.id)} className="px-4 py-2 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-black font-mono text-xs font-bold transition-all border border-emerald-500/20 cursor-pointer flex items-center gap-1.5">
-                          <Check className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Approuver' : 'Approve'}
+                          <Check className="h-3.5 w-3.5" /> {lang === 'ar' ? 'موافقة' : lang === 'fr' ? 'Approuver' : 'Approve'}
                         </button>
                         <button onClick={() => onReject(listing.id)} className="px-4 py-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-xs font-bold transition-all border border-rose-500/20 cursor-pointer flex items-center gap-1.5">
-                          <X className="h-3.5 w-3.5" /> {lang === 'fr' ? 'Refuser' : 'Refuse'}
+                          <X className="h-3.5 w-3.5" /> {lang === 'ar' ? 'رفض' : lang === 'fr' ? 'Refuser' : 'Refuse'}
                         </button>
                       </div>
                     </div>
@@ -404,12 +404,12 @@ export default function DashboardView({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                 <CheckCircle className="h-5 w-5 text-emerald-400" />
-                {lang === 'fr' ? 'Propri\u00e9t\u00e9s Actives sur Hostkeys' : 'Live Hostkeys Properties'}
+                {lang === 'ar' ? 'العقارات المنشورة والنشطة على منصة هوستكيز' : lang === 'fr' ? 'Propriétés Actives sur Hostkeys' : 'Live Hostkeys Properties'}
               </h3>
               {totalApprovedListings.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Building className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 active' : 'No Live Properties'}</h4>
+                  <h4 className="text-white font-semibold">{lang === 'ar' ? 'لا توجد عقارات نشطة حالياً' : lang === 'fr' ? 'Aucune propriété active' : 'No Live Properties'}</h4>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -430,20 +430,20 @@ export default function DashboardView({
                             }}
                             className="px-2.5 py-1 rounded bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white font-mono text-[10px] font-bold border border-sky-500/20 cursor-pointer flex items-center gap-1"
                           >
-                            <Pencil className="h-3 w-3" /> {lang === 'fr' ? 'Éditer' : 'Edit'}
+                            <Pencil className="h-3 w-3" /> {lang === 'ar' ? 'تعديل' : lang === 'fr' ? 'Éditer' : 'Edit'}
                           </button>
                         )}
                         {onDeleteListing && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                              if (confirm(lang === 'ar' ? 'هل تريد حذف هذا العقار؟' : lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
                                 onDeleteListing(listing.id);
                               }
                             }}
                             className="px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-mono text-[10px] font-bold border border-rose-500/20 cursor-pointer flex items-center gap-1"
                           >
-                            <Trash2 className="h-3 w-3" /> {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                            <Trash2 className="h-3 w-3" /> {lang === 'ar' ? 'حذف' : lang === 'fr' ? 'Supprimer' : 'Delete'}
                           </button>
                         )}
                       </div>
@@ -458,29 +458,29 @@ export default function DashboardView({
               <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Crown className="h-5 w-5 text-amber-400" />
-                  {lang === 'fr' ? 'Gestion de l\'Equipe' : 'Team & Role Management'}
+                  {lang === 'ar' ? 'إدارة الفريق والصلاحيات' : lang === 'fr' ? 'Gestion de l\'Equipe' : 'Team & Role Management'}
                 </h3>
                 <button onClick={loadTeamUsers} className="px-3 py-1.5 rounded-lg bg-neutral-900 text-slate-400 hover:text-white font-mono text-xs border border-neutral-800 cursor-pointer flex items-center gap-1.5">
-                  <RefreshCw className="h-3 w-3" /> {lang === 'fr' ? 'Rafra\u00eechir' : 'Refresh'}
+                  <RefreshCw className="h-3 w-3" /> {lang === 'ar' ? 'تحديث' : lang === 'fr' ? 'Rafraîchir' : 'Refresh'}
                 </button>
               </div>
 
               <p className="text-xs font-mono text-slate-400">
-                {lang === 'fr' ? 'En tant que Super Admin, vous pouvez promouvoir ou r\u00e9trograder les utilisateurs.' : 'As Super Admin, you can promote users to Admin or demote them back to Owner.'}
+                {lang === 'ar' ? 'بصفتك المشرف الرئيسي، يمكنك ترقية المستخدمين إلى مشرفين أو إعادتهم إلى مالكي عقارات.' : lang === 'fr' ? 'En tant que Super Admin, vous pouvez promouvoir ou rétrograder les utilisateurs.' : 'As Super Admin, you can promote users to Admin or demote them back to Owner.'}
               </p>
 
               {teamLoading ? (
                 <div className="text-center py-16">
                   <div className="animate-spin h-8 w-8 border-2 border-brand border-t-transparent rounded-full mx-auto mb-3" />
-                  <p className="text-xs font-mono text-slate-400">{lang === 'fr' ? 'Chargement...' : 'Loading users...'}</p>
+                  <p className="text-xs font-mono text-slate-400">{lang === 'ar' ? 'جاري التحميل...' : lang === 'fr' ? 'Chargement...' : 'Loading users...'}</p>
                 </div>
               ) : teamError ? (
                 <div className="bg-rose-500/10 text-rose-400 p-4 rounded-xl border border-rose-500/20 text-xs font-mono">{teamError}</div>
               ) : teamUsers.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Users className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucun utilisateur enregistr\u00e9' : 'No Registered Users'}</h4>
-                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'fr' ? 'Les utilisateurs appara\u00eetront ici lorsqu\'ils s\'inscriront.' : 'Users will appear here when they sign up.'}</p>
+                  <h4 className="text-white font-semibold">{lang === 'ar' ? 'لا يوجد أي مستخدم مسجل' : lang === 'fr' ? 'Aucun utilisateur enregistré' : 'No Registered Users'}</h4>
+                  <p className="text-xs font-mono text-slate-400 mt-1">{lang === 'ar' ? 'سيظهر المستخدمون هنا عند التسجيل.' : lang === 'fr' ? 'Les utilisateurs apparaîtront ici lorsqu\'ils s\'inscriront.' : 'Users will appear here when they sign up.'}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -497,7 +497,7 @@ export default function DashboardView({
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 min-w-0">
                                 <span className="text-sm font-semibold text-white truncate max-w-[160px] sm:max-w-none">{user.name}</span>
-                                {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full shrink-0">{lang === 'fr' ? 'Vous' : 'You'}</span>}
+                                {isYou && <span className="text-[9px] font-mono text-brand bg-brand/10 px-1.5 py-0.5 rounded-full shrink-0">{lang === 'ar' ? 'أنت' : lang === 'fr' ? 'Vous' : 'You'}</span>}
                               </div>
                               <p className="text-[11px] font-mono text-slate-400 truncate max-w-[220px] sm:max-w-none">{user.email}</p>
                             </div>
@@ -518,7 +518,7 @@ export default function DashboardView({
                                     className="px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-400 hover:bg-sky-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-sky-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >
                                     <ArrowUp className="h-3 w-3" />
-                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Promouvoir Admin' : 'Promote to Admin')}
+                                    {roleUpdateLoading === user.id ? '...' : (lang === 'ar' ? 'ترقية لمشرف' : lang === 'fr' ? 'Promouvoir Admin' : 'Promote to Admin')}
                                   </button>
                                 ) : (
                                   <button
@@ -527,7 +527,7 @@ export default function DashboardView({
                                     className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white font-mono text-[10px] font-bold transition-all border border-rose-500/20 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                   >
                                     <ArrowDown className="h-3 w-3" />
-                                    {roleUpdateLoading === user.id ? '...' : (lang === 'fr' ? 'Rétrograder' : 'Demote to Owner')}
+                                    {roleUpdateLoading === user.id ? '...' : (lang === 'ar' ? 'تنزيل لمالك' : lang === 'fr' ? 'Rétrograder' : 'Demote to Owner')}
                                   </button>
                                 )}
                               </div>
@@ -539,7 +539,7 @@ export default function DashboardView({
                         {user.role === 'admin' && !isSA && (
                           <div className="pt-3 border-t border-neutral-900 flex flex-wrap items-center justify-between gap-3 text-xs">
                             <div className="flex items-center gap-2">
-                              <span className="text-[11px] font-mono text-slate-400">{lang === 'fr' ? 'Statut Agent:' : 'Hostkeys Agent Status:'}</span>
+                              <span className="text-[11px] font-mono text-slate-400">{lang === 'ar' ? 'حالة الوكيل:' : lang === 'fr' ? 'Statut Agent:' : 'Hostkeys Agent Status:'}</span>
                               <button
                                 onClick={() => handleAgentToggle(user, !user.isAgent)}
                                 className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold border cursor-pointer transition-all flex items-center gap-1.5 ${
@@ -549,13 +549,13 @@ export default function DashboardView({
                                 }`}
                               >
                                 <Check className={`h-3 w-3 ${user.isAgent ? 'text-emerald-400' : 'text-slate-500'}`} />
-                                {user.isAgent ? (lang === 'fr' ? 'Agent Actif' : 'Assigned Agent') : (lang === 'fr' ? 'Non Assigné' : 'Unassigned')}
+                                {user.isAgent ? (lang === 'ar' ? 'وكيل معتمد' : lang === 'fr' ? 'Agent Actif' : 'Assigned Agent') : (lang === 'ar' ? 'غير معين' : lang === 'fr' ? 'Non Assigné' : 'Unassigned')}
                               </button>
                             </div>
 
                             {user.isAgent && (
                               <div className="flex items-center gap-1.5">
-                                <span className="text-[11px] font-mono text-slate-400 mr-1">{lang === 'fr' ? 'Langues:' : 'Languages:'}</span>
+                                <span className="text-[11px] font-mono text-slate-400 mr-1">{lang === 'ar' ? 'اللغات:' : lang === 'fr' ? 'Langues:' : 'Languages:'}</span>
                                 {['FR', 'EN', 'AR', 'ES'].map(lCode => {
                                   const active = (user.languages || ['FR', 'EN']).includes(lCode);
                                   return (
@@ -585,27 +585,27 @@ export default function DashboardView({
           ) : (
             /* PROFILE TAB */
             <form onSubmit={handleProfileSave} className="max-w-md space-y-4 font-mono text-xs">
-              <h3 className="text-lg font-semibold text-white font-sans">{lang === 'fr' ? 'Informations du Compte' : 'Account Profile'}</h3>
+              <h3 className="text-lg font-semibold text-white font-sans">{lang === 'ar' ? 'معلومات الحساب والملف الشخصي' : lang === 'fr' ? 'Informations du Compte' : 'Account Profile'}</h3>
               {saveSuccess && (
                 <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-2">
                   <Check className="h-4 w-4" />
-                  <span>{lang === 'fr' ? 'Profil mis \u00e0 jour avec succ\u00e8s !' : 'Profile updated successfully!'}</span>
+                  <span>{lang === 'ar' ? 'تم تحديث الملف الشخصي بنجاح!' : lang === 'fr' ? 'Profil mis à jour avec succès !' : 'Profile updated successfully!'}</span>
                 </div>
               )}
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Nom Complet' : 'Full Name'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'الاسم الكامل' : lang === 'fr' ? 'Nom Complet' : 'Full Name'}</label>
                 <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Adresse Email' : 'Email Address'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'البريد الإلكتروني' : lang === 'fr' ? 'Adresse Email' : 'Email Address'}</label>
                 <input type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'T\u00e9l\u00e9phone' : 'Phone Number'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'رقم الهاتف' : lang === 'fr' ? 'Téléphone' : 'Phone Number'}</label>
                 <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <button type="submit" className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all cursor-pointer">
-                {lang === 'fr' ? 'Enregistrer le Profil' : 'Save Changes'}
+                {lang === 'ar' ? 'حفظ التغييرات' : lang === 'fr' ? 'Enregistrer le Profil' : 'Save Changes'}
               </button>
             </form>
           )
@@ -616,22 +616,22 @@ export default function DashboardView({
               <div className="flex items-center justify-between border-b border-neutral-900 pb-3">
                 <h3 className="text-lg font-semibold text-white flex items-center gap-2">
                   <Building className="h-5 w-5 text-brand" />
-                  {lang === 'fr' ? 'Mes Biens Immobiliers' : 'My Real Estate Portfolio'}
+                  {lang === 'ar' ? 'محفظتي العقارية المعروضة' : lang === 'fr' ? 'Mes Biens Immobiliers' : 'My Real Estate Portfolio'}
                 </h3>
                 <button onClick={onAddListing} className="px-3 py-1.5 rounded-lg bg-brand text-[#030303] font-bold font-mono text-xs flex items-center gap-1 cursor-pointer">
                   <Plus className="h-3.5 w-3.5" />
-                  <span>{lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
+                  <span>{lang === 'ar' ? 'إضافة عقار' : lang === 'fr' ? 'Publier un Bien' : 'Add Property'}</span>
                 </button>
               </div>
 
               {mySubmissions.length === 0 ? (
                 <div className="text-center py-16 bg-[#030303] rounded-xl border border-neutral-900">
                   <Building className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h4 className="text-white font-semibold">{lang === 'fr' ? 'Aucune propri\u00e9t\u00e9 publi\u00e9e' : 'No Properties Listed Yet'}</h4>
-                  <p className="text-xs font-mono text-slate-400 mt-1 max-w-sm mx-auto">{lang === 'fr' ? 'Cliquez sur le bouton pour soumettre votre premier bien.' : 'Click "Add Property" to publish your first listing.'}</p>
+                  <h4 className="text-white font-semibold">{lang === 'ar' ? 'لم تقم بنشر أي عقار بعد' : lang === 'fr' ? 'Aucune propriété publiée' : 'No Properties Listed Yet'}</h4>
+                  <p className="text-xs font-mono text-slate-400 mt-1 max-w-sm mx-auto">{lang === 'ar' ? 'انقر على الزر أدناه لنشر أول عقار لك على هوستكيز.' : lang === 'fr' ? 'Cliquez sur le bouton pour soumettre votre premier bien.' : 'Click "Add Property" to publish your first listing.'}</p>
                   <button onClick={onAddListing} className="mt-4 px-4 py-2 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs inline-flex items-center gap-2 cursor-pointer">
                     <Plus className="h-4 w-4" />
-                    <span>{lang === 'fr' ? 'Publier ma Premi\u00e8re Propri\u00e9t\u00e9' : 'Publish My First Property'}</span>
+                    <span>{lang === 'ar' ? 'نشر أول عقار لي' : lang === 'fr' ? 'Publier ma Première Propriété' : 'Publish My First Property'}</span>
                   </button>
                 </div>
               ) : (
