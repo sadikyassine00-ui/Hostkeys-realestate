@@ -33,7 +33,7 @@
     href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@400;500;700;800;900&family=Alexandria:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
   <style>
-    /* Absolute, top-priority font enforcement for Arabic RTL mode */
+    /* Absolute, top-priority modern Moroccan Arabic font enforcement for dir="rtl" */
     [dir="rtl"], 
     [dir="rtl"] *, 
     [dir="rtl"] input, 
@@ -41,13 +41,14 @@
     [dir="rtl"] select, 
     [dir="rtl"] textarea,
     [dir="rtl"] .font-mono,
-    [dir="rtl"] .font-sans {
-      font-family: 'Amiri', 'Tajawal', 'Alexandria', serif !important;
+    [dir="rtl"] .font-sans,
+    [dir="rtl"] .font-arabic {
+      font-family: 'Tajawal', 'Alexandria', 'Cairo', system-ui, sans-serif !important;
     }
 
     [dir="rtl"] {
-      font-size: 1.05em;
-      line-height: 1.65;
+      font-size: 1.04em;
+      line-height: 1.6;
     }
   </style>
 </head>

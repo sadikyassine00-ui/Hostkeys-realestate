@@ -642,7 +642,7 @@ export default function DashboardView({
                         <div className="relative">
                           <img src={listing.images?.[0] || listing.image || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=400&h=250&q=80'} alt={listing.title} className="w-full h-36 rounded-lg object-cover mb-3" />
                           <span className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold font-mono uppercase ${listing.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : (listing.status === 'pending' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30')}`}>
-                            {listing.status}
+                            {listing.status === 'approved' ? (lang === 'ar' ? 'منشور' : lang === 'fr' ? 'Approuvé' : 'Live') : (listing.status === 'pending' ? (lang === 'ar' ? 'قيد التدقيق' : lang === 'fr' ? 'En attente' : 'Pending') : (lang === 'ar' ? 'مرفوض' : lang === 'fr' ? 'Refusé' : 'Rejected'))}
                           </span>
                         </div>
                         <h4 className="text-xs font-semibold text-white line-clamp-1">{listing.title}</h4>
@@ -658,20 +658,20 @@ export default function DashboardView({
                             }}
                             className="px-2.5 py-1 rounded bg-sky-500/10 hover:bg-sky-500 text-sky-400 hover:text-white font-mono text-[10px] font-bold border border-sky-500/20 cursor-pointer flex items-center gap-1"
                           >
-                            <Pencil className="h-3 w-3" /> {lang === 'fr' ? 'Éditer' : 'Edit'}
+                            <Pencil className="h-3 w-3" /> {lang === 'ar' ? 'تعديل' : lang === 'fr' ? 'Éditer' : 'Edit'}
                           </button>
                         )}
                         {onDeleteListing && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                              if (confirm(lang === 'ar' ? 'هل أنت تأكد من حذف هذا العقار؟' : lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
                                 onDeleteListing(listing.id);
                               }
                             }}
                             className="px-2.5 py-1 rounded bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white font-mono text-[10px] font-bold border border-rose-500/20 cursor-pointer flex items-center gap-1"
                           >
-                            <Trash2 className="h-3 w-3" /> {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                            <Trash2 className="h-3 w-3" /> {lang === 'ar' ? 'حذف' : lang === 'fr' ? 'Supprimer' : 'Delete'}
                           </button>
                         )}
                       </div>
@@ -683,27 +683,27 @@ export default function DashboardView({
           ) : (
             /* PROFILE TAB */
             <form onSubmit={handleProfileSave} className="max-w-md space-y-4 font-mono text-xs">
-              <h3 className="text-lg font-semibold text-white font-sans">{lang === 'fr' ? 'Informations du Compte' : 'Account Profile'}</h3>
+              <h3 className="text-lg font-semibold text-white font-sans">{lang === 'ar' ? 'معلومات الحساب والملف الشخصي' : lang === 'fr' ? 'Informations du Compte' : 'Account Profile'}</h3>
               {saveSuccess && (
                 <div className="bg-emerald-500/10 text-emerald-400 p-3 rounded-xl border border-emerald-500/20 flex items-center gap-2">
                   <Check className="h-4 w-4" />
-                  <span>{lang === 'fr' ? 'Profil mis \u00e0 jour !' : 'Profile updated!'}</span>
+                  <span>{lang === 'ar' ? 'تم تحديث الملف الشخصي بنجاح!' : lang === 'fr' ? 'Profil mis à jour !' : 'Profile updated!'}</span>
                 </div>
               )}
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Nom Complet' : 'Full Name'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'الاسم الكامل' : lang === 'fr' ? 'Nom Complet' : 'Full Name'}</label>
                 <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Adresse Email' : 'Email Address'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'البريد الإلكتروني' : lang === 'fr' ? 'Adresse Email' : 'Email Address'}</label>
                 <input type="email" value={profileEmail} onChange={(e) => setProfileEmail(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'T\u00e9l\u00e9phone' : 'Phone Number'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'رقم الهاتف' : lang === 'fr' ? 'Téléphone' : 'Phone Number'}</label>
                 <input type="text" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3 py-2 text-white focus:border-brand focus:outline-none" />
               </div>
               <button type="submit" className="px-5 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all cursor-pointer">
-                {lang === 'fr' ? 'Enregistrer' : 'Save Changes'}
+                {lang === 'ar' ? 'حفظ التغييرات' : lang === 'fr' ? 'Enregistrer' : 'Save Changes'}
               </button>
             </form>
           )
