@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Listing } from '../types';
-import { translateListing } from '../translations';
+import { translateListing, Language } from '../translations';
 import { SUPER_ADMIN_EMAIL } from '../mockData';
 import { 
   User as UserIcon, 
@@ -55,7 +55,7 @@ interface DashboardViewProps {
   onUpdateUserAgentStatus?: (userId: string, isAgent: boolean, languages: string[], success: boolean, errorMsg?: string) => void;
   currency: Currency;
   eurRate: number;
-  lang: 'en' | 'fr';
+  lang: Language;
 }
 
 export default function DashboardView({
@@ -75,31 +75,31 @@ export default function DashboardView({
   eurRate,
   lang
 }: DashboardViewProps) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'submissions' | 'vetting' | 'users' | 'profile'>('overview');
   const [profileName, setProfileName] = useState(currentUser.name);
   const [profileEmail, setProfileEmail] = useState(currentUser.email);
   const [profilePhone, setProfilePhone] = useState(currentUser.phone);
   const [profileAvatar, setProfileAvatar] = useState(currentUser.avatar);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const isSuperAdmin = currentUser.role === 'superadmin';
+  const isSuperAdmin = currentUser.role === 'superadmin' || currentUser.email === SUPER_ADMIN_EMAIL;
   const isAdmin = currentUser.role === 'admin' || isSuperAdmin;
 
   // Tab state
   const [adminTab, setAdminTab] = useState<'pending' | 'approved' | 'team' | 'profile'>('pending');
   const [ownerTab, setOwnerTab] = useState<'listings' | 'profile'>('listings');
 
-  // Team management state (superadmin only)
-  const [teamUsers, setTeamUsers] = useState<User[]>([]);
+  // Team management state
+  const [teamUsers, setTeamUsers] = useState<User[]>(allUsers || []);
   const [teamLoading, setTeamLoading] = useState(false);
   const [teamError, setTeamError] = useState('');
   const [roleUpdateLoading, setRoleUpdateLoading] = useState<string | null>(null);
 
-  // Load team users when team tab is active
   useEffect(() => {
-    if (isSuperAdmin && adminTab === 'team') {
-      loadTeamUsers();
+    if (allUsers.length > 0) {
+      setTeamUsers(allUsers);
     }
-  }, [adminTab, isSuperAdmin]);
+  }, [allUsers]);
 
   const loadTeamUsers = async () => {
     setTeamLoading(true);
@@ -121,12 +121,14 @@ export default function DashboardView({
   const handleRoleChange = async (userId: string, newRole: 'owner' | 'admin', userEmail?: string, userName?: string) => {
     setRoleUpdateLoading(userId);
     try {
-      const res = await updateUserRoleApi(userId, newRole, currentUser.email, userEmail, userName);
-      if (res && res.success) {
-        setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      const targetUser = teamUsers.find(u => u.id === userId);
+      const targetEmail = userEmail || targetUser?.email || '';
+      const result = await updateUserRoleApi(userId, newRole, currentUser.email, targetEmail, userName || targetUser?.name);
+      if (result && result.success) {
+        setTeamUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole, isAgent: newRole === 'owner' ? false : u.isAgent } : u));
         if (onUpdateUserRole) onUpdateUserRole(userId, newRole, true);
       } else {
-        if (onUpdateUserRole) onUpdateUserRole(userId, newRole, false, res?.message || 'Server error updating role');
+        if (onUpdateUserRole) onUpdateUserRole(userId, newRole, false, result?.message || 'Failed to update role');
       }
     } catch (err: any) {
       if (onUpdateUserRole) onUpdateUserRole(userId, newRole, false, err?.message || 'Network error updating role');
@@ -170,7 +172,6 @@ export default function DashboardView({
   // Stats
   const totalApprovedListings = listings.filter(l => l.status === 'approved');
   const totalPendingListings = listings.filter(l => l.status === 'pending');
-  const totalRejectedListings = listings.filter(l => l.status === 'rejected');
   
   const baseBrokeredVolume = totalApprovedListings.reduce((sum, item) => sum + item.price, 0);
   const uniqueOwnerIds = new Set(listings.map(l => l.ownerId));
@@ -199,14 +200,14 @@ export default function DashboardView({
 
   const getRoleBadge = (role: string) => {
     if (role === 'superadmin') return { icon: <Crown className="h-3 w-3" />, label: 'Super Admin', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
-    if (role === 'admin') return { icon: <Shield className="h-3 w-3" />, label: 'Admin', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
-    return { icon: <UserIcon className="h-3 w-3" />, label: lang === 'fr' ? 'Propri\u00e9taire' : 'Owner', color: 'text-slate-400 bg-neutral-900 border-neutral-800' };
+    if (role === 'admin') return { icon: <Shield className="h-3 w-3" />, label: lang === 'ar' ? 'مشرف' : lang === 'fr' ? 'Administrateur' : 'Admin', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+    return { icon: <UserIcon className="h-3 w-3" />, label: lang === 'ar' ? 'مالك عقار' : lang === 'fr' ? 'Propriétaire' : 'Owner', color: 'text-slate-400 bg-neutral-900 border-neutral-800' };
   };
 
   const myBadge = getRoleBadge(currentUser.role);
 
   return (
-    <div id="dashboard-view-container" className="space-y-8 animate-fadeIn">
+    <div id="dashboard-view-container" dir={lang === 'ar' ? 'rtl' : 'ltr'} className={`space-y-8 animate-fadeIn ${lang === 'ar' ? 'font-arabic text-right' : ''}`}>
       
       {/* HEADER BANNER */}
       <div className="bg-gradient-to-r from-[#0d0d0d] via-[#12180c] to-[#0d0d0d] border border-neutral-850 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-lg">

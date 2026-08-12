@@ -1,5 +1,7 @@
-// Bilingual dictionary and translation utilities for Hostkeys Real Estate Portal
+// Polyglot dictionary and translation utilities for Hostkeys Real Estate Portal (EN, FR, AR)
 import { Listing } from './types';
+
+export type Language = 'en' | 'fr' | 'ar';
 
 export const DICTIONARY = {
   en: {
@@ -371,6 +373,191 @@ export const DICTIONARY = {
     statusRejectedShort: "Refusé",
     cancel: "Annuler",
     save: "Enregistrer"
+  },
+  ar: {
+    // Header
+    brandName: "HOSTKEYS",
+    navBuyCatalog: "شراء عقار",
+    navRentCatalog: "كراء عقار",
+    navDashboard: "لوحة التحكم",
+    currencyMAD: "درهم مغربي",
+    currencyUSD: "دولار $",
+    currencyEUR: "أورو €",
+    tooltipMAD: "عرض الأسعار بالدرهم المغربي (DH)",
+    tooltipUSD: "عرض الأسعار بالدولار الأمريكي ($)",
+    tooltipEUR: "عرض الأسعار بالأورو (€)",
+    roleAdmin: "مشرف",
+    roleOwner: "مالك العقار",
+    activeCurrencyLabel: "عملة العرض",
+    activeCurrencyMAD: "الدرهم المغربي (DH)",
+    activeCurrencyUSD: "الدولار الأمريكي ($)",
+    activeCurrencyEUR: "الأورو (€)",
+
+    // Hero Section
+    brokerRepresentativeText: "المنصة العقارية الأولى في المغرب",
+    heroHeadingMain: "اعثر على عقار أحلامك",
+    heroHeadingHighlight: "في المغرب",
+    heroSubheading: "اكتشف فيلات فاخرة، شققاً حديثة، ورياضات تقليدية للبيع أو الكراء في مراكش، الدار البيضاء، طنجة، أكادير والرباط مع هوستكيز.",
+
+    // Main workspace search & filters
+    searchPlaceholder: "ابحث عن فيلات، شقق أو مدن (مراكش، الدار البيضاء، طنجة...)",
+    searchClear: "مسح",
+    filtersLabel: "تصفية",
+    addListingBtn: "إضافة عقار",
+    filteredCountSingular: "عقار واحد يطابق خيارات التصفية",
+    filteredCountPlural: "{count} عقارات تطابق خيارات التصفية",
+    noListingsFound: "لم يتم العثور على أي عقار يطابق خيارات البحث. يرجى تعديل معايير البحث.",
+    allFilters: "الكل",
+    anyOption: "الكل",
+    applyFilters: "تطبيق التصفية",
+    resetFilters: "إعادة ضبط",
+
+    // Filter fields
+    filterNeighborhood: "المدينة في المغرب",
+    filterType: "نوع المعاملة",
+    filterBedrooms: "عدد الغرف",
+    filterMaxBudget: "الحد الأقصى للميزانية ({currency})",
+    filterExchangeNotice: "* تحويل مباشر حسب سعر الصرف",
+    buyOption: "شراء (للبيع)",
+    rentOption: "كراء (شهري)",
+
+    // Chat / AI Companion panel
+    chatHeaderTitle: "المستشار الذكي هوستكيز",
+    chatSubtitle: "مساعد الهندسة والعقارات بالمغرب",
+    chatDisclaimer: "استفسر عن قوانين العقار المغربية، أسعار الأحياء، أو مواد البناء.",
+    chatPlaceholder: "اسأل عن عقارات مراكش، الدار البيضاء، أو طنجة...",
+    chatSend: "إرسال",
+    chatSystemGreeting: "مرحباً بك في هوستكيز. يمكنني مساعدتك في تقييم العقارات، قوانين البناء، والرؤى العقارية عبر المملكة المغربية. ما الذي تبحث عنه؟",
+    chatCalculating: "جاري تحليل الاستفسار...",
+
+    // Property Card
+    cardExclusiveLabel: "حصري لدى هوستكيز",
+    cardVettedLabel: "عقار موثق",
+    cardApprovedBy: "تم التدقيق بواسطة: {name}",
+    cardPendingApproval: "قيد التدقيق والتحقق",
+    cardRejected: "مرفوض",
+    cardDetailsBtn: "تفاصيل العقار",
+    cardBedroom: "غرفة",
+    cardBedrooms: "غرف",
+    cardBed: "سرير",
+    cardBeds: "أسرة",
+    cardBath: "حمام",
+    cardBaths: "حمامات",
+    cardContactBroker: "الاتصال بإدارة هوستكيز",
+    cardContactOwner: "الاتصال بمالك العقار",
+    cardForSale: "للبيع",
+    cardForRent: "للكراء",
+    cardYourSubmission: "عقارك المعروض",
+    cardMore: "+{count} المزيد",
+    cardAdvisoryPartner: "شريك هوستكيز",
+    cardExpand: "التفاصيل",
+    cardClose: "إغلاق",
+    cardBroker: "وكيل",
+    cardVettedAdvisoryNotice: "عقار مراجع وموثق من طرف هوستكيز. للاستفسارات اتصل بمركز خدمة العملاء.",
+
+    // Property Detail Drawer
+    drawerTitle: "مواصفات العقار",
+    drawerEstValuation: "القيمة التقديرية",
+    drawerEstRentalRate: "السوم الكرائي التقديري",
+    drawerSpacialLayout: "التوزيع العمراني",
+    drawerUnitCost: "تقييم التكلفة",
+    drawerExclusiveCertifiedBadge: "عقار معتمد من هوستكيز",
+    drawerAmenitiesTitle: "المرافق والتجهيزات",
+    drawerBrokerContactHeader: "الاتصال المباشر",
+    drawerBrokerName: "دعم هوستكيز",
+    drawerBrokerTitle: "مستشار عقاري معتمد",
+    drawerBrokerPlaceholder: "قمنا بمعاينة وتوثيق الوثائق القانونية والسلامة المعمارية لهذا العقار.",
+    drawerBrokerCall: "اتصال آمن",
+    drawerBrokerEmail: "بريد مباشر",
+    drawerBrokerIdentityMask: "حماية هوية المالك مفعلة",
+    drawerIdentityMaskExplanation: "بيانات التواصل مع المالك محمية. جميع المراسلات تمر عبر مستشاري هوستكيز.",
+    drawerOwnerContactHeader: "التواصل المباشر مع المالك",
+    drawerContactOwnerLabel: "ممثل مالك العقار",
+    drawerContactButton: "فتح المحادثة",
+    drawerCopyBtn: "نسخ الرابط",
+    drawerCopiedBtn: "تم النسخ!",
+
+    // Add Property Form Modal
+    formHeadline: "إضافة عقارك",
+    formSubheadline: "أدخل تفاصيل عقارك لنشره. يخضع كل عقار لمراجعة وتأكيد مديري هوستكيز.",
+    formTitleLabel: "عنوان الإعلان",
+    formTitlePlaceholder: "مثال: فيلا فاخرة بمسبح خاص في مراكش",
+    formDescriptionLabel: "وصف العقار",
+    formDescriptionPlaceholder: "مثال: فيلا واسعة تضم 3 غرف ونوافذ زجاجية كبيرة وجاردن ومساحات مشمسة...",
+    formPriceLabel: "ثمن البيع ($ USD)",
+    formPriceRentLabel: "واجب الكراء الشهري ($ USD)",
+    formPricePlaceholder: "1,200,000",
+    formPriceRentPlaceholder: "2,800",
+    formConversionNotice: "التحويل التقديري: {converted}",
+    formLocationLabel: "المدينة / الحي",
+    formSizeLabel: "المساحة الإجمالية (م²)",
+    formBedroomsLabel: "عدد الغرف",
+    formBathroomsLabel: "عدد الحمامات",
+    formAmenitiesGroup: "المرافق والتجهيزات",
+    formImageLabel: "صورة العقار",
+    formSubmitBtn: "نشر العقار",
+    formCancelBtn: "إلغاء",
+    formValidationError: "يرجى ملء جميع الحقول المطلوبة بشكل صحيح.",
+
+    // Dashboard View - General
+    dashSystemAnalytics: "إحصائيات هوستكيز والمحفظة العقارية",
+    dashProfileTitle: "الملف الشخصي",
+    dashVettedNetVal: "القيمة الإجمالية لمحفظتي",
+    dashBrokeredVolCap: "القيمة الإجمالية للعقارات",
+    dashContributors: "الشركاء المعتمدون",
+    dashGlobalSubmissions: "العقارات المعتمدة",
+    dashPendingSubmissionsCount: "طلبات قيد المراجعة",
+    dashRejectedIssuesCount: "الإعلانات المرفوضة",
+
+    dashProfileSubtitle: "قم بتحديث معلومات التواصل الخاصة بك لتلقي استفسارات العقارات",
+    dashFullName: "الاسم الكامل",
+    dashEmail: "البريد الإلكتروني",
+    dashPhone: "رقم الهاتف",
+    dashSaveProfileBtn: "حفظ التغييرات",
+    dashIdentityVerifiedBadge: "حساب موثق",
+
+    dashInboxTitle: "الرسائل والاستفسارات",
+    dashInboxDesc: "محادثات مباشرة بين المالكين ومستشاري هوستكيز",
+    dashInboxNoActiveChat: "اختر محادثة من القائمة الجانبية",
+    dashInboxParticipantLabel: "المحادثة",
+    dashInboxVettingAuditor: "مستشار هوستكيز",
+    dashInboxMemberType: "الصفة",
+
+    dashVettingQueueTitle: "قائمة مراجعة العقارات المعلقة",
+    dashVettingQueueDesc: "مراجعة والموافقة على إعلانات العقارات الجديدة",
+    dashAdminActions: "صلاحيات المشرف",
+    dashApproveBtn: "الموافقة على العقار",
+    dashRejectBtn: "رفض العقار",
+    dashAuditActiveLabel: "صلاحية الإشراف مفعلة",
+
+    dashMySubmissionsTitle: "عقاراتي المعروضة",
+    dashMySubmissionsDesc: "إدارة ومتابعة عقاراتك المعروضة على المنصة",
+    dashNoMySubmissions: "لم تقم بنشر أي عقار بعد. انقر على 'إضافة عقار' لنشر أول عقار لك!",
+    dashStatusPending: "قيد التدقيق والتحقق",
+    dashStatusApproved: "مقبول ومنشور",
+    dashStatusRejected: "مرفوض",
+    dashMarketPriceLabel: "سعر السوق",
+
+    // Auth Dialog
+    regTitle: "الدخول إلى الحساب",
+    regSubtitle: "سجل دخولك لإدارة عقاراتك وتتبع الإعلانات",
+    regOAuthLabel: "تسجيل دخول سريع بواسطة جوجل",
+    regGoogleConnect: "المتابعة باستخدام جوجل",
+    regGithubConnect: "المتابعة باستخدام جيت هاب",
+    regCredentialsTitle: "أو الدخول بواسطة البريد الإلكتروني",
+    regFullNameLabel: "الاسم الكامل",
+    regEmailLabel: "البريد الإلكتروني",
+    regPhoneLabel: "رقم الهاتف",
+    regSystemRoleLabel: "نوع الحساب",
+    regRoleOwnerMember: "مالك عقار",
+    regRoleAdmin: "مشرف مبيعات",
+
+    // Common words
+    statusApprovedShort: "مقبول",
+    statusPendingShort: "قيد المراجعة",
+    statusRejectedShort: "مرفوض",
+    cancel: "إلغاء",
+    save: "حفظ"
   }
 };
 
@@ -382,6 +569,56 @@ export const LOCATION_TRANSLATIONS: Record<string, string> = {
   'La Marina, Casablanca': 'La Marina, Casablanca',
   'Marsham, Tanger': 'Marsham, Tanger',
   'Fes El Bali, Fes': 'Fès el Bali, Fès'
+};
+
+// Map of geographical locations to Arabic equivalents
+export const LOCATION_TRANSLATIONS_AR: Record<string, string> = {
+  'Palmerie, Marrakech': 'النوخيل، مراكش',
+  'Gueliz, Marrakech': 'جيليز، مراكش',
+  'Rif Mountains, Chefchaouen': 'جبال الريف، شفشاون',
+  'La Marina, Casablanca': 'المارينا، الدار البيضاء',
+  'Marsham, Tanger': 'مارشان، طنجة',
+  'Fes El Bali, Fes': 'فاس البالي، فاس',
+  'Agadir': 'أكادير',
+  'Al Hoceima': 'الحسيمة',
+  'Asilah': 'أصيلة',
+  'Azrou': 'أزرو',
+  'Beni Mellal': 'بني ملال',
+  'Berkane': 'بركان',
+  'Bouznika': 'بوزنيقة',
+  'Casablanca': 'الدار البيضاء',
+  'Chefchaouen': 'شفشاون',
+  'Dakhla': 'الداخلة',
+  'El Jadida': 'الجديدة',
+  'Errachidia': 'الرشيدية',
+  'Essaouira': 'الصويرة',
+  'Fes': 'فاس',
+  'Ifrane': 'إفران',
+  'Kenitra': 'القنيطرة',
+  'Khenifra': 'خنيفرة',
+  'Khouribga': 'خريبكة',
+  'Ksar El Kebir': 'القصر الكبير',
+  'Laayoune': 'العيون',
+  'Larache': 'العرائش',
+  'Marrakech': 'مراكش',
+  'Meknes': 'مكناس',
+  'Mohammedia': 'المحمدية',
+  'Nador': 'الناظور',
+  'Ouarzazate': 'ورزازات',
+  'Oujda': 'وجدة',
+  'Rabat': 'الرباط',
+  'Safi': 'آسفي',
+  'Salé': 'سلا',
+  'Sidi Ifni': 'سيدي إفني',
+  'Sidi Kacem': 'سيدي قاسم',
+  'Sidi Slimane': 'سيدي سليمان',
+  'Tanger': 'طنجة',
+  'Tangier': 'طنجة',
+  'Tantan': 'طنطان',
+  'Taroudant': 'تارودانت',
+  'Taza': 'تازة',
+  'Tetouan': 'تطوان',
+  'Tiznit': 'تزنيت'
 };
 
 // Map of standard amenities to French equivalents
@@ -421,8 +658,44 @@ export const AMENITY_TRANSLATIONS: Record<string, string> = {
   'Covered Parking': 'Parking couvert'
 };
 
-export function t(key: keyof typeof DICTIONARY.en, lang: 'en' | 'fr', interpolations?: Record<string, string | number>): string {
-  const dict = lang === 'fr' ? DICTIONARY.fr : DICTIONARY.en;
+// Map of standard amenities to Arabic equivalents
+export const AMENITY_TRANSLATIONS_AR: Record<string, string> = {
+  'Traditional Hammam': 'حمام تقليدي',
+  'Central Courtyard Patio': 'فناء وممر مشمس (باتيو)',
+  'Zellige Tile Work': 'زليج تقليدي أصيل',
+  'Rooftop Terrace': 'سطح بتراس بانورامي',
+  'Swimming Pool': 'مسبح خاص',
+  'Beldi Fireplace': 'مدفأة بلدي',
+  'Sculpted Cedar Ceilings': 'سقف من خشب الأرز المنقوش',
+  'Atlas Mountain View': 'إطلالة على جبال الأطلس',
+  'Olive & Citrus Garden': 'حديقة زيتون وحوامض',
+  'Tadelakt Bathrooms': 'حمامات بتدلاكت تقليدي',
+  'Traditional Salon (Bhou)': 'صالون مغربي تقليدي ( البهو )',
+  'Air Conditioning': 'مكيف هواء',
+  'High-Speed Fiber Wifi': 'أنترنيت ألياف بصرية سريع',
+  '24/7 Security & Concierge': 'حراسة واستقبال 24/7',
+  'Private Garage & Parking': 'مرأب وموقف سيارات خاص',
+  'Solar Water Heater': 'سخان ماء شمسي',
+
+  // Fallbacks for legacy
+  'Pool': 'مسبح',
+  'Gym': 'قاعة رياضة',
+  'Smart Home': 'منزل ذكي',
+  'Solar Grid': 'طاقة شمسية',
+  'Security System': 'نظام أمني',
+  'Wine Cellar': 'قبو',
+  'High Speed Wifi': 'أنترنيت سريع',
+  'Wooden Sauna': 'ساونا خشبي',
+  'Hot Tub': 'جاكوزي',
+  'Fireplace': 'مدفأة بلدي',
+  'Concierge Service': 'خدمة استقبال',
+  'Rainwater Harvesting': 'تجميع مياه الأمطار',
+  'Minimalist Patio': 'فناء هادئ',
+  'Covered Parking': 'موقف مغطى'
+};
+
+export function t(key: keyof typeof DICTIONARY.en, lang: Language, interpolations?: Record<string, string | number>): string {
+  const dict = DICTIONARY[lang] || DICTIONARY.en;
   let text = (dict[key] || DICTIONARY.en[key] || String(key)) as string;
 
   if (interpolations) {
@@ -433,11 +706,11 @@ export function t(key: keyof typeof DICTIONARY.en, lang: 'en' | 'fr', interpolat
   return text;
 }
 
-export function translateListing(listing: Listing, lang: 'en' | 'fr'): Listing {
+export function translateListing(listing: Listing, lang: Language): Listing {
   if (lang === 'en') return listing;
   
-  const translatedAmenities = listing.amenities.map(name => AMENITY_TRANSLATIONS[name] || name);
-  const translatedLocation = LOCATION_TRANSLATIONS[listing.location] || listing.location;
+  const translatedAmenities = listing.amenities.map(name => translateAmenity(name, lang));
+  const translatedLocation = translateLocation(listing.location, lang);
 
   return {
     ...listing,
@@ -446,12 +719,14 @@ export function translateListing(listing: Listing, lang: 'en' | 'fr'): Listing {
   };
 }
 
-export function translateLocation(location: string, lang: 'en' | 'fr'): string {
-  if (lang === 'en') return location;
-  return LOCATION_TRANSLATIONS[location] || location;
+export function translateLocation(location: string, lang: Language): string {
+  if (lang === 'ar') return LOCATION_TRANSLATIONS_AR[location] || LOCATION_TRANSLATIONS[location] || location;
+  if (lang === 'fr') return LOCATION_TRANSLATIONS[location] || location;
+  return location;
 }
 
-export function translateAmenity(amenity: string, lang: 'en' | 'fr'): string {
-  if (lang === 'en') return amenity;
-  return AMENITY_TRANSLATIONS[amenity] || amenity;
+export function translateAmenity(amenity: string, lang: Language): string {
+  if (lang === 'ar') return AMENITY_TRANSLATIONS_AR[amenity] || AMENITY_TRANSLATIONS[amenity] || amenity;
+  if (lang === 'fr') return AMENITY_TRANSLATIONS[amenity] || amenity;
+  return amenity;
 }

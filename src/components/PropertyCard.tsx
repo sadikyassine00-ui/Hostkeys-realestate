@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Listing, User } from '../types';
 import { Bed, DoorOpen, Bath, Maximize, ShieldCheck, Mail, Phone, UserCheck, Star, Sparkles, Globe, Share2, Check, Pencil, Trash2 } from 'lucide-react';
 import { formatCurrency, Currency } from '../utils';
-import { t } from '../translations';
+import { t, Language } from '../translations';
 import ShareModal from './ShareModal';
 
 interface PropertyCardProps {
@@ -17,7 +17,7 @@ interface PropertyCardProps {
   onDeleteListing?: (listingId: string) => void;
   currency: Currency;
   eurRate: number;
-  lang: 'en' | 'fr';
+  lang: Language;
 }
 
 export default function PropertyCard({ listing, adminUser, currentUser, agents = [], onSelect, onEditListing, onDeleteListing, currency, eurRate, lang }: PropertyCardProps) {
@@ -99,12 +99,13 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
   return (
     <motion.div 
       id={`property-card-${listing.id}`}
-      onClick={() => onSelect?.(listing)}
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -6, borderColor: 'var(--color-brand)' }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-[#0d0d0d] border border-neutral-900 shadow-md hover:shadow-[0_0_25px_-5px_rgba(0,240,255,0.35)] cursor-pointer"
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
+      className={`group relative flex flex-col overflow-hidden rounded-2xl bg-[#0c0c0c] border border-neutral-850 hover:border-brand/40 shadow-2xl cursor-pointer select-none ${lang === 'ar' ? 'font-arabic text-right' : ''}`}
+      onClick={() => onSelect && onSelect(listing)}
     >
       {/* Property Image & Badges */}
       <div className="relative aspect-[1.6] w-full overflow-hidden bg-[#030303]">
@@ -146,7 +147,7 @@ export default function PropertyCard({ listing, adminUser, currentUser, agents =
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                if (confirm(lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
+                if (confirm(lang === 'ar' ? 'هل تريد حذف هذا العقار؟' : lang === 'fr' ? 'Supprimer cette propriété ?' : 'Delete this property?')) {
                   onDeleteListing(listing.id);
                 }
               }}

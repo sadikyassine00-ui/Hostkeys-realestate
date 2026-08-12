@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { formatCurrency, convertValue, Currency } from '../utils';
-import { t } from '../translations';
+import { t, Language } from '../translations';
 import ShareModal from './ShareModal';
 
 const MOROCCO_VILLA_IMAGES = [
@@ -49,7 +49,7 @@ interface PropertyDetailDrawerProps {
   adminUser?: User;
   currency: Currency;
   eurRate: number;
-  lang: 'en' | 'fr';
+  lang: Language;
 }
 
 export default function PropertyDetailDrawer({ listing, currentUser, agents = [], onClose, onEditListing, onDeleteListing, adminUser, currency, eurRate, lang }: PropertyDetailDrawerProps) {
@@ -187,11 +187,12 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
 
       {/* Drawer Container */}
       <motion.div
-        initial={{ x: '100%' }}
+        dir={lang === 'ar' ? 'rtl' : 'ltr'}
+        initial={{ x: lang === 'ar' ? '-100%' : '100%' }}
         animate={{ x: 0 }}
-        exit={{ x: '100%' }}
+        exit={{ x: lang === 'ar' ? '-100%' : '100%' }}
         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="relative z-10 w-full max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#0b0b0b] border-l border-neutral-900 h-full flex flex-col shadow-2xl overflow-hidden"
+        className={`relative z-10 w-full max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl bg-[#0b0b0b] ${lang === 'ar' ? 'border-r' : 'border-l'} border-neutral-900 h-full flex flex-col shadow-2xl overflow-hidden ${lang === 'ar' ? 'font-arabic text-right' : ''}`}
       >
         {/* Header bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md">
@@ -273,7 +274,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
           <div className="space-y-3 pb-5 border-b border-neutral-900">
             <div className="flex items-center gap-1.5 text-brand font-mono text-xs font-semibold">
               <MapPin className="h-3.5 w-3.5" />
-              <span>{listing.location}, {lang === 'fr' ? 'Maroc' : 'Morocco'}</span>
+              <span>{listing.location}, {lang === 'ar' ? 'المغرب' : lang === 'fr' ? 'Maroc' : 'Morocco'}</span>
             </div>
             
             <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white font-sans">{listing.title}</h2>
@@ -448,7 +449,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
                 className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 font-bold transition-all cursor-pointer"
               >
                 <Trash2 className="h-4 w-4" />
-                <span>{lang === 'fr' ? 'Supprimer' : 'Delete'}</span>
+                <span>{lang === 'ar' ? 'حذف' : lang === 'fr' ? 'Supprimer' : 'Delete'}</span>
               </button>
             )}
 
@@ -456,7 +457,7 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
               onClick={onClose}
               className="flex-1 px-4 py-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-850 text-neutral-200 border border-neutral-800 transition-all cursor-pointer text-center font-bold min-w-[120px]"
             >
-              {lang === 'fr' ? 'Fermer le panneau' : 'Close Drawer'}
+              {lang === 'ar' ? 'إغلاق المعاينة' : lang === 'fr' ? 'Fermer le panneau' : 'Close Drawer'}
             </button>
           </div>
         </div>
@@ -466,10 +467,11 @@ export default function PropertyDetailDrawer({ listing, currentUser, agents = []
       <AnimatePresence>
         {isLightboxOpen && (
           <motion.div
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-60 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-6"
+            className={`fixed inset-0 z-60 bg-black/95 backdrop-blur-2xl flex flex-col justify-between p-4 md:p-6 ${lang === 'ar' ? 'font-arabic text-right' : ''}`}
             onClick={() => setIsLightboxOpen(false)}
           >
             {/* Top Bar */}

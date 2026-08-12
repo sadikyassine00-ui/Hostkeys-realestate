@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Listing, User } from '../types';
 import { ALL_AMENITIES, ALL_CITIES } from '../mockData';
 import { ShieldAlert, Plus, Check, Info, FilePlus, UploadCloud, Image as ImageIcon, X, Loader2, MapPin, Link as LinkIcon, Search, ChevronDown } from 'lucide-react';
-import { translateAmenity, translateLocation } from '../translations';
+import { translateAmenity, translateLocation, Language } from '../translations';
 import { Currency, formatCurrency, EXCHANGE_RATES } from '../utils';
 import { uploadImageApi } from '../api';
 
@@ -14,7 +14,7 @@ interface PropertyFormProps {
   onClose: () => void;
   currency: Currency;
   eurRate: number;
-  lang: 'en' | 'fr';
+  lang: Language;
 }
 
 const HOUSING_PRESETS = [
@@ -204,15 +204,18 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-[#0c0c0c] border border-neutral-850 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div 
+        dir={lang === 'ar' ? 'rtl' : 'ltr'} 
+        className={`bg-[#0c0c0c] border border-neutral-850 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden ${lang === 'ar' ? 'font-arabic text-right' : ''}`}
+      >
         <div className="flex items-center justify-between border-b border-neutral-900 p-6 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-white font-sans flex items-center gap-2">
               <FilePlus className="h-5 w-5 text-brand" />
-              {lang === 'fr' ? 'Publier Votre Propriété' : 'Publish Your Property'}
+              {lang === 'ar' ? 'نشر عقارك في هوستكيز' : lang === 'fr' ? 'Publier Votre Propriété' : 'Publish Your Property'}
             </h2>
             <p className="text-xs font-mono text-slate-400 mt-1">
-              {lang === 'fr' ? 'Soumettez les détails de votre bien pour validation Hostkeys.' : 'Submit property details for Hostkeys verification.'}
+              {lang === 'ar' ? 'أدخل تفاصيل عقارك لنشره بعد تدقيق وتأكيد هوستكيز.' : lang === 'fr' ? 'Soumettez les détails de votre bien pour validation Hostkeys.' : 'Submit property details for Hostkeys verification.'}
             </p>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-neutral-900 text-slate-400 hover:text-white cursor-pointer">
@@ -223,13 +226,13 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 font-mono text-xs flex-grow">
           {/* Transaction Type */}
           <div>
-            <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Type de Transaction' : 'Listing Type'}</label>
+            <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'نوع المعاملة' : lang === 'fr' ? 'Type de Transaction' : 'Listing Type'}</label>
             <div className="grid grid-cols-2 gap-2 bg-[#030303] p-1 rounded-xl border border-neutral-850">
               <button type="button" onClick={() => setType('buy')} className={`py-2 rounded-lg font-bold text-center transition-all cursor-pointer ${type === 'buy' ? 'bg-brand text-[#030303]' : 'text-slate-400'}`}>
-                {lang === 'fr' ? 'Vente (Acheter)' : 'For Sale (Buy)'}
+                {lang === 'ar' ? 'بيع (شراء)' : lang === 'fr' ? 'Vente (Acheter)' : 'For Sale (Buy)'}
               </button>
               <button type="button" onClick={() => setType('rent')} className={`py-2 rounded-lg font-bold text-center transition-all cursor-pointer ${type === 'rent' ? 'bg-brand text-[#030303]' : 'text-slate-400'}`}>
-                {lang === 'fr' ? 'Location' : 'For Lease (Rent)'}
+                {lang === 'ar' ? 'كراء (إيجار)' : lang === 'fr' ? 'Location' : 'For Lease (Rent)'}
               </button>
             </div>
           </div>
@@ -250,7 +253,7 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-slate-400 mb-1">
-                {type === 'buy' ? (lang === 'fr' ? 'Prix de Vente ($ USD) *' : 'Price ($ USD) *') : (lang === 'fr' ? 'Loyer Mensuel ($ USD) *' : 'Monthly Rent ($ USD) *')}
+                {type === 'buy' ? (lang === 'ar' ? 'ثمن البيع ($ USD) *' : lang === 'fr' ? 'Prix de Vente ($ USD) *' : 'Price ($ USD) *') : (lang === 'ar' ? 'واجب الكراء الشهري ($ USD) *' : lang === 'fr' ? 'Loyer Mensuel ($ USD) *' : 'Monthly Rent ($ USD) *')}
               </label>
               <input type="number" required min={1} value={price} onChange={(e) => setPrice(e.target.value ? Number(e.target.value) : '')} placeholder="250000" className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
               {price !== '' && (
@@ -258,7 +261,7 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
               )}
             </div>
             <div>
-              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Surface Habitable (m2) *' : 'Interior Area (m2) *'}</label>
+              <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'المساحة الإجمالية (م²) *' : lang === 'fr' ? 'Surface Habitable (m2) *' : 'Interior Area (m2) *'}</label>
               <input type="number" required min={10} value={squareMeters} onChange={(e) => setSquareMeters(e.target.value ? Number(e.target.value) : '')} placeholder="220" className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none" />
             </div>
           </div>
@@ -266,11 +269,11 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
           {/* Bedrooms, Beds (Rental Only) & Bathrooms */}
           <div className={`grid gap-3 ${type === 'rent' ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div>
-              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</label>
+              <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'عدد الغرف' : lang === 'fr' ? 'Chambres' : 'Bedrooms'}</label>
               <select value={bedrooms} onChange={(e) => setBedrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
                   <option key={num} value={num}>
-                    {num} {lang === 'fr' ? (num === 1 ? 'Chambre' : 'Chambres') : (num === 1 ? 'Bedroom' : 'Bedrooms')}
+                    {num} {lang === 'ar' ? (num === 1 ? 'غرفة' : 'غرف') : lang === 'fr' ? (num === 1 ? 'Chambre' : 'Chambres') : (num === 1 ? 'Bedroom' : 'Bedrooms')}
                   </option>
                 ))}
               </select>
@@ -278,11 +281,11 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
 
             {type === 'rent' && (
               <div>
-                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Lits' : 'Beds'}</label>
+                <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'عدد الأسرة' : lang === 'fr' ? 'Lits' : 'Beds'}</label>
                 <select value={beds} onChange={(e) => setBeds(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(num => (
                     <option key={num} value={num}>
-                      {num} {lang === 'fr' ? (num === 1 ? 'Lit' : 'Lits') : (num === 1 ? 'Bed' : 'Beds')}
+                      {num} {lang === 'ar' ? (num === 1 ? 'سرير' : 'أسرة') : lang === 'fr' ? (num === 1 ? 'Lit' : 'Lits') : (num === 1 ? 'Bed' : 'Beds')}
                     </option>
                   ))}
                 </select>
@@ -290,11 +293,11 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
             )}
 
             <div>
-              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de Bain' : 'Bathrooms'}</label>
+              <label className="block text-slate-400 mb-1">{lang === 'ar' ? 'عدد الحمامات' : lang === 'fr' ? 'Salles de Bain' : 'Bathrooms'}</label>
               <select value={bathrooms} onChange={(e) => setBathrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
                 {[1, 1.5, 2, 2.5, 3, 3.5, 4, 5].map(num => (
                   <option key={num} value={num}>
-                    {num} {lang === 'fr' ? (num <= 1 ? 'SdB' : 'SdBs') : (num === 1 ? 'Bath' : 'Baths')}
+                    {num} {lang === 'ar' ? (num <= 1 ? 'حمام' : 'حمامات') : lang === 'fr' ? (num <= 1 ? 'SdB' : 'SdBs') : (num === 1 ? 'Bath' : 'Baths')}
                   </option>
                 ))}
               </select>
@@ -498,10 +501,10 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t border-neutral-900">
             <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl border border-neutral-800 text-slate-400 hover:text-white cursor-pointer">
-              {lang === 'fr' ? 'Annuler' : 'Cancel'}
+              {lang === 'ar' ? 'إلغاء' : lang === 'fr' ? 'Annuler' : 'Cancel'}
             </button>
             <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand text-[#030303] font-bold hover:bg-brand/90 transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer">
-              {lang === 'fr' ? 'Publier la Propriete' : 'Publish Property'}
+              {lang === 'ar' ? 'نشر العقار' : lang === 'fr' ? 'Publier la Propriete' : 'Publish Property'}
             </button>
           </div>
         </form>

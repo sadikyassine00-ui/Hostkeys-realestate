@@ -8,7 +8,7 @@ import PropertyDetailDrawer from './components/PropertyDetailDrawer';
 import DashboardView from './components/DashboardView';
 import Toast, { ToastMessage } from './components/Toast';
 import { formatCurrency, convertValue, Currency } from './utils';
-import { t, translateListing, translateLocation, translateAmenity } from './translations';
+import { t, translateListing, translateLocation, translateAmenity, Language } from './translations';
 import { 
   fetchProperties, 
   createPropertyApi, 
@@ -218,9 +218,9 @@ export default function App() {
   };
 
   // --- Translation State ---
-  const [lang, setLang] = useState<'en' | 'fr'>(() => {
+  const [lang, setLang] = useState<Language>(() => {
     const cached = localStorage.getItem('hostkeys_lang');
-    return (cached === 'en' || cached === 'fr') ? cached : 'en';
+    return (cached === 'en' || cached === 'fr' || cached === 'ar') ? (cached as Language) : 'en';
   });
 
   useEffect(() => {
@@ -663,7 +663,7 @@ export default function App() {
   });
 
   return (
-    <div className="min-h-screen bg-[#030303] text-slate-100 font-sans flex flex-col antialiased">
+    <div dir={lang === 'ar' ? 'rtl' : 'ltr'} lang={lang} className={`min-h-screen bg-[#030303] text-slate-100 flex flex-col antialiased ${lang === 'ar' ? 'font-arabic' : 'font-sans'}`}>
       
       {/* Main Header */}
       <header className="border-b border-neutral-900 bg-[#030303]/90 backdrop-blur-md py-4 px-4 sticky top-0 z-35">
@@ -737,15 +737,21 @@ export default function App() {
             <div className="bg-neutral-900/65 p-1 rounded-xl border border-neutral-850 text-xs font-mono select-none flex">
               <button
                 onClick={() => setLang('en')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
               >
                 EN
               </button>
               <button
                 onClick={() => setLang('fr')}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
               >
                 FR
+              </button>
+              <button
+                onClick={() => setLang('ar')}
+                className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer font-semibold ${lang === 'ar' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'}`}
+              >
+                عربي
               </button>
             </div>
           </div>
@@ -757,7 +763,7 @@ export default function App() {
                 onClick={() => setShowRegisterDialog(true)}
                 className="px-4 py-2 rounded-xl bg-brand text-[#030303] font-bold font-mono text-xs transition-all shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer"
               >
-                {lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
+                {lang === 'ar' ? 'تسجيل الدخول' : lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
               </button>
             ) : (
               <div className="flex items-center gap-2">
@@ -872,13 +878,17 @@ export default function App() {
                   </div>
                   <div className="flex bg-neutral-900/60 p-1 rounded-xl border border-neutral-800 text-xs font-mono">
                     <button onClick={() => setLang('en')}
-                      className={`px-3 py-1 rounded-lg transition-all font-semibold ${
+                      className={`px-2.5 py-1 rounded-lg transition-all font-semibold ${
                         lang === 'en' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
                       }`}>EN</button>
                     <button onClick={() => setLang('fr')}
-                      className={`px-3 py-1 rounded-lg transition-all font-semibold ${
+                      className={`px-2.5 py-1 rounded-lg transition-all font-semibold ${
                         lang === 'fr' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
                       }`}>FR</button>
+                    <button onClick={() => setLang('ar')}
+                      className={`px-2.5 py-1 rounded-lg transition-all font-semibold ${
+                        lang === 'ar' ? 'bg-brand text-[#030303]' : 'text-slate-400 hover:text-slate-100'
+                      }`}>عربي</button>
                   </div>
                 </div>
 
@@ -889,7 +899,7 @@ export default function App() {
                       onClick={() => { setShowRegisterDialog(true); setMobileMenuOpen(false); }}
                       className="w-full px-4 py-2.5 rounded-xl bg-brand text-[#030303] hover:bg-brand/90 font-bold font-mono text-sm transition-all"
                     >
-                      {lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
+                      {lang === 'ar' ? 'تسجيل الدخول' : lang === 'fr' ? 'Se Connecter' : 'Login / Sign Up'}
                     </button>
                   ) : (
                     <div className="flex items-center justify-between gap-2">
@@ -995,16 +1005,16 @@ export default function App() {
               <div className="pt-4 max-w-3xl mx-auto">
                 <div className="bg-[#0c0c0c]/90 p-2 rounded-2xl border border-neutral-800 shadow-2xl flex flex-col md:flex-row items-center gap-2 backdrop-blur-md">
                   <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className={`absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 ${lang === 'ar' ? 'right-3.5' : 'left-3.5'}`} />
                     <input
                       type="text"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder={t('searchPlaceholder', lang)}
-                      className="w-full bg-[#030303] border border-neutral-850 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-brand focus:outline-none font-mono"
+                      className={`w-full bg-[#030303] border border-neutral-850 rounded-xl py-2.5 text-xs text-white placeholder-slate-500 focus:border-brand focus:outline-none ${lang === 'ar' ? 'pr-10 pl-4 text-right font-arabic' : 'pl-10 pr-4 font-mono'}`}
                     />
                     {searchTerm && (
-                      <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 hover:text-white">
+                      <button onClick={() => setSearchTerm('')} className={`absolute top-1/2 -translate-y-1/2 text-[10px] font-mono text-slate-400 hover:text-white ${lang === 'ar' ? 'left-3' : 'right-3'}`}>
                         {t('searchClear', lang)}
                       </button>
                     )}
