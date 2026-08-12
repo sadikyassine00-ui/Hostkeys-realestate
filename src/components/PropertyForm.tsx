@@ -263,8 +263,8 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
             </div>
           </div>
 
-          {/* Bedrooms, Beds & Bathrooms */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Bedrooms, Beds (Rental Only) & Bathrooms */}
+          <div className={`grid gap-3 ${type === 'rent' ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <div>
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Chambres' : 'Bedrooms'}</label>
               <select value={bedrooms} onChange={(e) => setBedrooms(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
@@ -276,16 +276,18 @@ export default function PropertyForm({ currentUser, initialListing, onAddListing
               </select>
             </div>
 
-            <div>
-              <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Lits' : 'Beds'}</label>
-              <select value={beds} onChange={(e) => setBeds(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(num => (
-                  <option key={num} value={num}>
-                    {num} {lang === 'fr' ? (num === 1 ? 'Lit' : 'Lits') : (num === 1 ? 'Bed' : 'Beds')}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {type === 'rent' && (
+              <div>
+                <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Lits' : 'Beds'}</label>
+                <select value={beds} onChange={(e) => setBeds(Number(e.target.value))} className="w-full bg-[#030303] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-white focus:border-brand focus:outline-none">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12].map(num => (
+                    <option key={num} value={num}>
+                      {num} {lang === 'fr' ? (num === 1 ? 'Lit' : 'Lits') : (num === 1 ? 'Bed' : 'Beds')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-slate-400 mb-1">{lang === 'fr' ? 'Salles de Bain' : 'Bathrooms'}</label>
