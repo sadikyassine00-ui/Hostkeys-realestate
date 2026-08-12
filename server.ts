@@ -183,23 +183,27 @@ app.get("/api/exchange-rate", (req, res) => {
 const isProd = process.env.NODE_ENV === "production";
 const PORT = process.env.PORT || 3000;
 
-if (isProd) {
-  const distPath = path.join(__dirname, "dist");
-  app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
+async function startServer() {
+  if (isProd) {
+    const distPath = path.join(__dirname, "dist");
+    app.use(express.static(distPath));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+  } else {
+    const { createServer: createViteServer } = await import("vite");
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`\n  ➜  Local:   http://localhost:${PORT}/\n`);
   });
-} else {
-  const { createServer: createViteServer } = await import("vite");
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "spa",
-  });
-  app.use(vite.middlewares);
 }
 
-app.listen(PORT, () => {
-  console.log(`\n  ➜  Local:   http://localhost:${PORT}/\n`);
-});
+startServer();
 
 export default app;
